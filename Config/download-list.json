@@ -64,6 +64,10 @@
       "name": "卡池配置文件",
       "items": [
         {
+          "name": "4.0.1版本",
+          "url": "https://github.com/Zhaokugua/Grasscutter_Banners/blob/main/Banners4.0.1.json"
+        },
+        {
           "name": "全卡池",
           "url": "https://github.com/Zhaokugua/Grasscutter_Banners/blob/main/BannersFull.json"
         }

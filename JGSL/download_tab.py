@@ -130,8 +130,7 @@ class DownloadTab(QWidget):
         except Exception as e:
             self.logger.error(f'加载下载列表失败: {e}')
             QMessageBox.critical(self, '错误', '下载列表配置文件损坏或不存在')
-        self.tree.expandAll()
-    
+
     def update_thread_count(self, value):
         self.thread_count = value
         self.thread_count_label.setText(f'线程数: {value}')
