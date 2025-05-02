@@ -132,7 +132,7 @@ class DownloadTab(QWidget):
             return
         # 根据选择项匹配下载URL
         urls = {
-            'MongoDB 数据库社区版': 'https://fastdl.mongodb.org/...',
+            'MongoDB 数据库社区版': 'https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.9.zip',
             'Java 运行时': 'https://www.azul.com/core-post-download/?endpoint=zulu&uuid=e92d2424-0b2b-4236-9d28-73278f5b0dd9',
             'Grasscutter 服务端核心': 'https://github.com/Grasscutters/Grasscutter/releases/download/v1.7.4/grasscutter-1.7.4.jar'
         }

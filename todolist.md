@@ -2,8 +2,8 @@
 
 ## 添加
 
-- [ ]  config_editor.py：开发图形化配置编辑器（一般 | 集成多语言支持）
-- [ ]  region_manager.py：实现多地区服务器管理（计划 | 含版本兼容检测）
+- [X]  config_editor.py：开发图形化配置编辑器（一般 | 集成多语言支持）
+- [X]  region_manager.py：实现多地区服务器管理（计划 | 含版本兼容检测）
 - [ ]  resource_downloader.py：扩展资源下载功能（一般 | 支持插件/卡池/核心）
 - [ ]  Language\*：添加中英文翻译文件（一般）
 - [ ]  theme_switcher.py：实现浅色模式切换（可能）

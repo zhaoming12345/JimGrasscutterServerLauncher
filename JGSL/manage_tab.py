@@ -3,6 +3,9 @@ from PyQt5.QtCore import Qt
 import os, json
 from pathlib import Path
 from loguru import logger
+import shutil
+import psutil
+from config_editor import ConfigEditorDialog
 
 
 class InstanceConfigDialog(QDialog):
@@ -111,12 +114,14 @@ class ManageTab(QWidget):
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         self.server_list = QListWidget()
         self.create_btn = QPushButton('新建实例')
-        self.edit_btn = QPushButton('修改配置')
+        self.edit_config_btn = QPushButton('编辑Grasscutter配置文件')
+        self.edit_btn = QPushButton('修改实例配置')
         self.delete_btn = QPushButton('删除实例')
 
         layout = QVBoxLayout()
         layout.addWidget(self.server_list)
         layout.addWidget(self.create_btn)
+        layout.addWidget(self.edit_config_btn)
         layout.addWidget(self.edit_btn)
         layout.addWidget(self.delete_btn)
 
@@ -133,12 +138,26 @@ class ManageTab(QWidget):
         self.server_list.addItems(valid_servers)
 
         self.create_btn.clicked.connect(self.create_instance)
+        self.edit_config_btn.clicked.connect(self.open_config_editor)
         self.edit_btn.clicked.connect(self.edit_instance)
+        self.delete_btn.clicked.connect(self.delete_instance)
 
     def create_instance(self):
         dialog = InstanceConfigDialog(self, root_dir=self.root_dir)
         if dialog.exec_():
             self.save_config(dialog.instance_config, is_new=True)
+
+    def open_config_editor(self):
+        current_item = self.server_list.currentItem()
+        if current_item:
+            instance_name = current_item.text()
+            instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
+            config_path = os.path.join(instance_dir, 'Grasscutter.jar')
+            if not os.path.exists(config_path):
+                QMessageBox.warning(self, '错误', 'Grasscutter.jar不存在')
+                return
+            config_editor = ConfigEditorDialog(self, config_path)
+            config_editor.exec_()
 
     def edit_instance(self):
         current_item = self.server_list.currentItem()
@@ -200,3 +219,38 @@ class ManageTab(QWidget):
                 instance_dir = os.path.join(servers_path, instance_name)
                 if os.path.isdir(instance_dir) and os.path.exists(os.path.join(instance_dir, 'JGSL')):
                     self.server_list.addItem(instance_name)
+
+    def delete_instance(self):
+        current_item = self.server_list.currentItem()
+        if current_item:
+            instance_name = current_item.text()
+            instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
+            reply = QMessageBox.question(self, '确认删除', f'确定要删除实例 {instance_name} 吗？此操作将删除所有相关文件且无法恢复。', QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                try:
+                    # 检查实例是否正在运行
+                    instance_running = False
+                    for proc in psutil.process_iter(['name']):
+                        try:
+                            if instance_name in proc.info['name']:
+                                instance_running = True
+                                break
+                        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                            continue
+                    if instance_running:
+                        # 终止实例进程
+                        for proc in psutil.process_iter(['name']):
+                            try:
+                                if instance_name in proc.info['name']:
+                                    proc.terminate()
+                            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as e:
+                                logger.error(f"终止进程 {proc.info['name']} 失败: {e}")
+                                QMessageBox.warning(self, '错误', f"终止进程 {proc.info['name']} 失败: {e}")
+                                return
+                    shutil.rmtree(instance_dir)
+                    logger.success(f'实例 {instance_name} 已删除')
+                    QMessageBox.information(self, '成功', f'实例 {instance_name} 已删除')
+                    self.refresh_server_list()
+                except Exception as e:
+                    logger.error(f"删除实例 {instance_name} 失败: {e}")
+                    QMessageBox.warning(self, '错误', f"删除实例 {instance_name} 失败: {e}")

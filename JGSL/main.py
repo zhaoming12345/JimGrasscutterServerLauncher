@@ -1,9 +1,9 @@
+import sys
 from loguru import logger
 try:
     from PyQt5.QtWidgets import QApplication
     from main_window import MainWindow
     import signal
-    import sys
 
 
     def main():
