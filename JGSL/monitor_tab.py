@@ -117,16 +117,19 @@ class MonitorPanel(QDialog):
         file_size = os.path.getsize(self.log_path)
         if file_size != self.last_log_size:
             with open(self.log_path, 'r', encoding='utf-8') as f:
-                if file_size > self.last_log_size:
-                    f.seek(self.last_log_size)
-                    new_log = f.read()
-                    self.log_text.append(new_log)
-                    self.log_text.verticalScrollBar().setValue(self.log_text.verticalScrollBar().maximum())
-                    self.current_log += new_log
-                else:
-                    self.current_log = f.read()
-                    self.log_text.setText(self.current_log)
-                    self.log_text.verticalScrollBar().setValue(self.log_text.verticalScrollBar().maximum())
+                f.seek(0, os.SEEK_END)
+                lines = []
+                block_size = 1024
+                offset = 0
+                while f.tell() > 0 and len(lines) < 100:
+                    offset -= block_size
+                    f.seek(offset, os.SEEK_END)
+                    lines = f.readlines()
+                if len(lines) > 100:
+                    lines = lines[-100:]
+                new_log = ''.join(lines)
+                self.log_text.setText(new_log)
+                self.log_text.verticalScrollBar().setValue(self.log_text.verticalScrollBar().maximum())
             self.last_log_size = file_size
 
     def send_command(self):
