@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QHBoxLayout, QPushButton, QDialog, QFormLayout, QLineEdit, QListWidgetItem, QCheckBox
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QHBoxLayout, QDialog, QFormLayout, QLineEdit, QListWidgetItem, QCheckBox
 from PyQt5.QtCore import pyqtSignal
 import json
 from pathlib import Path
@@ -30,6 +30,8 @@ class ClusterConfigDialog(QDialog):
         main_layout.addLayout(form_layout)
         main_layout.addLayout(btn_layout)
         self.setLayout(main_layout)
+
+from PyQt5.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QListWidget
 
 class ClusterTab(QWidget):
     config_updated = pyqtSignal()

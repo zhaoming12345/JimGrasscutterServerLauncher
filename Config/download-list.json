@@ -4,16 +4,16 @@
       "name": "MongoDB 数据库社区版",
       "items": [
         {
-          "name": "windows-x86_64-8.0.9-current",
-          "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.9.zip"
+          "name": "Windows-X86_64-8.0.9-current",
+          "url": "https://fastdl.mongodb.org/Windows/mongodb-Windows-X86_64-8.0.9.zip"
         },
         {
-          "name": "windows-x86_64-7.0.20",
-          "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-7.0.20.zip"
+          "name": "Windows-X86_64-7.0.20",
+          "url": "https://fastdl.mongodb.org/Windows/mongodb-Windows-X86_64-7.0.20.zip"
         },
         {
-          "name": "windows-x86_64-6.0.23",
-          "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-6.0.23.zip"
+          "name": "Windows-X86_64-6.0.23",
+          "url": "https://fastdl.mongodb.org/Windows/mongodb-Windows-X86_64-6.0.23.zip"
         }
       ]
     },
@@ -22,7 +22,7 @@
       "items": [
         {
           "name": "JDK17.0.12-Windows-X86_64",
-          "url": "https://download.oracle.com/java/17/archive/jdk-17.0.12_windows-x64_bin.zip"
+          "url": "https://download.oracle.com/java/17/archive/jdk-17.0.12_Windows-X64_bin.zip"
         }
       ]
     },
@@ -39,11 +39,11 @@
       "name": "插件",
       "items": [
         {
-          "name": "opencommand-命令远程执行-V1.7.0",
+          "name": "Opencommand-命令远程执行-V1.7.0",
           "url": "https://github.com/jie65535/gc-opencommand-plugin/releases/download/v1.7.0/opencommand-1.7.0.jar"
         },
         {
-            "name": "openchat-全服聊天-V0.3.0",
+            "name": "Openchat-全服聊天-V0.3.0",
             "url": "https://github.com/jie65535/gc-openchat-plugin/releases/download/v0.3.0/openchat-0.3.0.jar"
         },
         {

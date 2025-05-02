@@ -40,7 +40,6 @@ class CircleProgress(QWidget):
         painter.setBrush(gradient)
         painter.drawPie(QRect(2, 2, 46, 46), 90 * 16, int(-self.value * 16 * 3.6))
         painter.setPen(QColor(0, 0, 0))
-        painter.setFont(QFont("Arial", 10))
         painter.drawText(QRect(0, 0, 50, 50), Qt.AlignCenter, f"{self.value}%")
 
 

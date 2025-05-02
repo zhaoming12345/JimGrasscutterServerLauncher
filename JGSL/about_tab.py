@@ -14,13 +14,13 @@ class AboutTab(QWidget):
 
         # 项目标题
         title = QLabel('JimGrasscutterServerLauncher')
-        title.setFont(QFont('Arial', 16, QFont.Bold))
+        title.setFont(QFont('', 24))
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
         # 项目中文名
         title = QLabel('Jim割草机服务器启动器')
-        title.setFont(QFont('Arial', 16, QFont.Bold))
+        title.setFont(QFont('', 24))
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
@@ -59,7 +59,7 @@ class AboutTab(QWidget):
         link_label.setText(f'<html><a href="{url}">{text}</a></html>')
         link_label.setOpenExternalLinks(True)
         link_label.linkActivated.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
-        link_label.setStyleSheet('color: #2a82da; text-decoration: underline;')
+        link_label.setStyleSheet('color: #2a82da; text-decoration: underline; font-size: 24px;')
         link_label.setContentsMargins(10, 0, 0, 0)
         h_layout.addWidget(link_label)
 
