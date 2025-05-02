@@ -1,22 +1,32 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
-from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout
+from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtGui import QFont
+
 
 class AboutTab(QWidget):
     def __init__(self):
         super().__init__()
 
         layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignTop)
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setContentsMargins(20, 20, 20, 20)
 
         # 项目标题
         title = QLabel('JimGrasscutterServerLauncher')
         title.setFont(QFont('Arial', 16, QFont.Bold))
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+
+        # 项目中文名
+        title = QLabel('Jim割草机服务器启动器')
+        title.setFont(QFont('Arial', 16, QFont.Bold))
+        title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
         # 项目链接
-        self.add_link(layout, 
+        layout.addStretch(1)
+        self.add_link(layout,
                     QIcon('Assets/JGSL-Logo.ico'),
                     '本项目GitHub仓库',
                     'https://github.com/Jimmy32767255/JimGrasscutterServerLauncher')
@@ -27,12 +37,30 @@ class AboutTab(QWidget):
                     'Grasscutter项目',
                     'https://github.com/Grasscutters/Grasscutter')
 
+        # 官网链接
+        self.add_link(layout,
+                    QIcon('Assets/Grasscutter-Logo.ico'),
+                    'Grasscutter官网',
+                    'https://grasscutter.io')
+        layout.addStretch(1)
+
         self.setLayout(layout)
 
     def add_link(self, layout, icon, text, url):
+        h_layout = QHBoxLayout()
+        h_layout.setSpacing(10)
+        h_layout.setAlignment(Qt.AlignCenter)
+        icon_label = QLabel()
+        icon_label.setPixmap(icon.pixmap(32, 32))
+        icon_label.setContentsMargins(0, 0, 10, 0)
+        h_layout.addWidget(icon_label)
+
         link_label = QLabel()
         link_label.setText(f'<html><a href="{url}">{text}</a></html>')
-        link_label.setOpenExternalLinks(False)
+        link_label.setOpenExternalLinks(True)
         link_label.linkActivated.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
         link_label.setStyleSheet('color: #2a82da; text-decoration: underline;')
-        layout.addWidget(link_label)
+        link_label.setContentsMargins(10, 0, 0, 0)
+        h_layout.addWidget(link_label)
+
+        layout.addLayout(h_layout)
