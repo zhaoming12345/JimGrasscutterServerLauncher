@@ -20,6 +20,7 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.North)
         self.tabs.setMovable(False)
+        self.tabs.currentChanged.connect(self.on_tab_changed)
 
         # 初始化各个功能页
         self.launch_tab = LaunchTab()
@@ -52,3 +53,10 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self.cleanup_and_exit()
         event.accept()
+
+    def on_tab_changed(self, index):
+        current_tab = self.tabs.widget(index)
+        if isinstance(current_tab, MonitorTab):
+            current_tab.scan_running_instances()
+        elif isinstance(current_tab, ManageTab):
+            current_tab.refresh_server_list()

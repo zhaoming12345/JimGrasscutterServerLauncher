@@ -91,12 +91,12 @@ class DownloadTab(QWidget):
         self.download_queue = {}
         self.progress_bar = QProgressBar()
         self.status_label = QLabel('准备就绪')
-        self.thread_count_label = QLabel('线程数: 4')
+        self.thread_count_label = QLabel('线程数: 64')
         self.thread_count_slider = QSlider(Qt.Horizontal)
-        self.thread_count_slider.setRange(1, 8)
-        self.thread_count_slider.setValue(4)
+        self.thread_count_slider.setRange(1, 128)
+        self.thread_count_slider.setValue(64)
         self.thread_count_slider.valueChanged.connect(self.update_thread_count)
-        self.thread_count = 4
+        self.thread_count = 64
         
         layout = QVBoxLayout()
         layout.addWidget(self.tree)
