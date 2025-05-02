@@ -7,6 +7,7 @@ from manage_tab import ManageTab
 from download_tab import DownloadTab
 from settings_tab import SettingsTab
 from cluster_tab import ClusterTab
+from about_tab import AboutTab
 
 
 class MainWindow(QMainWindow):
@@ -27,14 +28,16 @@ class MainWindow(QMainWindow):
         self.download_tab = DownloadTab()
         self.settings_tab = SettingsTab()
         self.cluster_tab = ClusterTab()
+        self.about_tab = AboutTab()
 
         # 添加选项卡
         self.tabs.addTab(self.launch_tab, '启动')
         self.tabs.addTab(self.monitor_tab, '监控')
         self.tabs.addTab(self.manage_tab, '管理')
+        self.tabs.addTab(self.cluster_tab, '集群')
         self.tabs.addTab(self.download_tab, '下载')
         self.tabs.addTab(self.settings_tab, '设置')
-        self.tabs.addTab(self.cluster_tab, '集群')
+        self.tabs.addTab(self.about_tab, '关于')
 
         # 设置主布局
         self.setCentralWidget(self.tabs)
