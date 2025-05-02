@@ -1,10 +1,10 @@
 {
   "categories": [
     {
-      "name": "MongoDB 数据库社区版",
+      "name": "MongoDB数据库社区版",
       "items": [
         {
-          "name": "Windows-X86_64-8.0.9-current",
+          "name": "Windows-X86_64-8.0.9-Current",
           "url": "https://fastdl.mongodb.org/Windows/mongodb-Windows-X86_64-8.0.9.zip"
         },
         {
