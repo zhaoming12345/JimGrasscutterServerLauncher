@@ -21,12 +21,16 @@
 
 ## 快速开始
 
-### 安装依赖：
+#### 建议直接下载Releases中的打包版本，无需安装依赖，解压缩后即可直接运行
+
+### 或者，克隆仓库后使用代码：
+
+#### 安装依赖：
 
 ```bash
 pip install -r requirements.txt
 ```
-### 运行JGSL：
+#### 运行JGSL：
 
 ```bash
 ./Start.bat
