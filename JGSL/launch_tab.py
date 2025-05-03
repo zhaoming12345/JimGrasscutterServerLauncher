@@ -7,7 +7,6 @@ import psutil
 from port_checker import check_ports
 import json
 
-
 class LaunchTab(QWidget):
     instance_started = pyqtSignal(str, int)
     instance_stopped = pyqtSignal(str)
@@ -74,14 +73,17 @@ class LaunchTab(QWidget):
                 logger.error(f'检查锁文件时发生错误: {e}')
                 return
 
-        self.create_lock_file(instance_dir)
         try:
-            with open(instance_dir / 'JGSL/Config.json', 'r') as f:
+            with open(instance_dir / 'JGSL/Config.json', 'r', encoding='utf-8') as f:
                 config = json.load(f)
             java_path = config.get('java_path', 'java')
-            grasscutter_path = str(Path(config.get("grasscutter_path", "grasscutter.jar")))
-            jvm_pre_args = config.get('jvm_pre_args', '').split()
-            jvm_post_args = config.get('jvm_post_args', '').split()
+            grasscutter_path = str((instance_dir / config.get("grasscutter_path", "grasscutter.jar")).relative_to(instance_dir))
+            jvm_pre_args = config.get('jvm_pre_args', [])
+            if isinstance(jvm_pre_args, str):
+                jvm_pre_args = jvm_pre_args.split()
+            jvm_post_args = config.get('jvm_post_args', [])
+            if isinstance(jvm_post_args, str):
+                jvm_post_args = jvm_post_args.split()
             config_path = instance_dir / 'config.json'
             try:
                 with open(config_path, 'r', encoding='utf-8') as f:
@@ -145,6 +147,7 @@ class LaunchTab(QWidget):
             except Exception as e:
                 logger.error(f'写入锁文件失败: {e}')
             self.instance_started.emit(instance_name, pid)
+            self.create_lock_file(instance_dir)
         logger.info(f'启动实例 {instance_name}')
 
     def start_database_service(self):
@@ -186,13 +189,17 @@ class LaunchTab(QWidget):
     def create_lock_file(self, instance_dir):
         lock_file = instance_dir / 'Running.lock'
         try:
-            with open(lock_file, 'w') as f:
+            if self.current_process is None:
+                logger.error('无法创建锁文件: 进程未初始化')
+                return
+            pid = self.current_process.processId()
+            with open(lock_file, 'w', encoding='utf-8') as f:
                 json.dump({
-                    'pid': self.current_process.processId(),
+                    'pid': pid,
                     'start_time': time.time(),
                     'program': __file__,
                     'process_path': os.path.abspath(__file__)
-                }, f)
+                }, f, ensure_ascii=False)
         except Exception as e:
             logger.error(f'创建锁文件失败: {e}')
 
@@ -236,9 +243,9 @@ class LaunchTab(QWidget):
 
     def handle_stderr(self):
         text = self.current_process.readAllStandardError().data().decode(locale.getpreferredencoding(False), errors='replace')
-        if self.current_process.state() == QProcess.Running:
+        if self.current_process.state() != QProcess.Running:
             logger.error(f'进程错误: {text.strip()}')
-        elif self.db_process.state() == QProcess.Running:
+        elif self.db_process.state() != QProcess.Running:
             if 'waiting for connections on port' in text:
                 logger.info(f'数据库已成功启动')
             else:

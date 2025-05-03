@@ -116,14 +116,7 @@ class MonitorPanel(QDialog):
         file_size = os.path.getsize(self.log_path)
         if file_size != self.last_log_size:
             with open(self.log_path, 'r', encoding='utf-8') as f:
-                f.seek(0, os.SEEK_END)
-                lines = []
-                block_size = 1024
-                offset = 0
-                while f.tell() > 0 and len(lines) < 100:
-                    offset -= block_size
-                    f.seek(offset, os.SEEK_END)
-                    lines = f.readlines()
+                lines = f.readlines()
                 if len(lines) > 100:
                     lines = lines[-100:]
                 new_log = ''.join(lines)
@@ -291,7 +284,8 @@ class MonitorTab(QWidget):
             logger.debug(f'更新实例显示: {instance_name}')
 
     def on_manual_refresh(self):
-        current_selected = self.instance_list.currentItem().text() if self.instance_list.currentItem() else None
+        current_item = self.instance_list.currentItem()
+        current_selected = current_item.text() if current_item else None
         self.scan_running_instances()
         if current_selected:
             items = self.instance_list.findItems(current_selected, Qt.MatchExactly)
