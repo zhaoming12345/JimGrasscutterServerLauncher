@@ -149,37 +149,41 @@ class ManageTab(QWidget):
 
     def open_config_editor(self):
         current_item = self.server_list.currentItem()
-        if current_item:
-            instance_name = current_item.text()
-            instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
-            config_path = os.path.join(instance_dir, 'Grasscutter.jar')
-            if not os.path.exists(config_path):
-                QMessageBox.warning(self, '错误', 'Grasscutter.jar不存在')
-                return
-            config_editor = ConfigEditorDialog(self, config_path)
-            config_editor.exec_()
+        if not current_item:
+            QMessageBox.warning(self, '警告', '请选择一个实例')
+            return
+        instance_name = current_item.text()
+        instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
+        config_path = os.path.join(instance_dir, 'Grasscutter.jar')
+        if not os.path.exists(config_path):
+            QMessageBox.warning(self, '错误', 'Grasscutter.jar不存在')
+            return
+        config_editor = ConfigEditorDialog(self, config_path)
+        config_editor.exec_()
 
     def edit_instance(self):
         current_item = self.server_list.currentItem()
-        if current_item:
-            instance_name = current_item.text()
-            instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
-            config_path = os.path.join(instance_dir, 'JGSL', 'Config.json')
-            try:
-                with open(config_path, 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-            except json.JSONDecodeError as e:
-                logger.error(f"实例配置文件 {config_path} 解析失败: {e}")
-                QMessageBox.warning(self, '错误', f"实例配置文件 {config_path} 解析失败")
-                return
-            except Exception as e:
-                logger.error(f"读取实例配置文件 {config_path} 时发生未知错误: {e}")
-                QMessageBox.warning(self, '错误', f"读取实例配置文件 {config_path} 时发生未知错误")
-                return
-            config['instance_name'] = instance_name
-            dialog = InstanceConfigDialog(self, config, root_dir=self.root_dir)
-            if dialog.exec_():
-                self.save_config(dialog.instance_config, is_new=False)
+        if not current_item:
+            QMessageBox.warning(self, '警告', '请选择一个实例')
+            return
+        instance_name = current_item.text()
+        instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
+        config_path = os.path.join(instance_dir, 'JGSL', 'Config.json')
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+        except json.JSONDecodeError as e:
+            logger.error(f"实例配置文件 {config_path} 解析失败: {e}")
+            QMessageBox.warning(self, '错误', f"实例配置文件 {config_path} 解析失败")
+            return
+        except Exception as e:
+            logger.error(f"读取实例配置文件 {config_path} 时发生未知错误: {e}")
+            QMessageBox.warning(self, '错误', f"读取实例配置文件 {config_path} 时发生未知错误")
+            return
+        config['instance_name'] = instance_name
+        dialog = InstanceConfigDialog(self, config, root_dir=self.root_dir)
+        if dialog.exec_():
+            self.save_config(dialog.instance_config, is_new=False)
 
     def save_config(self, config, is_new=True):
         logger.info('正在保存实例配置')
@@ -222,35 +226,37 @@ class ManageTab(QWidget):
 
     def delete_instance(self):
         current_item = self.server_list.currentItem()
-        if current_item:
-            instance_name = current_item.text()
-            instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
-            reply = QMessageBox.question(self, '确认删除', f'确定要删除实例 {instance_name} 吗？此操作将删除所有相关文件且无法恢复。', QMessageBox.Yes | QMessageBox.No)
-            if reply == QMessageBox.Yes:
-                try:
-                    # 检查实例是否正在运行
-                    instance_running = False
+        if not current_item:
+            QMessageBox.warning(self, '警告', '请选择一个实例')
+            return
+        instance_name = current_item.text()
+        instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
+        reply = QMessageBox.question(self, '确认删除', f'确定要删除实例 {instance_name} 吗？此操作将删除所有相关文件且无法恢复。', QMessageBox.Yes | QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            try:
+                # 检查实例是否正在运行
+                instance_running = False
+                for proc in psutil.process_iter(['name']):
+                    try:
+                        if instance_name in proc.info['name']:
+                            instance_running = True
+                            break
+                    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                        continue
+                if instance_running:
+                    # 终止实例进程
                     for proc in psutil.process_iter(['name']):
                         try:
                             if instance_name in proc.info['name']:
-                                instance_running = True
-                                break
-                        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                            continue
-                    if instance_running:
-                        # 终止实例进程
-                        for proc in psutil.process_iter(['name']):
-                            try:
-                                if instance_name in proc.info['name']:
-                                    proc.terminate()
-                            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as e:
-                                logger.error(f"终止进程 {proc.info['name']} 失败: {e}")
-                                QMessageBox.warning(self, '错误', f"终止进程 {proc.info['name']} 失败: {e}")
-                                return
-                    shutil.rmtree(instance_dir)
-                    logger.success(f'实例 {instance_name} 已删除')
-                    QMessageBox.information(self, '成功', f'实例 {instance_name} 已删除')
-                    self.refresh_server_list()
-                except Exception as e:
-                    logger.error(f"删除实例 {instance_name} 失败: {e}")
-                    QMessageBox.warning(self, '错误', f"删除实例 {instance_name} 失败: {e}")
+                                proc.terminate()
+                        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as e:
+                            logger.error(f"终止进程 {proc.info['name']} 失败: {e}")
+                            QMessageBox.warning(self, '错误', f"终止进程 {proc.info['name']} 失败: {e}")
+                            return
+                shutil.rmtree(instance_dir)
+                logger.success(f'实例 {instance_name} 已删除')
+                QMessageBox.information(self, '成功', f'实例 {instance_name} 已删除')
+                self.refresh_server_list()
+            except Exception as e:
+                logger.error(f"删除实例 {instance_name} 失败: {e}")
+                QMessageBox.warning(self, '错误', f"删除实例 {instance_name} 失败: {e}")
