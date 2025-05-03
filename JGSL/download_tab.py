@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QProgressBar, QLabel, QSlider, QHBoxLayout, QDialog, QDialogButtonBox, QMessageBox, QTreeWidget, QTreeWidgetItem
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QProgressBar, QLabel, QSlider, QHBoxLayout, QDialog, QDialogButtonBox, QMessageBox, QTreeWidget, QTreeWidgetItem,QSpacerItem,QSizePolicy
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
 import requests
 import shutil
@@ -90,6 +90,12 @@ class DownloadTab(QWidget):
         self.download_btn = QPushButton('下载选中项目')
         self.download_queue = {}
         self.progress_bar = QProgressBar()
+        self.progress_bar.setStyleSheet("""
+        QProgressBar {
+        margin-left: 0px;
+        height: 20px;
+        }
+        """)
         self.status_label = QLabel('准备就绪')
         self.thread_count_label = QLabel('线程数: 64')
         self.thread_count_slider = QSlider(Qt.Horizontal)
@@ -99,17 +105,19 @@ class DownloadTab(QWidget):
         self.thread_count = 64
         
         layout = QVBoxLayout()
-        layout.addWidget(self.tree)
+        layout.setSpacing(20)
+        layout.addWidget(self.tree,7)
         layout.addWidget(self.download_btn)
         layout.addWidget(self.progress_bar)
         layout.addWidget(self.status_label)
         
         thread_layout = QHBoxLayout()
         thread_layout.addWidget(self.thread_count_label)
-        thread_layout.addWidget(self.thread_count_slider)
+        thread_layout.addWidget(self.thread_count_slider, stretch=8)
         thread_layout.addStretch(1)
         thread_layout.setSpacing(10)
         layout.addLayout(thread_layout)
+        layout.addSpacerItem(QSpacerItem(10, 10, QSizePolicy.Minimum, QSizePolicy.Expanding))
         
         self.setLayout(layout)
         self.download_btn.clicked.connect(self.start_download)

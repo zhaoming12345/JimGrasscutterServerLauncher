@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QComboBox, QLabel, QPushButton, QSpinBox, QHBoxLayout
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QComboBox, QLabel, QPushButton, QSpinBox, QHBoxLayout,QSpacerItem,QSizePolicy
 from PyQt5.QtCore import QSettings, QTimer
 import qdarkstyle
 from loguru import logger
@@ -36,12 +36,14 @@ class SettingsTab(QWidget):
         self.save_btn = QPushButton("保存设置")
         
         layout = QVBoxLayout()
+        layout.setSpacing(20)
         layout.addWidget(self.theme_label)
         layout.addWidget(self.theme_combo)
         layout.addWidget(self.lang_label)
         layout.addWidget(self.lang_combo)
         layout.addWidget(self.auto_update)
         layout.addLayout(log_line_layout)
+        layout.addSpacerItem(QSpacerItem(10, 10, QSizePolicy.Minimum, QSizePolicy.Expanding))
         layout.addWidget(self.save_btn)
         
         self.setLayout(layout)
