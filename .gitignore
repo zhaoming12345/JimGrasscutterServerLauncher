@@ -1,3 +1,4 @@
+# 排除所有缓存文件
 /JGSL/__pycache__/
 *.pyc
 *.log
@@ -8,3 +9,26 @@
 *.tar.bz2
 *.tar.xz
 *.tar
+
+# 排除以下目录内容，但是保留目录结构
+/Web/*
+!/Web/.gitkeep
+/Servers/*
+!/Servers/.gitkeep
+/Logs/*
+!/Logs/.gitkeep
+/Language/*
+!/Language/.gitkeep
+/keystore/*
+!/keystore/.gitkeep
+/Java/*
+!/Java/.gitkeep
+/DownloadTemp/*
+!/DownloadTemp/.gitkeep
+/Database/*
+!/Database/.gitkeep
+
+# 保留以下目录
+!/JGSL/
+!/Config/
+!/Assets/

@@ -1,433 +1,458 @@
-from pathlib import Path
+from PyQt5.QtWidgets import (
+    QDialog, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
+    QListWidget, QTabWidget, QCheckBox, QLineEdit, QListWidgetItem, QFormLayout,
+    QMessageBox
+)
+from PyQt5.QtCore import Qt
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QHBoxLayout, QDialog, QFormLayout, QLineEdit, QListWidgetItem, QCheckBox, QPushButton, QLabel, QTabWidget
-from PyQt5.QtCore import pyqtSignal, QRegExp
-from PyQt5.QtGui import QValidator, QRegExpValidator
+import os
 import json
+from pathlib import Path
 
 class ClusterConfigDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle('集群配置')
-        self.tab_widget = QTabWidget()
-        
-        # 基本配置选项卡
-        basic_tab = QWidget()
-        self.dispatch_server_list = QListWidget()
-        self.game_servers_list = QListWidget()
-        self.game_servers_list.setSelectionMode(QListWidget.MultiSelection)
-        
-        # 游戏服务器配置表格
-        self.server_configs = {}
-        
-        form_layout = QFormLayout()
-        form_layout.addRow('调度服务器：', self.dispatch_server_list)
-        form_layout.addRow('游戏服务器：', self.game_servers_list)
-        
-        # 游戏服务器选择变更事件
-        self.game_servers_list.itemSelectionChanged.connect(self.update_server_configs)
-        
-        basic_tab.setLayout(form_layout)
-        self.tab_widget.addTab(basic_tab, '基本配置')
-        
-        # 游戏服务器配置选项卡
-        game_config_tab = QWidget()
-        self.game_server_port_edit = QLineEdit()
-        self.role_limit_edit = QLineEdit()
-        self.role_limit_edit.setValidator(QRegExpValidator(QRegExp('[0-9]+')))
-        self.role_limit_error_label = QLabel('')
-        self.role_limit_error_label.setStyleSheet('color: red;')
-        self.banned_accounts_list = QListWidget()
-        self.banned_accounts_list.setSelectionMode(QListWidget.MultiSelection)
-        self.whitelisted_accounts_list = QListWidget()
-        self.whitelisted_accounts_list.setSelectionMode(QListWidget.MultiSelection)
-        
-        form_layout = QFormLayout()
-        form_layout.addRow('游戏服务器端口：', self.game_server_port_edit)
-        form_layout.addRow('角色限制：', self.role_limit_edit)
-        form_layout.addRow(self.role_limit_error_label)
-        form_layout.addRow('封禁账号：', self.banned_accounts_list)
-        form_layout.addRow('白名单账号：', self.whitelisted_accounts_list)
-        
-        game_config_tab.setLayout(form_layout)
-        self.tab_widget.addTab(game_config_tab, '游戏服务器配置')
-        
-        # 服务器独立配置选项卡
-        self.server_config_tab = QWidget()
-        self.server_config_layout = QVBoxLayout()
-        self.server_config_tab.setLayout(self.server_config_layout)
-        self.tab_widget.addTab(self.server_config_tab, '服务器独立配置')
-        
+        self.setWindowTitle('创建/编辑集群')
+        self.resize(800, 600)
+
+        # Nya! 左侧：可用服务器列表
+        self.available_servers_list = QListWidget()
+        available_servers_layout = QVBoxLayout()
+        available_servers_layout.addWidget(QLabel('可用服务器实例:'))
+        available_servers_layout.addWidget(self.available_servers_list)
+
+        # Nya! 中间：添加/移除按钮和集群内服务器列表
+        self.add_to_cluster_btn = QPushButton('加入集群 ↑')
+        self.remove_from_cluster_btn = QPushButton('↓ 移出集群')
+        middle_buttons_layout = QVBoxLayout()
+        middle_buttons_layout.addStretch()
+        middle_buttons_layout.addWidget(self.add_to_cluster_btn)
+        middle_buttons_layout.addWidget(self.remove_from_cluster_btn)
+        middle_buttons_layout.addStretch()
+
+        # Nya! 右侧：使用 QTabWidget 实现标签页配置
+        self.config_tabs = QTabWidget()
+
+        # -- 调度标签页 --
+        dispatch_tab = QWidget()
+        dispatch_layout = QVBoxLayout()
+        self.dispatch_server_list = QListWidget() # Nya! 用于显示集群内的调度服务器
+        self.use_internal_dispatch_checkbox = QCheckBox('使用内置调度')
+        # Nya! 调度标签页底部的特定布局 (根据设计图调整)
+        dispatch_bottom_widget = QWidget()
+        dispatch_bottom_layout = QHBoxLayout(dispatch_bottom_widget)
+        dispatch_bottom_layout.setContentsMargins(0, 10, 0, 0)
+        dispatch_bottom_layout.addWidget(self.use_internal_dispatch_checkbox) # Nya! 复选框放左边
+        dispatch_bottom_layout.addStretch()
+        dispatch_bottom_layout.addWidget(QLabel('选定为调度服务器:')) # Nya! 标签放中间
+
+        dispatch_layout.addWidget(QLabel("调度服务器列表:"))
+        dispatch_layout.addWidget(self.dispatch_server_list)
+        dispatch_layout.addStretch()
+        dispatch_layout.addWidget(dispatch_bottom_widget)
+        dispatch_tab.setLayout(dispatch_layout)
+        self.config_tabs.addTab(dispatch_tab, '调度')
+
+        # -- 游戏标签页 --
+        game_tab = QWidget()
+        game_layout = QVBoxLayout()
+        self.game_server_list = QListWidget() # Nya! 用于显示集群内的游戏服务器
+        # Nya! 游戏标签页底部的按钮 (根据设计图调整)
+        game_bottom_widget = QWidget()
+        game_bottom_layout = QHBoxLayout(game_bottom_widget)
+        game_bottom_layout.setContentsMargins(0, 10, 0, 0)
+        self.config_title_btn = QPushButton('配置标题')
+        game_bottom_layout.addWidget(self.config_title_btn) # Nya! 配置标题按钮放左边
+        game_bottom_layout.addStretch()
+
+        game_layout.addWidget(QLabel("游戏服务器列表:"))
+        game_layout.addWidget(self.game_server_list)
+        game_layout.addStretch()
+        game_layout.addWidget(game_bottom_widget) # Nya! 添加底部特定控件
+        game_tab.setLayout(game_layout)
+        self.config_tabs.addTab(game_tab, '游戏')
+
+        # -- 其它标签页 --
+        other_tab = QWidget()
+        other_layout = QVBoxLayout()
+        self.cluster_name_input = QLineEdit()
+        self.cluster_name_input.setPlaceholderText('请输入集群名称')
+        self.game_server_count_label = QLabel('游戏服务器总数: N/A')
+        # Nya! 其它标签页底部的按钮 (根据设计图调整)
+        other_bottom_widget = QWidget()
+        other_bottom_layout = QHBoxLayout(other_bottom_widget)
+        other_bottom_layout.setContentsMargins(0, 10, 0, 0)
+        other_bottom_layout.addStretch()
+
+        # Nya! 调整布局 (根据设计图，名称输入框在列表上面)
+        other_layout.addWidget(QLabel('请输入集群名称:')) # Nya! 使用 QLabel + QLineEdit
+        other_layout.addWidget(self.cluster_name_input)
+        other_layout.addStretch()
+        other_layout.addWidget(self.game_server_count_label, alignment=QtCore.Qt.AlignRight)
+        other_layout.addWidget(other_bottom_widget) # Nya! 添加底部特定控件
+        other_tab.setLayout(other_layout)
+        self.config_tabs.addTab(other_tab, '其它')
+
+        # Nya! 主布局：三栏水平排列
+        main_columns_layout = QHBoxLayout()
+        main_columns_layout.addLayout(available_servers_layout, 1)
+        main_columns_layout.addLayout(middle_buttons_layout)
+        main_columns_layout.addWidget(self.config_tabs, 2)
+
+        # Nya! 底部按钮 (主对话框底部)
         self.ok_btn = QPushButton('确定')
         self.cancel_btn = QPushButton('取消')
-        btn_layout = QHBoxLayout()
-        btn_layout.addWidget(self.ok_btn)
-        btn_layout.addWidget(self.cancel_btn)
-        
+        bottom_btn_layout = QHBoxLayout()
+        bottom_btn_layout.addStretch()
+        bottom_btn_layout.addWidget(self.ok_btn)
+        bottom_btn_layout.addWidget(self.cancel_btn)
+
+        # Nya! 整体布局
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.tab_widget)
-        main_layout.addLayout(btn_layout)
+        main_layout.addLayout(main_columns_layout)
+        main_layout.addLayout(bottom_btn_layout)
         self.setLayout(main_layout)
-        self.ok_btn.clicked.connect(self.accept)
-        self.cancel_btn.clicked.connect(self.reject)
+
+        # Nya! 信号连接
+        self.ok_btn.clicked.connect(self.accept) # Nya! 主确定按钮
+        self.cancel_btn.clicked.connect(self.reject) # Nya! 主取消按钮
+        self.add_to_cluster_btn.clicked.connect(self.add_server_to_cluster)
+        self.remove_from_cluster_btn.clicked.connect(self.remove_server_from_cluster)
+        self.config_title_btn.clicked.connect(self.open_title_config) # Nya! 保留标题配置按钮的连接
+
         self.setModal(True)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
+
+        # Nya! 存储服务器配置的地方
+        self.server_configs = {}
+        # Nya! 加载可用服务器列表 (示例)
+        self.load_available_servers()
+        # Nya! 当标签页内的列表变化时，更新游戏服务器计数
+        self.game_server_list.model().rowsInserted.connect(self.update_game_server_count)
+        self.game_server_list.model().rowsRemoved.connect(self.update_game_server_count)
+
+    def get_instance_role(self, server_name):
+        """Nya! 获取服务器实例的角色信息喵~
         
-    def update_server_configs(self):
-        # 清空当前配置布局
-        while self.server_config_layout.count():
-            item = self.server_config_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-        
-        # 为每个选中的服务器创建配置项
-        selected_servers = [item.text() for item in self.game_servers_list.selectedItems()]
-        for server in selected_servers:
-            if server not in self.server_configs:
-                self.server_configs[server] = {
-                    'name': QLineEdit(),
-                    'title': QLineEdit(),
-                    'name_error': QLabel(''),
-                    'title_error': QLabel('')
-                }
-                self.server_configs[server]['name'].setValidator(QRegExpValidator(QRegExp('[a-zA-Z0-9_]+')))
-                self.server_configs[server]['name_error'].setStyleSheet('color: red;')
-                self.server_configs[server]['title_error'].setStyleSheet('color: red;')
+        Args:
+            server_name (str): 服务器实例名称
             
-            # 创建服务器配置组
-            group_box = QWidget()
-            form_layout = QFormLayout()
-            form_layout.addRow(f'服务器 {server} 集群名称（英文）：', self.server_configs[server]['name'])
-            form_layout.addRow(self.server_configs[server]['name_error'])
-            form_layout.addRow(f'服务器 {server} 显示标题：', self.server_configs[server]['title'])
-            form_layout.addRow(self.server_configs[server]['title_error'])
-            group_box.setLayout(form_layout)
-            
-            self.server_config_layout.addWidget(group_box)
+        Returns:
+            str: 服务器角色，可能是'DISPATCH_ONLY', 'GAME'或'STANDALONE'
+        """
+        # Nya! 尝试从父窗口获取角色信息
+        if self.parent() and hasattr(self.parent(), 'get_instance_role'):
+            return self.parent().get_instance_role(server_name)
+        # Nya! 否则返回STANDALONE作为默认值
+        return 'STANDALONE'
+
+    def add_server_to_cluster(self):
+        """Nya! 将选中的可用服务器添加到对应的标签页列表中喵~"""
+        selected_items = self.available_servers_list.selectedItems()
+        if not selected_items:
+            return
+
+        for item in selected_items:
+            server_name = item.text() # Nya! 获取原始服务器名
+
+            # Nya! 检查是否已在调度或游戏列表中 (避免重复添加)
+            in_dispatch = any(self.dispatch_server_list.item(i).text() == server_name for i in range(self.dispatch_server_list.count()))
+            in_game = any(self.game_server_list.item(i).text() == server_name for i in range(self.game_server_list.count()))
+
+            if in_dispatch or in_game:
+                # Nya! 如果已经在任一列表，只从可用列表移除即可
+                self.available_servers_list.takeItem(self.available_servers_list.row(item))
+                continue
+
+            # Nya! 从可用列表移除
+            self.available_servers_list.takeItem(self.available_servers_list.row(item))
+
+            # Nya! 根据角色添加到对应的标签页列表
+            role = self.get_instance_role(server_name)
+            added_to_list = False
+            if role == 'DISPATCH_ONLY' or role == 'STANDALONE':
+                self.dispatch_server_list.addItem(QListWidgetItem(server_name))
+                added_to_list = True
+            if role == 'GAME' or role == 'STANDALONE':
+                self.game_server_list.addItem(QListWidgetItem(server_name))
+                added_to_list = True
+            # Nya! 如果不是调度或游戏角色，也暂时不加到特定列表，但已从可用列表移除
+
+        # Nya! 更新游戏服务器计数
+        self.update_game_server_count()
+
+    def remove_server_from_cluster(self):
+        """Nya! 将选中的集群服务器从当前标签页列表移回到可用列表中喵~"""
+        current_tab_index = self.config_tabs.currentIndex()
+        active_list = None
+        if current_tab_index == 0: # Nya! 调度标签页
+            active_list = self.dispatch_server_list
+        elif current_tab_index == 1: # Nya! 游戏标签页
+            active_list = self.game_server_list
+        # Nya! 其它标签页没有服务器列表可以移除
+
+        if not active_list:
+            return
+
+        selected_items = active_list.selectedItems()
+        if not selected_items:
+            return
+
+        for item in selected_items:
+            server_name = item.text()
+
+            # Nya! 从当前活动列表移除
+            active_list.takeItem(active_list.row(item))
+
+            # Nya! 检查是否还在另一个列表 (调度/游戏) 中
+            in_dispatch = any(self.dispatch_server_list.item(i).text() == server_name for i in range(self.dispatch_server_list.count()))
+            in_game = any(self.game_server_list.item(i).text() == server_name for i in range(self.game_server_list.count()))
+
+            # Nya! 如果两个列表都不包含该服务器了，则添加回可用列表
+            if not in_dispatch and not in_game:
+                new_item = QListWidgetItem(server_name)
+                role = self.get_instance_role(server_name)
+                if role != 'STANDALONE':
+                    new_item.setBackground(QtCore.Qt.lightGray)
+                    new_item.setToolTip('此服务器可能已属于其他集群或配置为集群角色，加入新集群将覆盖其配置喵~')
+                else:
+                    new_item.setBackground(QtCore.Qt.white)
+                    new_item.setToolTip('')
+                self.available_servers_list.addItem(new_item)
+
+        # Nya! 更新游戏服务器计数
+        self.update_game_server_count()
+
+    def update_game_server_count(self):
+        """Nya! 更新游戏服务器总数标签喵~"""
+        count = self.game_server_list.count()
+        self.game_server_count_label.setText(f'游戏服务器总数: {count}')
+
+    def load_available_servers(self):
+        """Nya! 加载可用的服务器实例列表喵~"""
+        # Nya! 这里只是示例，需要替换成实际加载服务器实例的逻辑喵~
+        # Nya! 假设我们有一些服务器实例
+        servers = [f'server_{i}' for i in range(20)]
+        self.available_servers_list.clear() # Nya! 先清空列表
+        for server in servers:
+            item = QListWidgetItem(server)
+            # Nya! 假设根据配置判断角色和状态
+            role = self.get_instance_role(server) # Nya! 获取角色
+            if role != 'STANDALONE':
+                 item.setBackground(QtCore.Qt.lightGray)
+                 item.setToolTip('此服务器可能已属于其他集群或配置为集群角色，加入新集群将覆盖其配置喵~')
+            else:
+                 item.setBackground(QtCore.Qt.white)
+            self.available_servers_list.addItem(item)
+
+    def open_title_config(self):
+        """Nya! 打开标题配置对话框喵~"""
+        print("Nya! 打开标题配置喵~")
+        # Nya! TODO: 实现打开标题配置对话框的逻辑
+
+    def accept(self):
+        """Nya! 处理确定按钮点击事件，保存集群配置喵~"""
+        print("Nya! 主确定按钮点击，开始保存集群配置喵~")
+        # Nya! 1. 验证集群名称
+        cluster_name = self.cluster_name_input.text().strip()
+        if not cluster_name:
+            QMessageBox.warning(self, "错误", "集群名称不能为空喵！")
+            self.config_tabs.setCurrentIndex(2) # Nya! 切换到"其它"标签页
+            self.cluster_name_input.setFocus()
+            return
+        # Nya! TODO: 添加更严格的集群名称验证 (例如：只能英文、数字、下划线)
+
+        # Nya! 2. 获取调度服务器配置
+        dispatch_servers = [self.dispatch_server_list.item(i).text() for i in range(self.dispatch_server_list.count())]
+        use_internal = self.use_internal_dispatch_checkbox.isChecked()
+        # Nya! 验证调度配置 (例如：必须至少有一个调度服务器，除非使用内置)
+        if not use_internal and not dispatch_servers:
+            QMessageBox.warning(self, "错误", "请至少指定一个调度服务器，或勾选\"使用内置调度\"喵！")
+            self.config_tabs.setCurrentIndex(0) # Nya! 切换到"调度"标签页
+            return
+
+        # Nya! 3. 获取游戏服务器配置
+        game_servers = [self.game_server_list.item(i).text() for i in range(self.game_server_list.count())]
+        # Nya! TODO: 获取游戏服务器标题配置 (如果实现了的话)
+
+        # Nya! 4. 组合集群配置数据
+        cluster_config = {
+            "name": cluster_name,
+            "title": "", # Nya! TODO: 需要添加集群标题输入框
+            "dispatch_servers": dispatch_servers,
+            "use_internal_dispatch": use_internal,
+            "game_servers": game_servers,
+            # Nya! TODO: 添加其他需要的配置项
+        }
+        print(f"Nya! 准备保存的集群配置: {cluster_config}")
+
+        # Nya! 5. 调用父窗口的方法来保存或更新集群
+        if self.parent() and hasattr(self.parent(), 'save_cluster_config'):
+            self.parent().save_cluster_config(cluster_config)
+
+        # Nya! 如果保存成功，再调用 super().accept()
+        super().accept()
+
 
 class ClusterTab(QWidget):
-    config_updated = pyqtSignal()
-    
     def __init__(self):
         super().__init__()
+        self.setWindowTitle('集群管理')
         
+        # Nya! 获取根目录路径
+        self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        
+        # Nya! 创建布局
+        layout = QVBoxLayout()
+        
+        # Nya! 添加控件
         self.cluster_list = QListWidget()
-        self.create_btn = QPushButton('创建集群')
-        self.edit_btn = QPushButton('配置集群')
-        self.delete_btn = QPushButton('删除集群')
+        self.cluster_list.setSelectionMode(QListWidget.SingleSelection)
         
+        # Nya! 按钮布局
         btn_layout = QHBoxLayout()
+        self.create_btn = QPushButton('创建集群')
+        self.edit_btn = QPushButton('编辑集群')
+        self.delete_btn = QPushButton('删除集群')
         btn_layout.addWidget(self.create_btn)
         btn_layout.addWidget(self.edit_btn)
         btn_layout.addWidget(self.delete_btn)
         
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self.cluster_list)
-        main_layout.addLayout(btn_layout)
-        self.setLayout(main_layout)
+        # Nya! 添加控件到布局
+        layout.addWidget(QLabel('集群列表:'))
+        layout.addWidget(self.cluster_list)
+        layout.addLayout(btn_layout)
         
-        self.create_btn.clicked.connect(self.show_create_dialog)
-        self.edit_btn.clicked.connect(self.show_edit_dialog)
+        # Nya! 设置布局
+        self.setLayout(layout)
+        
+        # Nya! 连接信号
+        self.create_btn.clicked.connect(self.create_cluster)
+        self.edit_btn.clicked.connect(self.edit_cluster)
         self.delete_btn.clicked.connect(self.delete_cluster)
         
-    def load_instances(self):
-        root_dir = Path(__file__).parent.parent
-        return [d.name for d in (root_dir / 'Servers').iterdir() 
-                if d.is_dir() and (d / 'JGSL/Config.json').exists()]
-        
-    def show_create_dialog(self):
-        dialog = ClusterConfigDialog(self)
-        dialog.dispatch_server_list.addItems(self.load_instances())
-        dialog.game_servers_list.addItems(self.load_instances())
-        
-        # 监听游戏服务器选择变更，确保在创建新集群时初始化服务器配置
-        dialog.game_servers_list.itemSelectionChanged.connect(lambda: self.init_new_server_configs(dialog))
-        
-        if dialog.exec_() == QDialog.Accepted:
-            if self.validate_dialog(dialog):
-                self.apply_cluster_config(dialog)
-            else:
-                dialog.exec_()
-                
-    def init_new_server_configs(self, dialog):
-        # 为新选择的服务器初始化配置
-        selected_servers = [item.text() for item in dialog.game_servers_list.selectedItems()]
-        for server in selected_servers:
-            if server in dialog.server_configs:
-                continue
-                
-            # 初始化配置
-            dialog.update_server_configs()
-            
-    def show_edit_dialog(self):
-        current_item = self.cluster_list.currentItem()
-        if not current_item:
-            return
-        
-        cluster_name = current_item.text()
-        dialog = ClusterConfigDialog(self)
-        dialog.name_edit.setText(cluster_name)
-        dialog.title_edit.setText(self.get_cluster_title(cluster_name))
-        dialog.dispatch_server_list.addItems(self.load_instances())
-        dialog.game_servers_list.addItems(self.load_instances())
-        self.select_current_cluster(dialog, cluster_name)
-        if dialog.exec_() == QDialog.Accepted:
-            if self.validate_dialog(dialog):
-                self.apply_cluster_config(dialog, cluster_name)
-            else:
-                dialog.exec_()
-        
-    def select_current_cluster(self, dialog, cluster_name):
-        # 选中当前集群的调度服务器
-        dispatch_server = self.get_dispatch_server(cluster_name)
-        for i in range(dialog.dispatch_server_list.count()):
-            if dialog.dispatch_server_list.item(i).text() == dispatch_server:
-                dialog.dispatch_server_list.setCurrentRow(i)
-                break
-        # 选中当前集群的游戏服务器
-        game_servers = self.get_game_servers(cluster_name)
-        for instance in game_servers:
-            for i in range(dialog.game_servers_list.count()):
-                if dialog.game_servers_list.item(i).text() == instance:
-                    dialog.game_servers_list.item(i).setSelected(True)
-        
-        # 加载每个游戏服务器的配置
-        dialog.update_server_configs()
-        for instance in game_servers:
-            if instance in dialog.server_configs:
-                # 从JGSL配置中获取集群名称和标题
-                instance_path = Path(__file__).parent.parent / 'Servers' / instance
-                try:
-                    with open(instance_path / 'JGSL/Config.json', 'r') as f:
-                        jgsl_config = json.load(f)
-                        dialog.server_configs[instance]['name'].setText(jgsl_config.get('cluster_name', cluster_name))
-                        dialog.server_configs[instance]['title'].setText(jgsl_config.get('cluster_title', self.get_cluster_title(cluster_name)))
-                except Exception:
-                    # 如果读取失败，使用默认值
-                    dialog.server_configs[instance]['name'].setText(cluster_name)
-                    dialog.server_configs[instance]['title'].setText(self.get_cluster_title(cluster_name))
-        
-    def get_dispatch_server(self, cluster_name):
-        root_dir = Path(__file__).parent.parent
-        for d in (root_dir / 'Servers').iterdir():
-            if d.is_dir():
-                path = d / 'config.json'
-                with open(path, 'r') as f:
-                    config = json.load(f)
-                    if config['server']['runMode'] == 'DISPATCH_ONLY':
-                        regions = config['server']['dispatch']['regions']
-                        for region in regions:
-                            if region['Name'] == cluster_name:
-                                return d.name
-        return None
+        # Nya! 加载现有集群
+        self.load_clusters()
     
-    def get_game_servers(self, cluster_name):
-        root_dir = Path(__file__).parent.parent
-        game_servers = []
-        for d in (root_dir / 'Servers').iterdir():
-            if d.is_dir():
-                path = d / 'JGSL/Config.json'
-                with open(path, 'r') as f:
-                    jgsl_config = json.load(f)
-                    if jgsl_config['cluster_name'] == cluster_name:
-                        game_servers.append(d.name)
-        return game_servers
-    
-    def get_cluster_title(self, cluster_name, server_name=None):
-        # 如果指定了服务器名称，优先从该服务器的JGSL配置中获取标题
-        if server_name:
-            server_path = Path(__file__).parent.parent / 'Servers' / server_name / 'JGSL/Config.json'
-            try:
-                with open(server_path, 'r') as f:
-                    jgsl_config = json.load(f)
-                    if 'cluster_title' in jgsl_config and jgsl_config.get('cluster_name') == cluster_name:
-                        return jgsl_config['cluster_title']
-            except Exception:
-                pass
-        
-        # 如果没有指定服务器或者从服务器配置中获取失败，从调度服务器配置中获取
-        dispatch_server = self.get_dispatch_server(cluster_name)
-        if dispatch_server:
-            path = Path(__file__).parent.parent / 'Servers' / dispatch_server / 'config.json'
-            with open(path, 'r') as f:
-                config = json.load(f)
-                regions = config['server']['dispatch']['regions']
-                for region in regions:
-                    if region['Name'] == cluster_name:
-                        return region['Title']
-        return ''
-    
-    def validate_dialog(self, dialog):
-        dispatch_server = dialog.dispatch_server_list.currentItem()
-        game_servers = dialog.game_servers_list.selectedItems()
-        
-        if not dispatch_server:
-            for server in dialog.server_configs:
-                dialog.server_configs[server]['name_error'].setText('请选择调度服务器')
-            return False
-        elif not game_servers:
-            for server in dialog.server_configs:
-                dialog.server_configs[server]['name_error'].setText('请选择游戏服务器')
-            return False
-        
-        # 验证每个服务器的配置
-        is_valid = True
-        for server_name, config in dialog.server_configs.items():
-            # 只验证被选中的服务器
-            if server_name not in [item.text() for item in game_servers]:
-                continue
-                
-            name = config['name'].text()
-            title = config['title'].text()
-            
-            if not name:
-                config['name_error'].setText('集群名称不能为空')
-                is_valid = False
-            else:
-                config['name_error'].setText('')
-                
-            if not title:
-                config['title_error'].setText('显示标题不能为空')
-                is_valid = False
-            else:
-                config['title_error'].setText('')
-        
-        return is_valid
-    
-    def apply_cluster_config(self, dialog, old_cluster_name=None):
-        is_new_cluster = old_cluster_name is None
-        dispatch_server = dialog.dispatch_server_list.currentItem().text()
-        game_servers = [item.text() for item in dialog.game_servers_list.selectedItems()]
+    def get_instance_role(self, server_name):
+        """Nya! 获取服务器实例角色信息喵~
 
-        # 更新调度服务器配置
-        dispatch_path = Path(__file__).parent.parent / 'Servers' / dispatch_server
+        Args:
+            server_name (str): 服务器实例名称
+
+        Returns:
+            str: 服务器角色（DISPATCH_ONLY/GAME/STANDALONE）喵~
+        """
+        config_path = os.path.join(self.root_dir, 'Servers', server_name, 'JGSL', 'Config.json')
         try:
-            with open(dispatch_path / 'config.json', 'r+') as f:
+            with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-                if is_new_cluster:
-                    config['server']['runMode'] = 'DISPATCH_ONLY'
-                    config['server']['dispatch']['regions'] = []
-                
-                # 清空现有区域配置
-                config['server']['dispatch']['regions'] = []
-                
-                # 为每个游戏服务器添加区域配置
-                regions = []
-                for i, instance in enumerate(game_servers):
-                    if instance in dialog.server_configs:
-                        server_config = dialog.server_configs[instance]
-                        regions.append({
-                            'Name': server_config['name'].text(),
-                            'Title': server_config['title'].text(),
-                            'Ip': '127.0.0.1',
-                            'Port': 22101 + i
-                        })
-                
-                config['server']['dispatch']['regions'] = regions
-                f.seek(0)
-                json.dump(config, f, indent=2)
-                f.truncate()
+            return config.get('cluster_role', 'STANDALONE')
         except Exception as e:
-            for server in dialog.server_configs:
-                dialog.server_configs[server]['name_error'].setText(f'调度服务器配置失败：{str(e)}')
-            return
-
-        # 更新游戏服务器配置
-        for i, instance in enumerate(game_servers):
-            if instance not in dialog.server_configs:
-                continue
-                
-            instance_path = Path(__file__).parent.parent / 'Servers' / instance
-            server_config = dialog.server_configs[instance]
-            cluster_name = server_config['name'].text()
-            
-            try:
-                # 验证集群角色
-                with open(instance_path / 'JGSL/Config.json', 'r') as f:
-                    jgsl_config = json.load(f)
-                    if jgsl_config['cluster_role'] != 'GAME':
-                        continue
-                
-                # 更新JGSL配置
-                with open(instance_path / 'JGSL/Config.json', 'r+') as f:
-                    jgsl_config = json.load(f)
-                    jgsl_config['cluster_name'] = cluster_name
-                    jgsl_config['cluster_title'] = server_config['title'].text()
-                    f.seek(0)
-                    json.dump(jgsl_config, f, indent=2)
-                    f.truncate()
-                
-                # 更新Grasscutter配置
-                with open(instance_path / 'config.json', 'r+') as f:
-                    config = json.load(f)
-                    config['server']['runMode'] = 'GAME_ONLY'
-                    config['server']['game']['bindPort'] = 22101 + i
-                    f.seek(0)
-                    json.dump(config, f, indent=2)
-                    f.truncate()
-            except Exception as e:
-                server_config['name_error'].setText(f'游戏服务器 {instance} 配置失败：{str(e)}')
-                return
-        
-        if not is_new_cluster:
-            # 清理旧集群配置
-            self.delete_cluster(old_cluster_name, True)
-            
-        self.config_updated.emit()
-        dialog.accept()
+            print(f"Nya! 读取服务器角色配置出错: {e}喵~")
+            return 'STANDALONE'
     
-    def delete_cluster(self, cluster_name=None, keep_dispatch_server=False):
-        if cluster_name is None:
-            current_item = self.cluster_list.currentItem()
-            if not current_item:
-                return
-            cluster_name = current_item.text()
+    def load_clusters(self):
+        """Nya! 加载现有集群列表喵~"""
+        self.cluster_list.clear()
+        # Nya! TODO: 从配置文件加载集群列表
+        # Nya! 示例数据
+        clusters = ['集群1', '集群2', '集群3']
+        for cluster in clusters:
+            self.cluster_list.addItem(cluster)
+    
+    def create_cluster(self):
+        """Nya! 创建新集群喵~"""
+        dialog = ClusterConfigDialog(self)
+        if dialog.exec_() == QDialog.Accepted:
+            # Nya! 保存集群配置
+            print("Nya! 集群创建成功喵~")
+            self.load_clusters()  # Nya! 重新加载集群列表
+    
+    def edit_cluster(self):
+        """Nya! 编辑现有集群喵~"""
+        selected = self.cluster_list.currentItem()
+        if not selected:
+            QMessageBox.warning(self, '警告', '请先选择一个集群喵~')
+            return
+        
+        dialog = ClusterConfigDialog(self)
+        # Nya! TODO: 加载选中集群的配置到对话框
+        if dialog.exec_() == QDialog.Accepted:
+            # Nya! 更新集群配置
+            print(f"Nya! 集群 {selected.text()} 更新成功喵~")
+            self.load_clusters()  # Nya! 重新加载集群列表
+    
+    def delete_cluster(self):
+        """Nya! 删除集群喵~"""
+        selected = self.cluster_list.currentItem()
+        if not selected:
+            QMessageBox.warning(self, '警告', '请先选择一个集群喵~')
+            return
+        
+        reply = QMessageBox.question(self, '确认', f'确定要删除集群 {selected.text()} 吗？\n这不会删除集群中的服务器实例，但会清除它们的集群配置喵~', 
+                                    QMessageBox.Yes | QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            # Nya! TODO: 删除集群配置
+            print(f"Nya! 集群 {selected.text()} 删除成功喵~")
+            self.load_clusters()  # Nya! 重新加载集群列表
+    
+    def save_cluster_config(self, config):
+        """Nya! 保存集群配置喵~
+        
+        Args:
+            config (dict): 集群配置信息
+        """
+        # Nya! TODO: 实现保存集群配置的逻辑
+        print(f"Nya! 保存集群配置: {config}喵~")
+        
+        # Nya! 1. 保存集群配置到文件
+        # clusters_dir = os.path.join(self.root_dir, 'JGSL', 'Clusters')
+        # os.makedirs(clusters_dir, exist_ok=True)
+        # cluster_file = os.path.join(clusters_dir, f"{config['name']}.json")
+        # with open(cluster_file, 'w', encoding='utf-8') as f:
+        #     json.dump(config, f, ensure_ascii=False, indent=4)
+        
+        # Nya! 2. 更新服务器实例的集群角色配置
+        # for server in config['dispatch_servers']:
+        #     if server in config['game_servers']:
+        #         role = 'STANDALONE'
+        #     else:
+        #         role = 'DISPATCH_ONLY'
+        #     self._update_server_role(server, role, config['name'])
+        
+        # for server in config['game_servers']:
+        #     if server not in config['dispatch_servers']:
+        #         self._update_server_role(server, 'GAME', config['name'])
+    
+    def _update_server_role(self, server_name, role, cluster_name):
+        """Nya! 更新服务器实例的角色配置喵~
+        
+        Args:
+            server_name (str): 服务器实例名称
+            role (str): 新角色
+            cluster_name (str): 所属集群名称
+        """
+        # Nya! TODO: 实现更新服务器角色的逻辑
+        config_path = os.path.join(self.root_dir, 'Servers', server_name, 'JGSL', 'Config.json')
+        try:
+            # Nya! 确保目录存在
+            os.makedirs(os.path.dirname(config_path), exist_ok=True)
             
-        # 遍历所有实例，清理集群配置
-        root_dir = Path(__file__).parent.parent
-        for d in (root_dir / 'Servers').iterdir():
-            if d.is_dir():
-                jgsl_path = d / 'JGSL/Config.json'
-                try:
-                    with open(jgsl_path, 'r+') as f:
-                        jgsl_config = json.load(f)
-                        if jgsl_config.get('cluster_name') == cluster_name:
-                            # 移除集群名称和标题
-                            if 'cluster_name' in jgsl_config:
-                                jgsl_config.pop('cluster_name')
-                            if 'cluster_title' in jgsl_config:
-                                jgsl_config.pop('cluster_title')
-                            f.seek(0)
-                            json.dump(jgsl_config, f, indent=2)
-                            f.truncate()
-                except Exception:
-                    continue
-                    
-                # 清理调度服务器配置
-                try:
-                    config_path = d / 'config.json'
-                    with open(config_path, 'r+') as f:
-                        config = json.load(f)
-                        if config['server']['runMode'] == 'DISPATCH_ONLY':
-                            regions = config['server']['dispatch']['regions']
-                            # 移除所有与该集群相关的区域
-                            regions_to_remove = []
-                            for region in regions:
-                                if region['Name'] == cluster_name:
-                                    regions_to_remove.append(region)
-                            
-                            for region in regions_to_remove:
-                                regions.remove(region)
-                                
-                            f.seek(0)
-                            json.dump(config, f, indent=2)
-                            f.truncate()
-                            
-                            # 如果没有区域了，将模式改为STANDALONE
-                            if not keep_dispatch_server and not regions:
-                                config['server']['runMode'] = 'STANDALONE'
-                                f.seek(0)
-                                json.dump(config, f, indent=2)
-                                f.truncate()
-                except Exception:
-                    continue
+            # Nya! 读取现有配置或创建新配置
+            config = {}
+            if os.path.exists(config_path):
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+            
+            # Nya! 更新角色和集群信息
+            config['cluster_role'] = role
+            config['cluster_name'] = cluster_name
+            
+            # Nya! 保存配置
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(config, f, ensure_ascii=False, indent=4)
+                
+            print(f"Nya! 已更新服务器 {server_name} 的角色为 {role}，所属集群为 {cluster_name}喵~")
+        except Exception as e:
+            print(f"Nya! 更新服务器角色配置出错: {e}喵~")
