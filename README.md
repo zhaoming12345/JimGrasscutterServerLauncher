@@ -15,10 +15,12 @@
 
 ## 文档导航
 
-- [📂 目录说明](./DirInfo.md)
-- [📜 开源协议](./LICENSE)
-- [📋 待办清单](./todolist.md)
-- [👥 行为准则](./CODE_OF_CONDUCT.md)
+- [目录说明](DirInfo.md)
+- [开源协议](LICENSE)
+- [待办清单](todolist.md)
+- [行为准则](CODE_OF_CONDUCT.md)
+- [锁定列表](edit-lock.md)
+- [忽略列表](.gitignore)
 
 ## 快速开始
 
