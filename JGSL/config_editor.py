@@ -110,9 +110,9 @@ class ConfigEditorDialog(QDialog):
         self.view_settings_group = QGroupBox('视觉设置')
         self.view_settings_layout = QFormLayout()
         self.view_distance_table = QTableWidget(0, 3)
-        self.view_distance_table.setHorizontalHeaderLabels(['名称', '可视范围', '网格宽度'])
+        self.view_distance_table.setHorizontalHeaderLabels(['名称', '可视距离', '网格宽度'])
         self.view_distance_table.setColumnWidth(0, 100)
-        self.view_distance_table.setColumnWidth(1, 100)
+        self.view_distance_table.setColumnWidth(1, 150)
         self.view_distance_table.setColumnWidth(2, 100)
         view_button_layout = QHBoxLayout()
         add_view_button = QPushButton('添加')
@@ -234,47 +234,61 @@ class ConfigEditorDialog(QDialog):
             # 加载文件结构配置
             self.resources_path.setText(config.get('folderStructure', {}).get('resources', ''))
             self.data_path.setText(config.get('folderStructure', {}).get('data', ''))
+            self.packets_path.setText(config.get('folderStructure', {}).get('packets', ''))
+            self.scripts_path.setText(config.get('folderStructure', {}).get('scripts', ''))
+            self.plugins_path.setText(config.get('folderStructure', {}).get('plugins', ''))
 
             # 加载数据库配置
             self.db_uri.setText(config.get('database', {}).get('server', {}).get('connectionUri', ''))
             self.db_collection.setText(config.get('database', {}).get('server', {}).get('collection', ''))
 
             # 加载服务器配置
-            self.http_port.setText(str(config.get('server', {}).get('http', {}).get('bindPort', '')))
-            self.game_port.setText(str(config.get('server', {}).get('game', {}).get('bindPort', '')))
-            self.enable_console.setChecked(config.get('server', {}).get('game', {}).get('enableConsole', False))
+            server_config = config.get('server', {})
+            http_config = server_config.get('http', {})
+            game_config = server_config.get('game', {})
+            debug_config = server_config.get('debug', {})
+
+            self.http_port.setText(str(http_config.get('bindPort', '')))
+            self.game_port.setText(str(game_config.get('bindPort', '')))
+            self.enable_console.setChecked(game_config.get('enableConsole', False))
             # 新增：加载树脂配置
-            self.resin_capacity.setValue(config.get('server', {}).get('game', {}).get('resinCapacity', 160))
-            self.resin_recovery_time.setValue(config.get('server', {}).get('game', {}).get('resinRecoveryTime', 8))
+            resin_options = game_config.get('resinOptions', {})
+            self.resin_capacity.setValue(resin_options.get('cap', 160))
+            self.resin_recovery_time.setValue(resin_options.get('rechargeTime', 8))
             # 新增：加载背包限制配置
-            self.weapon_limit.setValue(config.get('server', {}).get('game', {}).get('inventory', {}).get('weaponLimit', 90))
-            self.reliquary_limit.setValue(config.get('server', {}).get('game', {}).get('inventory', {}).get('reliquaryLimit', 150))
-            self.material_limit.setValue(config.get('server', {}).get('game', {}).get('inventory', {}).get('materialLimit', 9999))
-            self.furniture_limit.setValue(config.get('server', {}).get('game', {}).get('inventory', {}).get('furnitureLimit', 1000))
+            inventory_limits = game_config.get('inventory', {})
+            self.weapon_limit.setValue(inventory_limits.get('weaponLimit', 2000))
+            self.reliquary_limit.setValue(inventory_limits.get('reliquaryLimit', 2000))
+            self.material_limit.setValue(inventory_limits.get('materialLimit', 2000))
+            self.furniture_limit.setValue(inventory_limits.get('furnitureLimit', 2000))
             # 新增：加载角色限制配置
-            self.single_char_limit.setValue(config.get('server', {}).get('game', {}).get('character', {}).get('singleCharacterLimit', 10))
-            self.party_limit.setValue(config.get('server', {}).get('game', {}).get('character', {}).get('partyLimit', 4))
+            character_limits = game_config.get('character', {})
+            self.single_char_limit.setValue(character_limits.get('singleCharacterLimit', 10))
+            self.party_limit.setValue(character_limits.get('partyLimit', 4))
             # 新增：加载游戏功能开关
-            self.enable_fishing.setChecked(config.get('server', {}).get('game', {}).get('enableFishing', False))
-            self.enable_housing.setChecked(config.get('server', {}).get('game', {}).get('enableHousing', False))
-            self.enable_gacha.setChecked(config.get('server', {}).get('game', {}).get('enableGacha', False))
+            self.enable_fishing.setChecked(game_config.get('enableFishing', False))
+            self.enable_housing.setChecked(game_config.get('enableHousing', False))
+            self.enable_gacha.setChecked(game_config.get('enableGacha', False))
             # 新增：加载视觉设置配置
-            view_settings = config.get('server', {}).get('viewSettings', [])
-            self.view_distance_table.setRowCount(len(view_settings))
-            for row, setting in enumerate(view_settings):
+            vision_options = game_config.get('visionOptions', [])
+            self.view_distance_table.setRowCount(len(vision_options))
+            for row, setting in enumerate(vision_options):
                 self.view_distance_table.setItem(row, 0, QTableWidgetItem(setting.get('name', '')))
-                self.view_distance_table.setItem(row, 1, QTableWidgetItem(str(setting.get('viewDistance', 0))))
-                self.view_distance_table.setItem(row, 2, QTableWidgetItem(str(setting.get('gridSize', 0))))
+                self.view_distance_table.setItem(row, 1, QTableWidgetItem(str(setting.get('visionRange', 0))))
+                self.view_distance_table.setItem(row, 2, QTableWidgetItem(str(setting.get('gridWidth', 0))))
             # 新增：加载调试模式配置
-            self.log_level.setCurrentText(config.get('server', {}).get('debug', {}).get('logLevel', 'INFO'))
-            self.show_packet_content.setChecked(config.get('server', {}).get('debug', {}).get('showPacketContent', False))
+            self.log_level.setCurrentText(debug_config.get('logLevel', 'INFO'))
+            self.show_packet_content.setChecked(debug_config.get('showPacketContent', False))
 
             # 加载调度服务器配置
-            self.dispatch_url.setText(config.get('dispatch', {}).get('dispatchUrl', ''))
-            self.automatic_register_key.setText(config.get('dispatch', {}).get('automaticRegister', ''))
-            self.default_area_name.setText(config.get('dispatch', {}).get('defaultAreaName', ''))
-            self.encryption_key.setText(config.get('dispatch', {}).get('encryptionKey', ''))
-            area_servers = config.get('dispatch', {}).get('areaServers', [])
+            dispatch_config = config.get('dispatch', {})
+            # Assuming single region structure based on save logic
+            region_config = dispatch_config.get('regions', [{}])[0]
+            self.dispatch_url.setText(region_config.get('dispatchUrl', ''))
+            self.automatic_register_key.setText(region_config.get('secretKey', '')) # Key name mismatch between load/save
+            self.default_area_name.setText(region_config.get('title', '')) # Key name mismatch between load/save
+            self.encryption_key.setText(region_config.get('encryptionKey', ''))
+            area_servers = region_config.get('servers', []) # Key name mismatch between load/save
             self.area_servers_table.setRowCount(len(area_servers))
             for row, server in enumerate(area_servers):
                 self.area_servers_table.setItem(row, 0, QTableWidgetItem(server.get('name', '')))
@@ -289,6 +303,7 @@ class ConfigEditorDialog(QDialog):
 
             # 加载账户系统配置
             self.auto_create_account.setChecked(config.get('account', {}).get('autoCreate', False))
+            logger.debug('成功加载所有配置项')
 
             self.avatar_id.setValue(config.get('account', {}).get('default', {}).get('avatarId', 10000000))
             self.name_card_id.setValue(config.get('account', {}).get('default', {}).get('nameCardId', 0))
@@ -302,14 +317,16 @@ class ConfigEditorDialog(QDialog):
                 self.permission_table.setItem(row, 1, QTableWidgetItem(perm.get('description', '')))
 
             # 加载欢迎邮件配置
-            self.welcome_mail_title.setText(config.get('welcomeMail', {}).get('title', ''))
-            self.welcome_mail_sender.setText(config.get('welcomeMail', {}).get('sender', ''))
-            self.welcome_mail_content.setText(config.get('welcomeMail', {}).get('content', ''))
-            attachments = config.get('welcomeMail', {}).get('attachments', [])
-            self.welcome_mail_attachments.setRowCount(len(attachments))
-            for row, item in enumerate(attachments):
+            welcome_mail_config = config.get('welcomeMail', {})
+            self.welcome_mail_title.setText(welcome_mail_config.get('title', ''))
+            self.welcome_mail_sender.setText(welcome_mail_config.get('sender', ''))
+            self.welcome_mail_content.setText(welcome_mail_config.get('content', ''))
+            # 加载欢迎邮件附件 (Assuming items are directly under welcomeMail)
+            items = welcome_mail_config.get('items', [])
+            self.welcome_mail_attachments.setRowCount(len(items))
+            for row, item in enumerate(items):
                 self.welcome_mail_attachments.setItem(row, 0, QTableWidgetItem(str(item.get('itemId', 0))))
-                self.welcome_mail_attachments.setItem(row, 1, QTableWidgetItem(str(item.get('count', 0))))
+                self.welcome_mail_attachments.setItem(row, 1, QTableWidgetItem(str(item.get('itemCount', 0))))
 
         except Exception as e:
             logger.error(f'加载配置文件失败: {e}')
@@ -323,20 +340,31 @@ class ConfigEditorDialog(QDialog):
             # 更新文件结构配置
             config['folderStructure'] = {
                 "resources": self.resources_path.text(),
-                "data": self.data_path.text()
+                "data": self.data_path.text(),
+                "packets": self.packets_path.text(), # Added missing keys
+                "scripts": self.scripts_path.text(), # Added missing keys
+                "plugins": self.plugins_path.text()  # Added missing keys
             }
             # 更新数据库配置
-            config['database']['server'] = {
-                "connectionUri": self.db_uri.text(),
-                "collection": self.db_collection.text()
+            config['database'] = { # Corrected key name
+                "server": {
+                    "connectionUri": self.db_uri.text(),
+                    "collection": self.db_collection.text()
+                },
+                "game": { # Assuming game uses same DB for now
+                    "connectionUri": self.db_uri.text(),
+                    "collection": self.db_collection.text()
+                }
             }
             # 更新服务器配置
             config['server']['http']['bindPort'] = int(self.http_port.text())
             config['server']['game']['bindPort'] = int(self.game_port.text())
             config['server']['game']['enableConsole'] = self.enable_console.isChecked()
             # 新增：更新树脂配置
-            config['server']['game']['resinCapacity'] = self.resin_capacity.value()
-            config['server']['game']['resinRecoveryTime'] = self.resin_recovery_time.value()
+            config['server']['game']['resinOptions'] = {
+                "cap": self.resin_capacity.value(),
+                "rechargeTime": self.resin_recovery_time.value()
+            }
             # 新增：更新背包限制配置
             config['server']['game']['inventory'] = {
                 "weaponLimit": self.weapon_limit.value(),
@@ -354,12 +382,12 @@ class ConfigEditorDialog(QDialog):
             config['server']['game']['enableHousing'] = self.enable_housing.isChecked()
             config['server']['game']['enableGacha'] = self.enable_gacha.isChecked()
             # 新增：更新视觉设置配置
-            config['server']['viewSettings'] = []
+            config['server']['game']['visionOptions'] = [] # Corrected path
             for row in range(self.view_distance_table.rowCount()):
                 name = self.view_distance_table.item(row, 0).text()
-                view_distance = int(self.view_distance_table.item(row, 1).text())
-                grid_size = int(self.view_distance_table.item(row, 2).text())
-                config['server']['viewSettings'].append({"name": name, "viewDistance": view_distance, "gridSize": grid_size})
+                vision_range = int(self.view_distance_table.item(row, 1).text())
+                grid_width = int(self.view_distance_table.item(row, 2).text())
+                config['server']['game']['visionOptions'].append({"name": name, "visionRange": vision_range, "gridWidth": grid_width})
             # 新增：更新调试模式配置
             config['server']['debug'] = {
                 "logLevel": self.log_level.currentText(),
@@ -367,31 +395,36 @@ class ConfigEditorDialog(QDialog):
             }
 
             # 更新调度服务器配置
-            config['dispatch'] = {
-                "dispatchUrl": self.dispatch_url.text(),
-                "automaticRegister": self.automatic_register_key.text(),
-                "defaultAreaName": self.default_area_name.text(),
-                "encryptionKey": self.encryption_key.text(),
-                "areaServers": []
-            }
+            # Aligning save structure with load structure (assuming single region)
+            config['dispatch'] = config.get('dispatch', {}) # Preserve other dispatch keys if any
+            config['dispatch']['regions'] = config['dispatch'].get('regions', [{}])
+            if not config['dispatch']['regions']: # Ensure there's at least one region dict
+                config['dispatch']['regions'].append({})
+            region_config = config['dispatch']['regions'][0]
+            region_config['name'] = region_config.get('name', 'os_usa') # Preserve or set default name
+            region_config['title'] = self.default_area_name.text()
+            region_config['dispatchUrl'] = self.dispatch_url.text()
+            region_config['secretKey'] = self.automatic_register_key.text()
+            region_config['encryptionKey'] = self.encryption_key.text()
+            region_config['servers'] = []
             for row in range(self.area_servers_table.rowCount()):
                 name = self.area_servers_table.item(row, 0).text()
                 display_name = self.area_servers_table.item(row, 1).text()
                 ip = self.area_servers_table.item(row, 2).text()
                 port = int(self.area_servers_table.item(row, 3).text())
-                config['dispatch']['areaServers'].append({"name": name, "displayName": display_name, "ip": ip, "port": port})
+                region_config['servers'].append({"name": name, "displayName": display_name, "ip": ip, "port": port})
 
             # 更新语言设置配置
             config['language'] = {
                 "primary": self.primary_language.currentText(),
                 "secondary": self.secondary_language.currentText(),
-                "documentType": self.document_type.currentText()
+                "documentLanguage": self.document_language.currentText()
             }
 
             # 更新账户系统配置
             config['account'] = {
                 "autoCreate": self.auto_create_account.isChecked(),
-                "initialUid": self.initial_uid.value(),
+                # "initialUid": self.initial_uid.value(), # Removed as UI element doesn't exist
                 "default": {
                     "avatarId": self.avatar_id.value(),
                     "nameCardId": self.name_card_id.value(),
@@ -411,12 +444,13 @@ class ConfigEditorDialog(QDialog):
                 "title": self.welcome_mail_title.text(),
                 "sender": self.welcome_mail_sender.text(),
                 "content": self.welcome_mail_content.text(),
-                "attachments": []
+                "items": [] # Corrected key name based on load logic assumption
             }
+            # 更新欢迎邮件附件
             for row in range(self.welcome_mail_attachments.rowCount()):
                 item_id = int(self.welcome_mail_attachments.item(row, 0).text())
                 count = int(self.welcome_mail_attachments.item(row, 1).text())
-                config['welcomeMail']['attachments'].append({"itemId": item_id, "count": count})
+                config['welcomeMail']['items'].append({"itemId": item_id, "itemCount": count, "itemLevel": 1})
 
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=4, ensure_ascii=False)
