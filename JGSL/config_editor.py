@@ -198,7 +198,7 @@ class ConfigEditorDialog(QDialog):
         self.signature = QLineEdit()
         account_layout.addRow('签名:', self.signature)
         self.world_level = QSpinBox()
-        self.world_level.setRange(0, 60)
+        self.world_level.setRange(0, 9)
         account_layout.addRow('世界等级:', self.world_level)
         self.permission_table = QTableWidget(0, 2)
         self.permission_table.setHorizontalHeaderLabels(['权限', '描述'])
