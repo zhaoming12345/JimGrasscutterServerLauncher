@@ -1,10 +1,12 @@
 import sys
 import os
 from loguru import logger
-from PyQt5.QtWidgets import QApplication, QPushButton
+from PyQt5.QtWidgets import QApplication, QPushButton, QMessageBox #  添加 QMessageBox 
 from PyQt5.QtGui import QFontDatabase, QFont
 from main_window import MainWindow
 import signal
+# 导入更新检查器和设置版本号的函数
+from update_checker import UpdateCheckThread, VERSION
 
 def main():
     def load_font_async(font_path):
@@ -36,8 +38,36 @@ def main():
     app.setFont(font)
     window = MainWindow()
     window.show()
+
+    #  在显示主窗口后检查更新
+    check_for_updates_on_startup()
+
     signal.signal(signal.SIGINT, lambda s, f: window.cleanup_and_exit())
     sys.exit(app.exec_())
+
+#  添加一个函数来处理启动时的更新检查
+def check_for_updates_on_startup():
+    logger.info("启动时检查更新...")
+    #  创建一个临时的检查线程
+    #  注意：这里直接在主线程等待结果可能会阻塞UI，更好的方式是异步处理或在启动画面中进行
+    #  但为了简单起见，暂时这样处理
+    update_thread = UpdateCheckThread()
+    update_available, latest_version = update_thread.check_for_latest_release() #  直接调用检查方法
+
+    if update_available:
+        logger.success(f"启动时检测到新版本: {latest_version}")
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Information)
+        msg_box.setWindowTitle("发现新版本喵!")
+        msg_box.setText(f"启动器有新版本 ({latest_version}) 可用喵！\n当前版本: {VERSION}\n\n是否前往 GitHub 下载最新版本喵？")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.Yes)
+        ret = msg_box.exec_()
+        if ret == QMessageBox.Yes:
+            import webbrowser
+            webbrowser.open(f"https://github.com/{update_thread.REPO_OWNER}/{update_thread.REPO_NAME}/releases/latest")
+    else:
+        logger.info("启动时未发现新版本或检查失败")
 
 if __name__ == '__main__':
     main()
