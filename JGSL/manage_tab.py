@@ -102,9 +102,9 @@ class InstanceConfigDialog(QDialog):
             'instance_name': instance_name,
             'java_path': self.java_path.text() or self.global_config['default_java_version'],
             'jvm_pre_args': self.jvm_pre_args.text().split() or self.global_config['default_jvm_pre_args'],
-            'jvm_post_args': self.jvm_post_args.text().split() or self.global_config['default_jvm_post_args'],
+            'jvm_post_args': self.jvm_post_args.text().split() or self.global_config.get('default_jvm_post_args', []),
             'grasscutter_path': self.grasscutter_path.text(),
-            'cluster_role': 'STANDALONE'  # 默认角色，后续可添加UI选择
+            'cluster_role': 'HYBRID'  # 确保新实例默认为独立角色
         }
         super().accept()
 

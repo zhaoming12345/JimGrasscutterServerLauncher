@@ -58,9 +58,9 @@ class ConfigEditorDialog(QDialog):
         self.server_tab = QWidget()
         server_layout = QFormLayout()
         self.http_port = QLineEdit()
-        server_layout.addRow('HTTP端口:', self.http_port)
+        server_layout.addRow('调度端口（HTTP）:', self.http_port)
         self.game_port = QLineEdit()
-        server_layout.addRow('游戏端口:', self.game_port)
+        server_layout.addRow('游戏端口（UDP）:', self.game_port)
         self.enable_console = QCheckBox('启用控制台')
         server_layout.addRow(self.enable_console)
         # 新增：树脂容量

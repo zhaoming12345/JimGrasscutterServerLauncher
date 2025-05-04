@@ -2,3 +2,4 @@ PyQt5==5.15.9
 loguru==0.7.2
 qdarkstyle==3.1
 requests==2.32.2
+websockets==12.0

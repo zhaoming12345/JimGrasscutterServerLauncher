@@ -10,23 +10,31 @@
 *.tar.xz
 *.tar
 
-# 排除以下目录内容，但是保留目录结构
+# 排除以下目录内容
 /Web/*
-!/Web/.gitkeep
 /Servers/*
-!/Servers/.gitkeep
 /Logs/*
-!/Logs/.gitkeep
 /Language/*
-!/Language/.gitkeep
 /keystore/*
-!/keystore/.gitkeep
 /Java/*
-!/Java/.gitkeep
 /DownloadTemp/*
-!/DownloadTemp/.gitkeep
 /Database/*
+/Config/*
+
+# 但是保留目录结构
+!/Web/.gitkeep
+!/Servers/.gitkeep
+!/Logs/.gitkeep
+!/Language/.gitkeep
+!/keystore/.gitkeep
+!/Java/.gitkeep
+!/DownloadTemp/.gitkeep
 !/Database/.gitkeep
+!/Config/.gitkeep
+
+# 保留文件
+/Config/download-list.json
+/Config/mirror-list.json
 
 # 保留以下目录
 !/JGSL/
