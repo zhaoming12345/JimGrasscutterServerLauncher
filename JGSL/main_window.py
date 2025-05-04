@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QApplication
 from PyQt5.QtCore import Qt, QEvent
+from PyQt5.QtGui import QIcon
 import qdarkstyle
 from launch_tab import LaunchTab
 from monitor_tab import MonitorTab
@@ -15,6 +16,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle('JimGrasscutterServerLauncher')
         self.setGeometry(100, 100, 800, 600)
+        self.setWindowIcon(QIcon('Assets/JGSL-Logo.ico'))
 
         # 创建选项卡
         self.tabs = QTabWidget()
