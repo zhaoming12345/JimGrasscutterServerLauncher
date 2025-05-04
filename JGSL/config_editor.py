@@ -285,11 +285,11 @@ class ConfigEditorDialog(QDialog):
             # 加载语言设置配置
             self.primary_language.setCurrentText(config.get('language', {}).get('primary', 'zh_CN'))
             self.secondary_language.setCurrentText(config.get('language', {}).get('secondary', 'en_US'))
-            self.document_type.setCurrentText(config.get('language', {}).get('documentType', 'markdown'))
+            self.document_language.setCurrentText(config.get('language', {}).get('documentLanguage', 'CHS'))
 
             # 加载账户系统配置
             self.auto_create_account.setChecked(config.get('account', {}).get('autoCreate', False))
-            self.initial_uid.setValue(config.get('account', {}).get('initialUid', 10000000))
+
             self.avatar_id.setValue(config.get('account', {}).get('default', {}).get('avatarId', 10000000))
             self.name_card_id.setValue(config.get('account', {}).get('default', {}).get('nameCardId', 0))
             self.nickname.setText(config.get('account', {}).get('default', {}).get('nickname', ''))
