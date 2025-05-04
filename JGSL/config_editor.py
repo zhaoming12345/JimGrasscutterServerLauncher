@@ -174,9 +174,9 @@ class ConfigEditorDialog(QDialog):
         self.secondary_language = QComboBox()
         self.secondary_language.addItems(['zh_CN', 'en_US', 'ja_JP', 'ko_KR'])
         language_layout.addRow('备用语言:', self.secondary_language)
-        self.document_type = QComboBox()
-        self.document_type.addItems(['markdown', 'html', 'txt'])
-        language_layout.addRow('文档类型:', self.document_type)
+        self.document_language = QComboBox()
+        self.document_language.addItems(['CHS', 'CHT', 'DE', 'EN', 'ES', 'FR', 'ID', 'IT', 'JP', 'KR', 'PT', 'RU', 'TH', 'TR', 'VI'])
+        language_layout.addRow('文档语言:', self.document_language)
         self.language_tab.setLayout(language_layout)
 
         # 账户系统标签页
@@ -184,9 +184,6 @@ class ConfigEditorDialog(QDialog):
         account_layout = QFormLayout()
         self.auto_create_account = QCheckBox('自动创建账户')
         account_layout.addRow(self.auto_create_account)
-        self.initial_uid = QSpinBox()
-        self.initial_uid.setRange(10000000, 99999999)
-        account_layout.addRow('初始UID:', self.initial_uid)
         self.avatar_id = QSpinBox()
         self.avatar_id.setRange(10000000, 99999999)
         account_layout.addRow('头像ID:', self.avatar_id)
