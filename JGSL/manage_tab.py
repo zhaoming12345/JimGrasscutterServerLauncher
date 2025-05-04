@@ -155,9 +155,9 @@ class ManageTab(QWidget):
             return
         instance_name = current_item.text()
         instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
-        config_path = os.path.join(instance_dir, 'Grasscutter.jar')
+        config_path = os.path.join(instance_dir, 'config.json')
         if not os.path.exists(config_path):
-            QMessageBox.warning(self, '错误', 'Grasscutter.jar不存在')
+            QMessageBox.warning(self, '错误', 'config.json不存在')
             return
         config_editor = ConfigEditorDialog(self, config_path)
         config_editor.exec_()
