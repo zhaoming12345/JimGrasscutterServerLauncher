@@ -6,6 +6,8 @@ import json
 import os
 # 导入更新检查器和设置当前版本号的函数
 from update_checker import UpdateCheckThread, VERSION
+# 导入监控面板
+from monitor_tab import MonitorPanel
 
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Config', 'config.json')
 
@@ -39,6 +41,9 @@ class SettingsTab(QWidget):
         
         # 保存按钮
         self.save_btn = QPushButton("保存设置")
+
+        # 添加调试按钮
+        self.debug_monitor_btn = QPushButton("DEBUG: 打开监控面板")
         
         layout = QVBoxLayout()
         layout.setSpacing(20)
@@ -51,6 +56,8 @@ class SettingsTab(QWidget):
         layout.addLayout(log_line_layout)
         layout.addSpacerItem(QSpacerItem(10, 10, QSizePolicy.Minimum, QSizePolicy.Expanding))
         layout.addWidget(self.save_btn)
+        # 把调试按钮加到布局里
+        layout.addWidget(self.debug_monitor_btn)
         
         self.setLayout(layout)
         
@@ -60,6 +67,8 @@ class SettingsTab(QWidget):
         # 连接信号
         self.save_btn.clicked.connect(self.save_settings)
         self.auto_update.stateChanged.connect(self.toggle_auto_update) #  连接复选框状态变化信号
+        # 连接调试按钮的点击信号
+        self.debug_monitor_btn.clicked.connect(self.open_debug_monitor_panel)
         
     def load_settings(self):
         try:
@@ -182,3 +191,14 @@ class SettingsTab(QWidget):
             #  恢复显示当前版本
             self.update_status_label.setText(f"当前版本: {VERSION}") 
             logger.info("自动更新已禁用")
+
+    # 添加打开调试监控面板的方法
+    def open_debug_monitor_panel(self):
+        logger.info("打开调试模式的监控面板")
+        # 传入 debug_mode=True 来启动调试模式
+        try:
+            # 注意这里要用 self.debug_monitor_panel 来存储引用，不然窗口会闪退
+            self.debug_monitor_panel = MonitorPanel(instance_name="Debug Instance", pid=-1, log_path="N/A", debug_mode=True)
+            self.debug_monitor_panel.show() # 使用 show() 而不是 exec_() 来避免阻塞主窗口
+        except Exception as e:
+            logger.error(f"打开调试监控面板时出错: {e}")
