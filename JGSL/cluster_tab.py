@@ -41,6 +41,7 @@ class ClusterConfigDialog(QDialog):
         self.dispatch_select_btn.clicked.connect(self.select_dispatch_server)
 
         self.use_internal_dispatch_checkbox = QCheckBox('使用内置调度')
+        self.use_internal_dispatch_checkbox.stateChanged.connect(self.toggle_internal_dispatch)
 
         # 顶部布局：列表和选择标签
         dispatch_layout.addWidget(QLabel("调度服务器列表:"))
@@ -264,6 +265,23 @@ class ClusterConfigDialog(QDialog):
         # 更新服务器配置
         if server_name in self.server_configs:
             self.server_configs[server_name]['is_dispatch'] = True
+            
+    def toggle_internal_dispatch(self, state):
+        """切换内置调度功能喵~
+        
+        Args:
+            state: 复选框状态
+        """
+        from .dispatch import DispatchServer
+        
+        if state == QtCore.Qt.Checked:
+            self.dispatch_server = DispatchServer()
+            asyncio.get_event_loop().run_until_complete(self.dispatch_server.start())
+            logger.info("内置调度已启用喵~")
+        else:
+            if hasattr(self, 'dispatch_server') and self.dispatch_server:
+                asyncio.get_event_loop().run_until_complete(self.dispatch_server.stop())
+                logger.info("内置调度已禁用喵~")
         
         QMessageBox.information(self, "成功", f"已选定 {server_name} 为调度服务器")
         

@@ -1,0 +1,22 @@
+[
+    {
+        "name": "不使用镜像源",
+        "url": "https://github.com"
+    },
+    {
+        "name": "Gitee",
+        "url": "https://gitee.com"
+    },
+    {
+        "name": "Coding",
+        "url": "https://coding.net"
+    },
+    {
+        "name": "GitClone",
+        "url": "https://gitclone.com"
+    },
+    {
+        "name": "KKGitHub",
+        "url": "https://kkgithub.com"
+    }
+]

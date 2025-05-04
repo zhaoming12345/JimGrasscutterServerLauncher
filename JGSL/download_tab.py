@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QProgressBar, QLabel, QSlider, QHBoxLayout, QDialog, QDialogButtonBox, QMessageBox, QTreeWidget, QTreeWidgetItem,QSpacerItem,QSizePolicy
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QProgressBar, QLabel, QSlider, QHBoxLayout, QDialog, QDialogButtonBox, QMessageBox, QTreeWidget, QTreeWidgetItem,QSpacerItem,QSizePolicy,QComboBox
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
 import requests
 import shutil
@@ -137,8 +137,34 @@ class DownloadTab(QWidget):
         layout.addLayout(thread_layout)
         layout.addSpacerItem(QSpacerItem(10, 10, QSizePolicy.Minimum, QSizePolicy.Expanding))
         
+        # 镜像源选择
+        self.mirror_combo = QComboBox()
+        self.load_mirrors()
+        mirror_layout = QHBoxLayout()
+        mirror_layout.addWidget(QLabel('镜像源:'))
+        mirror_layout.addWidget(self.mirror_combo, stretch=1)
+        layout.insertLayout(0, mirror_layout)
+        
         self.setLayout(layout)
         self.download_btn.clicked.connect(self.start_download)
+        self.mirror_combo.currentTextChanged.connect(self.on_mirror_changed)
+    
+    def load_mirrors(self):
+        """从配置文件加载镜像源列表"""
+        mirror_path = os.path.join(self.root_dir, 'Config', 'mirror-list.json')
+        try:
+            with open(mirror_path, 'r', encoding='utf-8') as f:
+                mirrors = json.load(f)
+                self.mirror_combo.clear()
+                for mirror in mirrors:
+                    self.mirror_combo.addItem(mirror['name'], mirror['url'])
+        except Exception as e:
+            self.logger.error(f'加载镜像源失败: {e}')
+            self.mirror_combo.addItem('默认源', '')
+    
+    def on_mirror_changed(self, text):
+        """镜像源变更处理"""
+        self.current_mirror = self.mirror_combo.currentData()
     
     def _init_tree_data(self):
         # 从JSON配置文件加载下载列表
@@ -203,8 +229,10 @@ class DownloadTab(QWidget):
                 self.logger.error(f'目录创建失败: {e}')
                 QMessageBox.critical(self, '错误', f'目录创建失败: {e}')
                 return
-            # 获取下载URL
+            # 获取下载URL并应用镜像源
             url = selected_item.data(0, 1)
+            if self.current_mirror:
+                url = url.replace('https://github.com', self.current_mirror)
             thread = DownloadThread(url, save_path)
             thread.progress_signal.connect(self.update_progress)
             thread.finished_signal.connect(self.download_finished)
