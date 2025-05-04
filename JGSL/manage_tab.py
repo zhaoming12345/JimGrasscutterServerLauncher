@@ -182,17 +182,45 @@ class ManageTab(QWidget):
             QMessageBox.warning(self, '错误', f"读取实例配置文件 {config_path} 时发生未知错误")
             return
         config['instance_name'] = instance_name
+        original_instance_name = instance_name # 保存原始实例名称
         dialog = InstanceConfigDialog(self, config, root_dir=self.root_dir)
         if dialog.exec_():
-            self.save_config(dialog.instance_config, is_new=False)
+            self.save_config(dialog.instance_config, is_new=False, original_instance_name=original_instance_name)
 
-    def save_config(self, config, is_new=True):
+    def save_config(self, config, is_new=True, original_instance_name=None): # 添加 original_instance_name 参数
         logger.info('正在保存实例配置')
-        instance_name = config['instance_name']
-        instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
-        config_path = os.path.join(instance_dir, 'JGSL', 'Config.json')
-        os.makedirs(os.path.dirname(config_path), exist_ok=True)
-        if is_new and os.path.exists(config_path):
+        new_instance_name = config['instance_name']
+        new_instance_dir = os.path.join(self.root_dir, 'Servers', new_instance_name)
+        config_dir = os.path.join(new_instance_dir, 'JGSL')
+        config_path = os.path.join(config_dir, 'Config.json')
+
+        # 处理重命名逻辑
+        if not is_new and original_instance_name and original_instance_name != new_instance_name:
+            original_instance_dir = os.path.join(self.root_dir, 'Servers', original_instance_name)
+            if os.path.exists(original_instance_dir):
+                try:
+                    # 检查新名称是否已存在
+                    if os.path.exists(new_instance_dir):
+                        QMessageBox.warning(self, '错误', f'实例名称 "{new_instance_name}" 已存在，请选择其他名称。')
+                        return
+                    # 重命名文件夹
+                    shutil.move(original_instance_dir, new_instance_dir)
+                    logger.info(f'实例文件夹已从 "{original_instance_name}" 重命名为 "{new_instance_name}"')
+                except OSError as e:
+                    logger.error(f'重命名实例文件夹失败: {e}')
+                    QMessageBox.warning(self, '错误', f'重命名实例文件夹失败: {e}')
+                    return
+            else:
+                logger.warning(f'原始实例文件夹 "{original_instance_dir}" 不存在，无法重命名。将创建新实例。')
+                # 如果原始文件夹不存在，则按新实例处理，确保目录存在
+                os.makedirs(config_dir, exist_ok=True)
+        else:
+            # 确保新实例或未重命名的实例目录存在
+            os.makedirs(config_dir, exist_ok=True)
+
+        if is_new and os.path.exists(os.path.join(new_instance_dir, 'JGSL', 'Config.json')):
+            # 检查新实例的配置文件是否存在，而不是检查目录是否存在
+            # 因为重命名逻辑可能已经创建了目录
             QMessageBox.warning(self, '错误', '实例已存在')
             return
         try:
@@ -202,7 +230,7 @@ class ManageTab(QWidget):
                 # 创建标准目录结构
                 dirs_to_create = ['resources', 'data', 'packets', 'plugins', 'cache']
                 for directory in dirs_to_create:
-                    dir_path = Path(instance_dir) / directory
+                    dir_path = Path(new_instance_dir) / directory # 使用新的实例目录
                     try:
                         dir_path.mkdir(exist_ok=True)
                     except (PermissionError, FileExistsError) as e:
@@ -210,7 +238,7 @@ class ManageTab(QWidget):
                         QMessageBox.warning(self, '错误', f"创建目录 {dir_path} 失败: {e}")
                 logger.success("成功创建实例目录结构")
             self.refresh_server_list()
-            logger.success(f'实例 {instance_name} 配置已保存')
+            logger.success(f'实例 {new_instance_name} 配置已保存') # 使用新的实例名称
         except OSError as e:
             logger.error(f"保存实例配置文件失败 | 路径: {config_path} | 错误: {str(e)}")
             QMessageBox.warning(self, '错误', f'保存配置文件失败，请检查目录权限\n错误详情: {str(e)}')
