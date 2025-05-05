@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QMessageBox
-from PyQt5.QtCore import QProcess, QTimer, QCoreApplication, pyqtSignal
+from PyQt5.QtCore import QProcess, QTimer, QCoreApplication, pyqtSignal # 保持 pyqtSignal
 import os, json, time, locale, sys
 from pathlib import Path
 from loguru import logger
@@ -10,6 +10,10 @@ import json
 class LaunchTab(QWidget):
     instance_started = pyqtSignal(str, int)
     instance_stopped = pyqtSignal(str)
+    # 新增信号：进程创建时发射 (PID, QProcess 对象)
+    process_created = pyqtSignal(int, QProcess)
+    # 新增信号：进程结束或错误时发射 (PID)
+    process_finished_signal = pyqtSignal(int) # 避免与内建 finished 冲突
 
     def __init__(self):
         super().__init__()
@@ -129,6 +133,8 @@ class LaunchTab(QWidget):
         self.current_process.waitForStarted()
         if self.current_process.state() == QProcess.Running:
             pid = self.current_process.processId()
+            # 发射 process_created 信号
+            self.process_created.emit(pid, self.current_process)
             lock_file = instance_dir / 'Running.lock'
             logger.debug(f'创建锁文件: {lock_file} PID={pid}')
             try:
@@ -210,11 +216,16 @@ class LaunchTab(QWidget):
 
     def on_process_finished(self):
         if self.current_instance:
+            pid = self.current_process.processId() if self.current_process else None
             self.remove_lock_file(self.current_instance)
             self.instance_stopped.emit(self.current_instance.name)
             logger.info(f'实例 {self.current_instance.name} 已停止')
+            # 发射 process_finished_signal 信号
+            if pid:
+                self.process_finished_signal.emit(pid)
             self.start_btn.setEnabled(True)
             self.current_instance = None
+            self.current_process = None # 清理 QProcess 引用
         self.instance_counter -= 1
         if self.instance_counter == 0:
             self.db_process.terminate()
@@ -225,17 +236,22 @@ class LaunchTab(QWidget):
 
     def on_process_error(self, error):
         if self.current_instance:
+            pid = self.current_process.processId() if self.current_process else None
             logger.error(f'实例 {self.current_instance.name} 启动失败: {self.current_process.errorString()}')
             self.remove_lock_file(self.current_instance)
+            # 发射 process_finished_signal 信号
+            if pid:
+                self.process_finished_signal.emit(pid)
             self.start_btn.setEnabled(True)
             self.current_instance = None
-            self.instance_counter -= 1
-            if self.instance_counter == 0:
-                self.db_process.terminate()
-                self.db_process.finished.connect(self.db_process.deleteLater)
-                self.db_process.waitForFinished(3000)
-                self.db_heartbeat_timer.stop()
-                logger.info(f'数据库已停止')
+            self.current_process = None # 清理 QProcess 引用
+        self.instance_counter -= 1
+        if self.instance_counter == 0:
+            self.db_process.terminate()
+            self.db_process.finished.connect(self.db_process.deleteLater)
+            self.db_process.waitForFinished(3000)
+            self.db_heartbeat_timer.stop()
+            logger.info(f'数据库已停止')
 
     def handle_stdout(self):
         text = self.current_process.readAllStandardOutput().data().decode()
@@ -262,16 +278,33 @@ class LaunchTab(QWidget):
     def cleanup(self):
         # 终止所有运行中的实例进程
         if self.current_process and self.current_process.state() == QProcess.Running:
+            pid = self.current_process.processId()
             self.current_process.terminate()
             self.current_process.waitForFinished(3000)
             if self.current_process.state() == QProcess.Running:
                 self.current_process.kill()
+                self.current_process.waitForFinished() # 等待 kill 完成
+            # 发射 process_finished_signal 信号
+            if pid:
+                self.process_finished_signal.emit(pid)
         # 终止数据库进程
         if self.db_process.state() == QProcess.Running:
             self.db_process.terminate()
             self.db_process.waitForFinished(3000)
             if self.db_process.state() == QProcess.Running:
                 self.db_process.kill()
+        # 额外检查并终止mongod.exe进程
+        for proc in psutil.process_iter(['pid', 'name']):
+            try:
+                if proc.info['name'] == 'mongod.exe':
+                    logger.warning(f'检测到残留的mongod.exe进程，终止进程 {proc.info["pid"]}')
+                    proc.terminate()
+                    proc.wait()
+                    if proc.is_running():
+                        proc.kill()
+                        proc.wait()
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
         # 停止心跳检测
         self.db_heartbeat_timer.stop()
         # 重置计数器

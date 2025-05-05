@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QLabel, QPushButton, QFileDialog, QMessageBox, QTextEdit, QLineEdit, QHBoxLayout, QDialog, QFormLayout, QDialogButtonBox
-from PyQt5.QtCore import Qt, QTimer, QRect, QPropertyAnimation, QObject, pyqtProperty, QEasingCurve, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, QRect, QPropertyAnimation, QObject, pyqtProperty, QEasingCurve, QThread, pyqtSignal, QProcess
 from PyQt5.QtGui import QPainter, QColor, QFont, QFontMetrics, QPen, QLinearGradient, QTextCursor
 import psutil
 import os
@@ -88,13 +88,16 @@ class CircleProgress(QWidget):
 
 
 class MonitorPanel(QDialog):
-    def __init__(self, instance_name, pid, log_path, debug_mode=False):
+    # 添加 process 参数，类型为 QProcess 或 None
+    def __init__(self, instance_name, pid, log_path, process: QProcess | None = None, debug_mode=False):
         try:
-            logger.debug('初始化监控面板 实例:{} PID:{} 日志路径:{} 调试模式:{}', instance_name, pid, log_path, debug_mode)
+            # 在日志中记录 process 对象
+            logger.debug('初始化监控面板 实例:{} PID:{} 日志路径:{} 进程对象:{} 调试模式:{}', instance_name, pid, log_path, process, debug_mode)
             super().__init__()
             self.instance_name = instance_name
             self.pid = pid
             self.log_path = log_path
+            self.process = process # 存储 QProcess 对象
             self.debug_mode = debug_mode # 保存调试模式状态
 
             self.cpu_usage = CircleProgress()
@@ -161,7 +164,7 @@ class MonitorPanel(QDialog):
             self.setLayout(self.layout)
 
             self.log_text.setReadOnly(True)
-            self.log_text.setLineWrapMode(QTextEdit.NoWrap)
+            self.log_text.setLineWrapMode(QTextEdit.WidgetWidth)
             self.log_text.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
             self.command_history = []
             # 调试模式下不需要启动 log_timer 
@@ -257,15 +260,48 @@ class MonitorPanel(QDialog):
     def send_command(self):
         if self.debug_mode:
             logger.warning("尝试在调试模式下发送命令")
+            QMessageBox.warning(self, "提示", "调试模式下无法发送命令")
             return
         command = self.command_input.text()
         if not command:
             return
+
         logger.info(f'向实例 {self.instance_name} (PID: {self.pid}) 发送命令: {command}')
-        # 这里需要实现真正的命令发送逻辑，例如通过 stdin 或其他 IPC 方式
-        QMessageBox.information(self, "提示", f"命令 '{command}' 已发送 (功能实现中)")
-        self.command_input.clear()
-        self.command_history.append(command)
+
+        # 使用 self.process (QProcess 对象) 发送命令
+        if self.process and self.process.state() == QProcess.ProcessState.Running:
+            try:
+                # 确保命令以换行符结束
+                full_command = (command + '\n').encode('utf-8')
+                bytes_written = self.process.write(full_command)
+                
+                # 检查写入是否成功
+                if bytes_written == -1:
+                    error_string = self.process.errorString()
+                    logger.error(f"写入命令到进程 {self.pid} 失败. QProcess 错误: {error_string}")
+                    QMessageBox.critical(self, "错误", f"发送命令失败: {error_string}")
+                elif bytes_written < len(full_command):
+                    logger.warning(f"命令可能未完全写入进程 {self.pid}. 写入 {bytes_written}/{len(full_command)} 字节.")
+                    QMessageBox.warning(self, "警告", "命令可能未完全发送")
+                    # 即使部分写入，也可能需要记录历史和清空输入
+                    QMessageBox.information(self, "提示", f"命令 '{command}' 已发送 (可能不完整)")
+                    self.command_history.append(command)
+                    self.command_input.clear()
+                else:
+                    logger.success(f'命令成功发送到进程 {self.pid} (通过 QProcess)')
+                    QMessageBox.information(self, "提示", f"命令 '{command}' 已成功发送")
+                    self.command_history.append(command) # 仅在成功或部分写入时添加到历史记录
+                    self.command_input.clear()
+
+            except Exception as e:
+                logger.error(f'通过 QProcess 发送命令时出错: {e}')
+                QMessageBox.critical(self, "错误", f"发送命令时发生意外错误: {e}")
+                # 出错时不清除输入或添加到历史记录
+        else:
+            process_state = self.process.state() if self.process else "N/A"
+            logger.error(f'无法发送命令：进程对象无效或进程未运行 (PID: {self.pid}, Process: {self.process}, State: {process_state})')
+            QMessageBox.warning(self, "错误", "目标进程无效或未运行，无法发送命令")
+            # 不清除输入或添加到历史记录
 
     def stop_instance(self):
         if self.debug_mode:
@@ -303,7 +339,6 @@ class MonitorPanel(QDialog):
 
     # 重写 closeEvent，确保在关闭窗口时停止定时器和线程
     def closeEvent(self, event):
-        # logger.debug(f"关闭监控面板: {self.instance_name} (调试模式: {self.debug_mode})")
         self.resource_timer.stop()
         self.log_timer.stop()
         # 只有非调试模式才有日志读取线程
@@ -453,23 +488,48 @@ class MonitorTab(QWidget):
 
         pid, instance_path = selected_instance_info
         log_file_path = os.path.join(instance_path, "logs", "latest.log")
-        lock_path = os.path.join(instance_path, "Running.lock")
+        # lock_path = os.path.join(instance_path, "Running.lock") # lock_path 似乎未使用
 
-        # 再次确认进程是否存在
+        # 再次确认进程是否存在 (使用 psutil 检查)
         if not pid or not psutil.pid_exists(pid):
             QMessageBox.warning(self, '错误', '选择的实例未运行或进程已消失')
             self.scan_running_instances() # 刷新列表
             return
+        
+        # 获取 MainWindow 实例 (假设 MonitorTab 是 MainWindow 的子控件)
+        main_window = self.window() 
+        # if not isinstance(main_window, MainWindow): # 移除类型检查以避免循环导入
+        #     logger.error("无法获取 MainWindow 实例，无法查找 QProcess 对象")
+        #     QMessageBox.critical(self, '错误', '内部错误：无法访问主窗口，无法打开监控面板。')
+        #     return
+
+        # 从 MainWindow 的 running_processes 字典直接获取 QProcess 对象
+        process_obj = main_window.running_processes.get(pid)
+        # 检查 main_window 是否有 running_processes 属性，以防万一
+        if not hasattr(main_window, 'running_processes'):
+            logger.error("无法获取 MainWindow 实例或其不包含 running_processes 字典，无法查找 QProcess 对象")
+            QMessageBox.critical(self, '错误', '内部错误：无法访问主窗口的进程列表，无法打开监控面板。')
+            return
+
+        if not process_obj:
+            # 如果 MainWindow 中没有 QProcess 对象，可能意味着它不是由启动器启动的
+            # 或者启动器状态已丢失。提供一个警告，但仍然允许打开监控面板（无命令发送功能）
+            logger.warning(f"无法找到 PID {pid} 对应的 QProcess 对象。监控面板将以只读模式打开。")
+            QMessageBox.warning(self, '警告', f'无法找到与实例关联的进程对象。\n监控面板将以只读模式打开，无法发送命令。')
+            # 即使找不到 process_obj，也继续打开面板，但 process 参数为 None
+
         try:
-            proc = psutil.Process(pid)
+            proc_psutil = psutil.Process(pid) # 仍然使用 psutil 检查进程类型
             # 检查进程名是否是 java.exe (Windows) 或 java (Linux/macOS) 
-            if not proc.name().lower().startswith("java"):
-                logger.warning('进程类型异常 PID:{} 名称:{} 期望:java*', pid, proc.name())
+            if not proc_psutil.name().lower().startswith("java"):
+                logger.warning('进程类型异常 PID:{} 名称:{} 期望:java*', pid, proc_psutil.name())
                 QMessageBox.warning(self, '错误', '选择的实例似乎不是Java进程')
                 self.scan_running_instances() # 刷新列表
                 return
+            
             # 使用 self.monitor_panel 存储引用，防止闪退
-            self.monitor_panel = MonitorPanel(instance_name, pid, log_file_path)
+            # 将获取到的 process_obj 传递给 MonitorPanel
+            self.monitor_panel = MonitorPanel(instance_name, pid, log_file_path, process=process_obj)
             self.monitor_panel.show() # 使用 show() 而不是 exec_() 避免阻塞
         except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
             logger.error(f"访问进程 {pid} 信息失败: {e}")
