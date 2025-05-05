@@ -4,7 +4,7 @@
 
 ![JGSL Logo](Assets/JGSL-Logo.ico)
 
-[介绍视频](https://www.bilibili.com/video/BV1uLVHzfEJz/)
+[介绍视频](https://www.bilibili.com/video/BV1B1VqzWEY7)
 
 ## 功能特性
 
