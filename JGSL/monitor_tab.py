@@ -10,6 +10,7 @@ import datetime
 import threading
 from loguru import logger
 import random # 导入 random 用于生成模拟数据
+import qdarkstyle # 导入主题库
 
 
 class CircleProgress(QWidget):
@@ -99,6 +100,21 @@ class MonitorPanel(QDialog):
             self.log_path = log_path
             self.process = process # 存储 QProcess 对象
             self.debug_mode = debug_mode # 保存调试模式状态
+            
+            # 应用主题设置
+            config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Config', 'config.json')
+            try:
+                if os.path.exists(config_file):
+                    with open(config_file, 'r', encoding='utf-8') as f:
+                        config_data = json.load(f)
+                    theme = config_data.get('Theme', 'dark')
+                    if theme == 'dark':
+                        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+                    else:
+                        self.setStyleSheet('')
+            except Exception as e:
+                logger.error(f'加载主题设置失败: {e}')
+                self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
             
             # 设置窗口大小和标题
             self.resize(800, 600)  # 设置一个合适的初始大小

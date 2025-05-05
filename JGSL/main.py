@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 from loguru import logger
 from PyQt5.QtWidgets import QApplication, QPushButton, QMessageBox #  添加 QMessageBox 
 from PyQt5.QtGui import QFontDatabase, QFont
@@ -47,6 +48,18 @@ def main():
 
 #  添加一个函数来处理启动时的更新检查
 def check_for_updates_on_startup():
+    # 读取配置文件检查是否启用自动更新
+    config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Config', 'config.json')
+    try:
+        if os.path.exists(config_file):
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config_data = json.load(f)
+            if not config_data.get('AutoUpdate', True):
+                logger.info("自动更新已禁用，跳过启动时检查")
+                return
+    except Exception as e:
+        logger.error(f"读取配置文件时出错: {e}，将默认检查更新")
+    
     logger.info("启动时检查更新...")
     #  创建一个临时的检查线程
     #  注意：这里直接在主线程等待结果可能会阻塞UI，更好的方式是异步处理或在启动画面中进行
