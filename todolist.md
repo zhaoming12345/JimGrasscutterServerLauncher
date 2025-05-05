@@ -13,6 +13,7 @@
 ## 修复
 
 - [ ]  download_tab.py：修复下载过程中提示权限不足的问题（紧急 | 此问题需要与微软合作，暂时忽略）
+- [ ]  monitor_tab.py: 修复EOF问题（紧急 | Grasscutter.java的341行导致，原因不明，请暂时使用opencommand）
 - [X]  monitor_tab.py：解决监控面板打开崩溃（紧急）
 
 ## 修改

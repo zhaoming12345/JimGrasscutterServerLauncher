@@ -99,34 +99,50 @@ class MonitorPanel(QDialog):
             self.log_path = log_path
             self.process = process # 存储 QProcess 对象
             self.debug_mode = debug_mode # 保存调试模式状态
-
+            
+            # 设置窗口大小和标题
+            self.resize(800, 600)  # 设置一个合适的初始大小
+            
+            # --- 创建控件 ---
             self.cpu_usage = CircleProgress()
             self.mem_usage = CircleProgress()
+            self.cpu_label = QLabel("CPU")
+            self.mem_label = QLabel("MEM")
+            self.uptime_label = QLabel("UpTime: 00h00m00s") # 添加运行时间标签
             self.log_text = QTextEdit()
             self.command_input = QLineEdit()
             self.command_button = QPushButton('发送')
+            self.clear_button = QPushButton('清屏')
             self.stop_button = QPushButton('关闭实例')
             self.stop_button.setStyleSheet("QPushButton { background-color: red; color: white; }")
-
+            
+            # --- 设置控件属性 ---
+            self.cpu_label.setAlignment(Qt.AlignCenter)
+            self.mem_label.setAlignment(Qt.AlignCenter)
+            self.uptime_label.setAlignment(Qt.AlignCenter)
+            self.log_text.setReadOnly(True)
+            self.log_text.setLineWrapMode(QTextEdit.WidgetWidth) # 自动换行
+            self.log_text.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+            self.command_input.setPlaceholderText("在这里输入指令...")
+            
             # 根据调试模式设置控件和连接信号
             if self.debug_mode:
-                self.setWindowTitle(f"{self.instance_name} (调试模式)")
+                self.setWindowTitle(f"监控面板: {self.instance_name} (调试模式)")
                 self.command_input.setPlaceholderText("调试模式下无法发送命令")
                 self.command_input.setEnabled(False)
                 self.command_button.setEnabled(False)
                 self.stop_button.setText("关闭调试面板")
                 self.stop_button.clicked.connect(self.close) # 调试模式下关闭按钮直接关闭窗口
-                self.log_text.setPlainText("--- 调试模式日志 ---\n" +
-                                        "这是模拟的日志输出\n" +
-                                        f"时间: {datetime.datetime.now()}\n" +
-                                        "CPU: 正在模拟...\n" +
-                                        "内存: 正在模拟...\n")
+                self.log_text.setPlainText("logs logs logs logs logs logs logs logs logs logs logs logs\n" * 20)
+                self.clear_button.clicked.connect(self.clear_log)
             else:
-                self.setWindowTitle(f"{self.instance_name}")
+                self.setWindowTitle(f"监控面板: {self.instance_name}")
                 self.command_button.clicked.connect(self.send_command)
                 self.stop_button.clicked.connect(self.stop_instance)
                 self.command_input.returnPressed.connect(self.send_command)
+                self.clear_button.clicked.connect(self.clear_log)
 
+            # --- 定时器和变量初始化 ---
             self.log_timer = QTimer()
             self.log_timer.timeout.connect(self.update_log)
             self.resource_timer = QTimer()
@@ -134,44 +150,75 @@ class MonitorPanel(QDialog):
             self.resource_timer.start(1000)
             self.current_log = ""
             self.last_log_size = 0
+            self.command_history = []
 
             # 调试模式下不需要计算启动时间或读取真实日志
             if not self.debug_mode:
+                # 使用延迟初始化，避免在构造函数中进行耗时操作
+                self.start_time = None
                 try:
                     # 只有在非调试模式且 PID 有效时才计算启动时间
                     if self.pid and self.pid != -1 and psutil.pid_exists(self.pid):
-                         self.start_time = datetime.datetime.now() - datetime.timedelta(seconds=time.time() - psutil.Process(self.pid).create_time())
+                        # 使用非阻塞方式获取进程创建时间
+                        proc = psutil.Process(self.pid)
+                        self.start_time = datetime.datetime.now() - datetime.timedelta(seconds=time.time() - proc.create_time())
                     else:
-                        self.start_time = None # 无效 PID 则不设置启动时间
                         logger.warning("无法获取进程启动时间，PID无效或进程不存在")
                 except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-                    self.start_time = None
                     logger.error(f"获取进程创建时间失败: {e}")
-                self.log_reader_thread = LogReaderThread(self.log_path) # 只有非调试模式才启动日志读取线程
+                except Exception as e:
+                    logger.error(f"计算进程启动时间时发生未知错误: {e}")
+                
+                # 创建日志读取线程，但延迟启动
+                self.log_reader_thread = LogReaderThread(self.log_path)
                 self.log_reader_thread.log_data_ready.connect(self.append_log)
                 self.log_reader_thread.log_error.connect(self.handle_log_error)
-                self.log_reader_thread.start()
+                # 使用QTimer延迟启动线程，避免在构造函数中启动
+                QTimer.singleShot(100, self.log_reader_thread.start)
+                self.log_timer.start(1000)
+                self.update_log() # 非调试模式才需要立即更新日志
             else:
                 self.start_time = datetime.datetime.now() # 调试模式给个假的启动时间
 
-            self.layout = QVBoxLayout()
-            self.layout.addWidget(self.cpu_usage)
-            self.layout.addWidget(self.mem_usage)
-            self.layout.addWidget(self.stop_button)
-            self.layout.addWidget(self.log_text)
-            self.layout.addWidget(self.command_input)
-            self.layout.addWidget(self.command_button)
-            self.setLayout(self.layout)
-
-            self.log_text.setReadOnly(True)
-            self.log_text.setLineWrapMode(QTextEdit.WidgetWidth)
-            self.log_text.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-            self.command_history = []
-            # 调试模式下不需要启动 log_timer 
-            if not self.debug_mode:
-                self.log_timer.start(1000)
-                self.update_log() # 非调试模式才需要立即更新日志
-            self.update_resource_usage() # 首次更新资源
+            # --- 创建布局 ---
+            # 右侧面板布局
+            right_panel = QVBoxLayout()
+            right_panel.addWidget(self.cpu_usage, alignment=Qt.AlignCenter)
+            right_panel.addWidget(self.cpu_label)
+            right_panel.addSpacing(10)
+            right_panel.addWidget(self.mem_usage, alignment=Qt.AlignCenter)
+            right_panel.addWidget(self.mem_label)
+            right_panel.addSpacing(10)
+            right_panel.addWidget(self.uptime_label)
+            right_panel.addStretch(1)
+            right_panel.addWidget(self.stop_button)
+            right_panel.addWidget(self.clear_button)
+            
+            # 右侧面板容器
+            right_widget = QWidget()
+            right_widget.setLayout(right_panel)
+            right_widget.setFixedWidth(100)  # 固定右侧面板宽度
+            
+            # 底部命令输入区域布局
+            command_layout = QHBoxLayout()
+            command_layout.addWidget(self.command_input)
+            command_layout.addWidget(self.command_button)
+            
+            # 主布局
+            main_layout = QHBoxLayout()
+            main_layout.addWidget(self.log_text, 1)  # 日志区域占据更多空间
+            main_layout.addWidget(right_widget)
+            
+            # 整体布局
+            layout = QVBoxLayout(self)
+            layout.addLayout(main_layout, 1)  # 主布局占据更多空间
+            layout.addLayout(command_layout)
+            self.setLayout(layout)
+            
+            # 首次更新资源和运行时间
+            self.update_resource_usage()
+            self.update_uptime()
+            
             logger.info('监控面板初始化成功完成 实例:{} PID:{} 调试模式:{}', instance_name, pid, debug_mode)
         except Exception as e:
             logger.exception('监控面板初始化失败')
@@ -184,58 +231,87 @@ class MonitorPanel(QDialog):
             # 调试模式下使用模拟数据
             if self.debug_mode:
                 try:
-                    cpu_val = random.randint(10, 70)
+                    # 使用较小范围的随机值，避免大幅度变化
+                    if hasattr(self, '_last_cpu_val'):
+                        # 在上次值的基础上小幅变化，模拟真实情况
+                        cpu_val = max(10, min(70, self._last_cpu_val + random.randint(-5, 5)))
+                    else:
+                        cpu_val = random.randint(20, 50)
+                    self._last_cpu_val = cpu_val
                     self.cpu_usage.set_value(cpu_val)
                 except Exception as e:
-                    logger.exception(f'调试模式 - 设置 CPU 模拟值失败: {e}')
+                    logger.warning(f'调试模式 - 设置 CPU 模拟值失败: {e}')
+                    # 使用exception级别太高，改为warning
 
                 try:
-                    # 模拟内存使用，改为百分比
-                    mem_val = random.randint(20, 80)
+                    # 模拟内存使用，改为百分比，同样小幅度变化
+                    if hasattr(self, '_last_mem_val'):
+                        mem_val = max(20, min(80, self._last_mem_val + random.randint(-3, 3)))
+                    else:
+                        mem_val = random.randint(30, 60)
+                    self._last_mem_val = mem_val
                     self.mem_usage.set_value(mem_val)
                 except Exception as e:
-                    logger.exception(f'调试模式 - 设置内存模拟值失败: {e}')
+                    logger.warning(f'调试模式 - 设置内存模拟值失败: {e}')
 
                 self.update_uptime() # 调试模式也更新假的运行时间
-            elif self.pid and self.pid != -1 and psutil.pid_exists(self.pid):
-                proc = psutil.Process(self.pid)
-                # 使用 set_value 来触发动画效果
-                try:
-                    cpu_percent = int(proc.cpu_percent(interval=0.1))
-                    self.cpu_usage.set_value(cpu_percent)
-                except Exception as e:
-                    logger.exception(f'更新 CPU 使用率失败: {e}')
+            elif self.pid and self.pid != -1:
+                # 先检查进程是否存在，避免不必要的异常
+                if not psutil.pid_exists(self.pid):
+                    if not hasattr(self, '_pid_warning_shown') or not self._pid_warning_shown:
+                        logger.warning(f'进程 {self.pid} 不存在，无法获取资源使用情况')
+                        self._pid_warning_shown = True
                     self.cpu_usage.set_value(0)
-
-                try:
-                    mem_percent = int(proc.memory_percent())
-                    self.mem_usage.set_value(mem_percent) # 改为内存百分比
-                except Exception as e:
-                    logger.exception(f'更新内存使用率失败: {e}')
                     self.mem_usage.set_value(0)
-                self.update_uptime()
+                    return
+                
+                # 进程存在，获取资源使用情况
+                try:
+                    proc = psutil.Process(self.pid)
+                    # 使用非阻塞方式获取CPU使用率
+                    cpu_percent = int(proc.cpu_percent(interval=None))
+                    self.cpu_usage.set_value(cpu_percent)
+                    
+                    # 获取内存使用率
+                    mem_percent = int(proc.memory_percent())
+                    self.mem_usage.set_value(mem_percent)
+                    
+                    # 重置警告标志
+                    self._pid_warning_shown = False
+                    
+                    # 更新运行时间
+                    self.update_uptime()
+                except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                    # 进程消失或无权限访问
+                    if not hasattr(self, '_resource_error_shown') or not self._resource_error_shown:
+                        logger.warning(f"访问进程 {self.pid} 信息失败: {e}")
+                        self._resource_error_shown = True
+                    self.cpu_usage.set_value(0)
+                    self.mem_usage.set_value(0)
+                except Exception as e:
+                    # 其他错误
+                    if not hasattr(self, '_resource_error_shown') or not self._resource_error_shown:
+                        logger.error(f"获取资源使用情况时发生错误: {e}")
+                        self._resource_error_shown = True
+                    self.cpu_usage.set_value(0)
+                    self.mem_usage.set_value(0)
             else:
+                # PID无效
                 self.cpu_usage.set_value(0)
                 self.mem_usage.set_value(0)
-                # 只有在非调试模式下才记录 PID 无效的警告
-                if not self.debug_mode:
+                # 只在非调试模式下记录警告，且只记录一次
+                if not self.debug_mode and (not hasattr(self, '_invalid_pid_warning_shown') or not self._invalid_pid_warning_shown):
                     logger.warning('无效PID:{} 进程状态:{}', self.pid, psutil.pid_exists(self.pid) if self.pid and self.pid != -1 else 'N/A')
-        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-            # 进程消失或无权限访问，资源设为0
-            logger.warning(f"访问进程 {self.pid} 信息失败: {e}, 设置值为 0")
-            self.cpu_usage.set_value(0)
-            self.mem_usage.set_value(0)
-            # if not self.debug_mode:
-            #     logger.warning(f"访问进程 {self.pid} 信息失败: {e}")
+                    self._invalid_pid_warning_shown = True
         except Exception as e:
-            logger.error(f"更新资源使用情况时发生错误: {e}")
-            # 即使发生错误也尝试将值设为0
+            # 捕获所有未处理的异常
+            logger.error(f"更新资源使用情况时发生未知错误: {e}")
             try:
-                # logger.debug('更新资源 - 发生未知错误，尝试设置值为 0')
                 self.cpu_usage.set_value(0)
                 self.mem_usage.set_value(0)
-            except Exception as inner_e:
-                logger.error(f'尝试将资源设置为0时发生内部错误: {inner_e}')
+            except Exception:
+                # 忽略二次错误，避免日志过多
+                pass
 
     def update_uptime(self):
         if self.start_time:
@@ -244,17 +320,72 @@ class MonitorPanel(QDialog):
             minutes, seconds = divmod(remainder, 60)
             # 调试模式标题加上提示
             title_prefix = f"{self.instance_name} (调试模式)" if self.debug_mode else self.instance_name
-            self.setWindowTitle(f"{title_prefix} 运行时间：{int(hours)} 小时 {int(minutes)} 分钟 {int(seconds)} 秒")
+            self.uptime_label.setText(f"UpTime:\n{int(hours):02d}h{int(minutes):02d}m{int(seconds):02d}s")
+        else:
+            self.uptime_label.setText("UpTime:\nN/A") # Also add newline here for consistency
 
     # 添加处理日志读取线程信号的方法
     def append_log(self, log_content):
-        self.log_text.moveCursor(QTextCursor.MoveOperation.End)
-        self.log_text.insertPlainText(log_content)
-        self.log_text.moveCursor(QTextCursor.MoveOperation.End)
+        try:
+            # 使用QTimer.singleShot将UI更新操作放到主线程事件循环中执行
+            # 这样可以避免在非主线程中直接操作UI元素导致的问题
+            if not hasattr(self, '_log_buffer'):
+                self._log_buffer = ""
+                self._log_buffer_timer = QTimer()
+                self._log_buffer_timer.timeout.connect(self._flush_log_buffer)
+                self._log_buffer_timer.start(100)  # 每100ms刷新一次日志缓冲区
+            
+            # 将日志内容添加到缓冲区
+            self._log_buffer += log_content
+            
+            # 如果缓冲区过大，立即刷新
+            if len(self._log_buffer) > 5000:
+                QTimer.singleShot(0, self._flush_log_buffer)
+        except Exception as e:
+            logger.error(f"添加日志内容时发生错误: {e}")
+    
+    # 添加一个方法来刷新日志缓冲区
+    def _flush_log_buffer(self):
+        try:
+            if hasattr(self, '_log_buffer') and self._log_buffer:
+                # 获取当前滚动条位置
+                scrollbar = self.log_text.verticalScrollBar()
+                at_bottom = scrollbar.value() >= scrollbar.maximum() - 10
+                
+                # 更新文本
+                cursor = self.log_text.textCursor()
+                cursor.movePosition(QTextCursor.MoveOperation.End)
+                cursor.insertText(self._log_buffer)
+                self._log_buffer = ""
+                
+                # 如果之前在底部，则保持在底部
+                if at_bottom:
+                    scrollbar.setValue(scrollbar.maximum())
+                
+                # 检查是否需要裁剪日志
+                if self.log_text.document().lineCount() > 1000:
+                    QTimer.singleShot(0, self.trim_log_text)
+        except Exception as e:
+            logger.error(f"刷新日志缓冲区时发生错误: {e}")
+            self._log_buffer = ""  # 出错时清空缓冲区
 
     def handle_log_error(self, error_message):
-        logger.error(f"日志读取错误: {error_message}")
-        self.log_text.append(f"<font color='red'>日志读取错误: {error_message}</font>")
+        try:
+            logger.error(f"日志读取错误: {error_message}")
+            # 使用QTimer.singleShot确保在主线程中更新UI
+            QTimer.singleShot(0, lambda: self.log_text.append(f"<font color='red'>日志读取错误: {error_message}</font>"))
+        except Exception as e:
+            logger.error(f"处理日志错误时发生异常: {e}")
+            
+    def clear_log(self):
+        """清空日志显示区域"""
+        try:
+            self.log_text.clear()
+            logger.info(f"已清空监控面板日志显示 实例:{self.instance_name}")
+        except Exception as e:
+            logger.error(f"清空日志显示时发生错误: {e}")
+            QMessageBox.warning(self, "警告", f"清空日志显示失败: {e}")
+
 
     # send_command 和 stop_instance 在调试模式下不应该被调用，但保留以防万一
     def send_command(self):
@@ -339,39 +470,85 @@ class MonitorPanel(QDialog):
 
     # 重写 closeEvent，确保在关闭窗口时停止定时器和线程
     def closeEvent(self, event):
-        self.resource_timer.stop()
-        self.log_timer.stop()
-        # 只有非调试模式才有日志读取线程
-        if not self.debug_mode and hasattr(self, 'log_reader_thread') and self.log_reader_thread.isRunning():
-            self.log_reader_thread.stop()
+        try:
+            # 先停止所有定时器
+            if hasattr(self, 'resource_timer') and self.resource_timer.isActive():
+                self.resource_timer.stop()
+            if hasattr(self, 'log_timer') and self.log_timer.isActive():
+                self.log_timer.stop()
+            # 停止日志缓冲区定时器
+            if hasattr(self, '_log_buffer_timer') and self._log_buffer_timer.isActive():
+                self._log_buffer_timer.stop()
+            
+            # 只有非调试模式才有日志读取线程
+            if not self.debug_mode and hasattr(self, 'log_reader_thread'):
+                if self.log_reader_thread.isRunning():
+                    logger.debug(f'正在停止日志读取线程: {self.log_path}')
+                    # 使用QTimer延迟停止线程，避免阻塞UI
+                    self.log_reader_thread.stop()
+                    # 不等待线程结束，避免阻塞UI
+            
+            # 清空日志缓冲区
+            if hasattr(self, '_log_buffer'):
+                self._log_buffer = ""
+            
+            logger.debug(f'监控面板已关闭: {self.instance_name}')
+        except Exception as e:
+            logger.error(f'关闭监控面板时发生错误: {e}')
+        
+        # 调用父类方法完成关闭
         super().closeEvent(event)
 
-    # update_log 在调试模式下不需要，但保留框架
+    # update_log 在调试模式下模拟日志更新，非调试模式下由LogReaderThread处理
     def update_log(self):
-        if self.debug_mode:
-            # 调试模式下可以模拟一些日志更新
-            current_time = datetime.datetime.now().strftime("%H:%M:%S")
-            log_line = f"[{current_time}] 模拟日志条目 CPU: {self.cpu_usage.value}%, Mem: {self.mem_usage.value}MB\n"
-            self.append_log(log_line)
-            # 限制日志行数，防止过多卡顿
-            if self.log_text.document().lineCount() > 50:
-                 cursor = self.log_text.textCursor()
-                 cursor.movePosition(QTextEdit.Start)
-                 cursor.movePosition(QTextEdit.Down, QTextEdit.KeepAnchor, self.log_text.document().lineCount() - 50)
-                 cursor.removeSelectedText()
-                 cursor.movePosition(QTextEdit.End)
-                 self.log_text.setTextCursor(cursor)
-            return
-
-        # 以下是非调试模式的原有逻辑，现在由 LogReaderThread 处理
-        # try:
-        #     if not os.path.exists(self.log_path):
-        #         self.log_text.append(f"<font color='red'>日志文件不存在: {self.log_path}</font>")
-        #         return
-        #     # ... 原有的 update_log 逻辑 ...
-        # except Exception as e:
-        #     logger.error(f"更新日志时发生错误: {e}")
-        pass # 非调试模式的日志更新由 LogReaderThread 负责
+        try:
+            if self.debug_mode:
+                # 调试模式下可以模拟一些日志更新
+                current_time = datetime.datetime.now().strftime("%H:%M:%S")
+                # 使用随机值模拟不同类型的日志
+                log_types = ["INFO", "DEBUG", "WARN"]
+                log_type = random.choice(log_types)
+                cpu_val = getattr(self.cpu_usage, 'current_value', 0)
+                mem_val = getattr(self.mem_usage, 'current_value', 0)
+                
+                # 随机生成一些模拟日志内容
+                log_contents = [
+                    f"模拟日志条目 CPU: {cpu_val}%, Mem: {mem_val}MB",
+                    "处理客户端请求...",
+                    "加载资源完成",
+                    "等待连接..."
+                ]
+                log_content = random.choice(log_contents)
+                
+                # 格式化日志行
+                log_line = f"[{current_time}] [{log_type}] {log_content}\n"
+                
+                # 使用QTimer延迟执行UI更新，避免阻塞
+                QTimer.singleShot(0, lambda: self.append_log(log_line))
+                
+                # 限制日志行数，防止过多卡顿
+                # 使用QTimer延迟执行，避免阻塞UI
+                if self.log_text.document().lineCount() > 100:
+                    QTimer.singleShot(0, self.trim_log_text)
+                return
+            
+            # 非调试模式下，日志更新由LogReaderThread处理
+            # 这个方法仅作为定时器回调存在，实际上不需要做任何事情
+            pass
+        except Exception as e:
+            logger.error(f"更新日志时发生错误: {e}")
+    
+    # 添加一个方法来裁剪日志文本，保持在合理的行数范围内
+    def trim_log_text(self):
+        try:
+            cursor = self.log_text.textCursor()
+            cursor.movePosition(QTextCursor.Start)
+            cursor.movePosition(QTextCursor.Down, QTextCursor.KeepAnchor, 
+                               self.log_text.document().lineCount() - 100)
+            cursor.removeSelectedText()
+            # 不需要移动光标到末尾，保持用户当前的滚动位置
+        except Exception as e:
+            logger.error(f"裁剪日志文本时发生错误: {e}") # 非调试模式的日志更新由 LogReaderThread 负责
 
 
 class LogReaderThread(QThread):
@@ -383,63 +560,92 @@ class LogReaderThread(QThread):
         self.log_path = log_path
         self.last_log_size = 0
         self.running = True
+        self.mutex = threading.Lock()  # 添加互斥锁保护共享数据
         
     def run(self):
         logger.info(f"启动日志读取线程: {self.log_path}")
         while self.running:
             try:
+                # 检查文件是否存在
                 if not os.path.exists(self.log_path):
                     # 日志文件不存在是正常情况（例如实例刚启动还没生成日志），不需要报错
-                    time.sleep(1) # 等待一下再检查
+                    time.sleep(1)  # 等待一下再检查
                     continue
-                    
+                
+                # 获取文件大小
                 try:
                     current_size = os.path.getsize(self.log_path)
-                    # 只有当文件变大时才读取新增内容
-                    if current_size > self.last_log_size:
-                        try:
-                            with open(self.log_path, 'r', encoding='utf-8', errors='replace') as f:
-                                f.seek(self.last_log_size) # 定位到上次读取的位置
-                                new_log = f.read() # 读取新增的内容
-                            
-                            if new_log: # 确保有新内容才发送信号
-                                self.log_data_ready.emit(new_log)
-                            self.last_log_size = current_size # 更新最后读取的大小
-                        except UnicodeDecodeError as ude:
-                            logger.warning('日志文件编码错误: {}', str(ude))
-                            self.log_error.emit(f'日志文件编码错误，请检查文件编码')
-                            # 编码错误时不再尝试其他编码，直接报告错误
-                            time.sleep(5) # 避免频繁报错
-                        except Exception as e:
-                            self.log_error.emit(f'读取日志文件时发生错误: {str(e)}')
-                            time.sleep(1)
-                    elif current_size < self.last_log_size:
-                        # 文件变小了，可能是日志轮转或被清空了，重置大小
-                        logger.info(f"日志文件 {self.log_path} 大小减小，可能已轮转或清空，重置读取位置")
-                        self.last_log_size = 0 # 从头开始读取
-                        # 可以选择性地清空显示区域或发送一个提示信息
-                        self.log_error.emit("日志文件已重置")
-
-                except FileNotFoundError:
-                     # 文件在检查大小和打开之间被删除了，忽略这次错误，下次循环会处理
-                     logger.warning(f"检查日志文件 {self.log_path} 时文件消失了")
-                     self.last_log_size = 0 # 重置大小
-                     time.sleep(1)
+                except (FileNotFoundError, PermissionError) as e:
+                    # 文件可能在检查存在性和获取大小之间被删除或无权限访问
+                    logger.warning(f"获取日志文件大小失败: {e}")
+                    time.sleep(1)
+                    continue
                 except Exception as e:
+                    # 其他错误
+                    logger.error(f"获取日志文件大小时发生未知错误: {e}")
                     self.log_error.emit(f'检查日志文件大小时发生错误: {str(e)}')
                     time.sleep(1)
+                    continue
                 
-                time.sleep(0.5) # 稍微降低检查频率
+                # 使用互斥锁保护共享数据访问
+                with self.mutex:
+                    last_size = self.last_log_size
+                
+                # 文件变小了，可能是日志轮转或被清空
+                if current_size < last_size:
+                    logger.info(f"日志文件 {self.log_path} 大小减小，可能已轮转或清空，重置读取位置")
+                    with self.mutex:
+                        self.last_log_size = 0
+                    self.log_error.emit("日志文件已重置")
+                    time.sleep(0.5)
+                    continue
+                
+                # 文件没有变化，跳过本次读取
+                if current_size == last_size:
+                    time.sleep(0.2)  # 短暂休眠，降低CPU使用率
+                    continue
+                
+                # 文件变大了，读取新增内容
+                try:
+                    new_content = ""
+                    with open(self.log_path, 'r', encoding='utf-8', errors='replace') as f:
+                        f.seek(last_size)  # 定位到上次读取的位置
+                        new_content = f.read(min(current_size - last_size, 1024*1024))  # 限制单次读取大小，防止内存溢出
+                    
+                    # 更新最后读取位置
+                    if new_content:
+                        with self.mutex:
+                            self.last_log_size = last_size + len(new_content.encode('utf-8', errors='replace'))
+                        self.log_data_ready.emit(new_content)
+                except UnicodeDecodeError as ude:
+                    logger.warning(f'日志文件编码错误: {ude}')
+                    self.log_error.emit(f'日志文件编码错误，请检查文件编码')
+                    time.sleep(1)  # 减少错误频率
+                except (PermissionError, IOError) as e:
+                    logger.warning(f'无法访问日志文件: {e}')
+                    self.log_error.emit(f'无法访问日志文件: {str(e)}')
+                    time.sleep(1)
+                except Exception as e:
+                    logger.error(f'读取日志文件时发生未知错误: {e}')
+                    self.log_error.emit(f'读取日志文件时发生错误: {str(e)}')
+                    time.sleep(1)
+            
             except Exception as e:
+                # 捕获所有未处理的异常
+                logger.exception(f"日志读取线程发生严重错误: {e}")
                 self.log_error.emit(f'日志读取线程发生严重错误: {str(e)}')
-                logger.exception("日志读取线程崩溃")
-                self.running = False # 发生严重错误时停止线程
+                time.sleep(2)  # 发生严重错误时，暂停一段时间再继续
+            
+            # 每次循环后短暂休眠
+            time.sleep(0.1)
+        
         logger.info(f"日志读取线程停止: {self.log_path}")
     
     def stop(self):
-        # logger.debug(f"请求停止日志读取线程: {self.log_path}")
+        logger.debug(f"请求停止日志读取线程: {self.log_path}")
         self.running = False
-        # 不需要 quit() 和 wait()，让 run 循环自然结束
+        # 等待线程结束，但设置超时防止阻塞
+        self.wait(1000)  # 等待最多1秒
 
 
 # MonitorTab 类保持不变，因为它只负责启动 MonitorPanel 
@@ -471,73 +677,91 @@ class MonitorTab(QWidget):
         self.refresh_btn.clicked.connect(self.on_manual_refresh)
 
     def open_monitor_panel(self):
-        if not self.instance_list.currentItem():
-            QMessageBox.warning(self, '警告', '请先选择一个运行实例')
-            return
-        instance_name = self.instance_list.currentItem().text()
-        # 从 running_instances 中查找选定实例的信息
-        selected_instance_info = None
-        for pid, path in self.running_instances:
-            if os.path.basename(path) == instance_name:
-                selected_instance_info = (pid, path)
-                break
-        
-        if not selected_instance_info:
-             QMessageBox.warning(self, '错误', '选择的实例信息丢失或已停止运行，请刷新列表')
-             return
-
-        pid, instance_path = selected_instance_info
-        log_file_path = os.path.join(instance_path, "logs", "latest.log")
-        # lock_path = os.path.join(instance_path, "Running.lock") # lock_path 似乎未使用
-
-        # 再次确认进程是否存在 (使用 psutil 检查)
-        if not pid or not psutil.pid_exists(pid):
-            QMessageBox.warning(self, '错误', '选择的实例未运行或进程已消失')
-            self.scan_running_instances() # 刷新列表
-            return
-        
-        # 获取 MainWindow 实例 (假设 MonitorTab 是 MainWindow 的子控件)
-        main_window = self.window() 
-        # if not isinstance(main_window, MainWindow): # 移除类型检查以避免循环导入
-        #     logger.error("无法获取 MainWindow 实例，无法查找 QProcess 对象")
-        #     QMessageBox.critical(self, '错误', '内部错误：无法访问主窗口，无法打开监控面板。')
-        #     return
-
-        # 从 MainWindow 的 running_processes 字典直接获取 QProcess 对象
-        process_obj = main_window.running_processes.get(pid)
-        # 检查 main_window 是否有 running_processes 属性，以防万一
-        if not hasattr(main_window, 'running_processes'):
-            logger.error("无法获取 MainWindow 实例或其不包含 running_processes 字典，无法查找 QProcess 对象")
-            QMessageBox.critical(self, '错误', '内部错误：无法访问主窗口的进程列表，无法打开监控面板。')
-            return
-
-        if not process_obj:
-            # 如果 MainWindow 中没有 QProcess 对象，可能意味着它不是由启动器启动的
-            # 或者启动器状态已丢失。提供一个警告，但仍然允许打开监控面板（无命令发送功能）
-            logger.warning(f"无法找到 PID {pid} 对应的 QProcess 对象。监控面板将以只读模式打开。")
-            QMessageBox.warning(self, '警告', f'无法找到与实例关联的进程对象。\n监控面板将以只读模式打开，无法发送命令。')
-            # 即使找不到 process_obj，也继续打开面板，但 process 参数为 None
-
         try:
-            proc_psutil = psutil.Process(pid) # 仍然使用 psutil 检查进程类型
-            # 检查进程名是否是 java.exe (Windows) 或 java (Linux/macOS) 
-            if not proc_psutil.name().lower().startswith("java"):
-                logger.warning('进程类型异常 PID:{} 名称:{} 期望:java*', pid, proc_psutil.name())
-                QMessageBox.warning(self, '错误', '选择的实例似乎不是Java进程')
-                self.scan_running_instances() # 刷新列表
+            # 检查是否选择了实例
+            if not self.instance_list.currentItem():
+                QMessageBox.warning(self, '警告', '请先选择一个运行实例')
                 return
             
-            # 使用 self.monitor_panel 存储引用，防止闪退
-            # 将获取到的 process_obj 传递给 MonitorPanel
-            self.monitor_panel = MonitorPanel(instance_name, pid, log_file_path, process=process_obj)
-            self.monitor_panel.show() # 使用 show() 而不是 exec_() 避免阻塞
-        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-            logger.error(f"访问进程 {pid} 信息失败: {e}")
-            QMessageBox.critical(self, '错误', f'无法访问进程信息: {e}')
-            self.scan_running_instances() # 刷新列表
+            instance_name = self.instance_list.currentItem().text()
+            logger.debug(f'尝试打开实例监控面板: {instance_name}')
+            
+            # 从 running_instances 中查找选定实例的信息
+            selected_instance_info = None
+            for pid, path in self.running_instances:
+                if os.path.basename(path) == instance_name:
+                    selected_instance_info = (pid, path)
+                    break
+            
+            if not selected_instance_info:
+                logger.warning(f'找不到实例信息: {instance_name}')
+                QMessageBox.warning(self, '错误', '选择的实例信息丢失或已停止运行，请刷新列表')
+                return
+
+            pid, instance_path = selected_instance_info
+            log_file_path = os.path.join(instance_path, "logs", "latest.log")
+            
+            # 使用非阻塞方式检查进程是否存在
+            if not pid or not psutil.pid_exists(pid):
+                logger.warning(f'进程不存在: PID={pid}')
+                QMessageBox.warning(self, '错误', '选择的实例未运行或进程已消失')
+                # 使用QTimer延迟执行刷新，避免阻塞UI
+                QTimer.singleShot(0, self.scan_running_instances)
+                return
+            
+            # 获取 MainWindow 实例
+            main_window = self.window()
+            
+            # 检查 main_window 是否有 running_processes 属性
+            if not hasattr(main_window, 'running_processes'):
+                logger.error("无法获取 MainWindow 实例或其不包含 running_processes 字典")
+                QMessageBox.critical(self, '错误', '内部错误：无法访问主窗口的进程列表，无法打开监控面板。')
+                return
+
+            # 获取进程对象
+            process_obj = main_window.running_processes.get(pid)
+            if not process_obj:
+                logger.warning(f"无法找到 PID {pid} 对应的 QProcess 对象，监控面板将以只读模式打开")
+                QMessageBox.warning(self, '警告', f'无法找到与实例关联的进程对象。\n监控面板将以只读模式打开，无法发送命令。')
+            
+            # 使用QTimer延迟创建监控面板，避免在当前函数中进行耗时操作
+            def create_monitor_panel():
+                try:
+                    # 再次检查进程是否存在，因为可能在延迟期间进程已经结束
+                    if not psutil.pid_exists(pid):
+                        logger.warning(f'延迟创建监控面板时发现进程已不存在: PID={pid}')
+                        QMessageBox.warning(self, '错误', '选择的实例未运行或进程已消失')
+                        QTimer.singleShot(0, self.scan_running_instances)
+                        return
+                    
+                    # 检查进程类型
+                    try:
+                        proc_psutil = psutil.Process(pid)
+                        if not proc_psutil.name().lower().startswith("java"):
+                            logger.warning(f'进程类型异常 PID:{pid} 名称:{proc_psutil.name()} 期望:java*')
+                            QMessageBox.warning(self, '错误', '选择的实例似乎不是Java进程')
+                            QTimer.singleShot(0, self.scan_running_instances)
+                            return
+                    except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                        logger.error(f"访问进程 {pid} 信息失败: {e}")
+                        QMessageBox.critical(self, '错误', f'无法访问进程信息: {e}')
+                        QTimer.singleShot(0, self.scan_running_instances)
+                        return
+                    
+                    # 创建并显示监控面板
+                    self.monitor_panel = MonitorPanel(instance_name, pid, log_file_path, process=process_obj)
+                    self.monitor_panel.show()
+                    logger.info(f'成功打开监控面板: {instance_name} (PID: {pid})')
+                except Exception as e:
+                    logger.error(f"创建监控面板时发生错误: {e}")
+                    QMessageBox.critical(self, '错误', f'打开监控面板失败: {e}')
+            
+            # 使用短延迟启动监控面板创建，避免阻塞UI
+            QTimer.singleShot(50, create_monitor_panel)
+            
         except Exception as e:
-            logger.error(f"打开监控面板时发生错误: {e}")
-            QMessageBox.critical(self, '错误', f'打开监控面板失败: {e}')
+            logger.exception(f"打开监控面板过程中发生未捕获的错误: {e}")
+            QMessageBox.critical(self, '错误', f'打开监控面板时发生未知错误: {e}')
 
     def update_resource_usage(self):
         try:
