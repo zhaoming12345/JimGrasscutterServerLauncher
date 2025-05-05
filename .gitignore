@@ -20,6 +20,7 @@
 /DownloadTemp/*
 /Database/*
 /Config/*
+/参考/*
 
 # 但是保留目录结构
 !/Web/.gitkeep
