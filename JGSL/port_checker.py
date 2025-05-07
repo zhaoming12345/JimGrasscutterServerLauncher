@@ -6,7 +6,7 @@ def check_port(port: int, protocol: str = 'tcp') -> tuple:
     """
     检查指定端口和协议是否被占用
     :param port: 要检查的端口号
-    :param protocol: 协议类型（tcp/udp）
+    :param protocol: 协议类型(tcp/udp)
     :return: (是否被占用, 占用进程信息)
     """
     try:

@@ -141,7 +141,7 @@ class DownloadTab(QWidget):
         self.mirror_combo = QComboBox()
         self.load_mirrors()
         mirror_layout = QHBoxLayout()
-        mirror_layout.addWidget(QLabel('镜像源:'))
+        mirror_layout.addWidget(QLabel('GitHub镜像源(仅适用于GitHub资源):'))
         mirror_layout.addWidget(self.mirror_combo, stretch=1)
         layout.insertLayout(0, mirror_layout)
         

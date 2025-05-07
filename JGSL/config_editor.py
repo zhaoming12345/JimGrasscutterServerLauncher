@@ -78,22 +78,22 @@ class ConfigEditorDialog(QDialog):
         self.server_tab = QWidget()
         server_layout = QFormLayout()
         self.http_bind_address = QLineEdit() # 新增：HTTP绑定地址
-        server_layout.addRow('调度绑定地址（HTTP）:', self.http_bind_address)
+        server_layout.addRow('调度绑定地址(HTTP):', self.http_bind_address)
         self.http_port = QLineEdit()
-        server_layout.addRow('调度端口（HTTP）:', self.http_port)
+        server_layout.addRow('调度端口(HTTP):', self.http_port)
         self.http_access_address = QLineEdit() # 新增：HTTP访问地址
-        server_layout.addRow('调度访问地址（HTTP）:', self.http_access_address)
+        server_layout.addRow('调度访问地址(HTTP):', self.http_access_address)
         self.http_access_port = QLineEdit() # 新增：HTTP访问端口
-        server_layout.addRow('调度访问端口（HTTP）:', self.http_access_port)
+        server_layout.addRow('调度访问端口(HTTP):', self.http_access_port)
 
         self.game_bind_address = QLineEdit() # 新增：Game绑定地址
-        server_layout.addRow('游戏绑定地址（UDP）:', self.game_bind_address)
+        server_layout.addRow('游戏绑定地址(UDP):', self.game_bind_address)
         self.game_port = QLineEdit()
-        server_layout.addRow('游戏端口（UDP）:', self.game_port)
+        server_layout.addRow('游戏端口(UDP):', self.game_port)
         self.game_access_address = QLineEdit() # 新增：Game访问地址
-        server_layout.addRow('游戏访问地址（UDP）:', self.game_access_address)
+        server_layout.addRow('游戏访问地址(UDP):', self.game_access_address)
         self.game_access_port = QLineEdit() # 新增：Game访问端口
-        server_layout.addRow('游戏访问端口（UDP）:', self.game_access_port)
+        server_layout.addRow('游戏访问端口(UDP):', self.game_access_port)
 
         self.enable_console = QCheckBox('启用控制台')
         server_layout.addRow(self.enable_console)

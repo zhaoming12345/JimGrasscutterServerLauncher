@@ -584,7 +584,7 @@ class LogReaderThread(QThread):
             try:
                 # 检查文件是否存在
                 if not os.path.exists(self.log_path):
-                    # 日志文件不存在是正常情况（例如实例刚启动还没生成日志），不需要报错
+                    # 日志文件不存在是正常情况(例如实例刚启动还没生成日志)，不需要报错
                     time.sleep(1)  # 等待一下再检查
                     continue
                 

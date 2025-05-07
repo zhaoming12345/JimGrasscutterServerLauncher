@@ -21,7 +21,7 @@ class SettingsTab(QWidget):
         self.theme_combo.addItems(['现代深色', 'Windows原生'])
         
         # 语言设置
-        self.lang_label = QLabel("显示语言（实现中）:")
+        self.lang_label = QLabel("显示语言(实现中):")
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(['简体中文', 'English'])
         
@@ -179,7 +179,7 @@ class SettingsTab(QWidget):
         if state == 2: 
             self.run_update_check()
         else:
-            #  如果取消勾选，可以考虑停止正在进行的检查（如果需要）
+            #  如果取消勾选，可以考虑停止正在进行的检查(如果需要)
             if hasattr(self, 'update_thread') and self.update_thread.isRunning():
                 logger.info("尝试终止更新检查线程...")
                 self.update_thread.quit() #  请求线程退出

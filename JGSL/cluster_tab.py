@@ -346,7 +346,7 @@ class ClusterConfigDialog(QDialog):
         use_internal = self.use_internal_dispatch_checkbox.isChecked()
         # 验证调度配置 (例如：必须至少有一个调度服务器，除非使用内置)
         if not use_internal and not dispatch_servers:
-            QMessageBox.warning(self, "错误", "请至少指定一个调度服务器，或勾选\"使用内置调度\"")
+            QMessageBox.warning(self, "错误", "请指定一个调度服务器，或勾选\"使用内置调度\"")
             self.config_tabs.setCurrentIndex(0) # 切换到"调度"标签页
             return
 
@@ -454,7 +454,7 @@ class ClusterTab(QWidget):
             server_name (str): 服务器实例名称
 
         Returns:
-            str: 服务器角色（DISPATCH_ONLY/GAME_ONLY/HYBRID）
+            str: 服务器角色(DISPATCH_ONLY/GAME_ONLY/HYBRID)
         """
         config_path = os.path.join(self.root_dir, 'Servers', server_name, 'JGSL', 'Config.json')
         try:
@@ -714,7 +714,7 @@ class ClusterTab(QWidget):
 
             if not deleted:
                 logger.warning(f"尝试删除不存在的集群 {cluster_name} ")
-                return False # 或者返回 True 表示操作完成（虽然没删东西）
+                return False # 或者返回 True 表示操作完成(虽然没删东西)
 
             # 保存更新后的集群列表
             with open(self.cluster_config_path, 'w', encoding='utf-8') as f:
