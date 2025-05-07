@@ -17,5 +17,3 @@
  - 2025/01/01-00:00(UTC+08:00) Jimmy32767255 JGSL/main.py 优化异常处理
 
 # 列表：
-
- - 2025/05/05-09:37(UTC+08:00) Jimmy32767255 launch_tab.py,main_window.py,monitor_tab.py 修复打开监控面板会导致程序无响应的问题。
