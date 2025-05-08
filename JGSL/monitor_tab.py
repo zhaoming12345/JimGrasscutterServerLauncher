@@ -871,6 +871,29 @@ class MonitorPanel(QDialog):
             logger.info(f'正在尝试关闭实例 {self.instance_name} (PID: {self.pid})')
             try:
                 if self.pid and psutil.pid_exists(self.pid):
+                    # 优先尝试发送STOP命令安全关闭
+                    try:
+                        self.command_input.setText("STOP")
+                        self.send_command()
+                        logger.info(f'已向实例 {self.instance_name} 发送STOP命令，等待安全关闭...')
+                        
+                        # 等待最多30秒让进程自行退出
+                        proc = psutil.Process(self.pid)
+                        for _ in range(30):
+                            if not proc.is_running():
+                                break
+                            time.sleep(1)
+                        else:
+                            raise psutil.TimeoutExpired("等待安全关闭超时")
+                        
+                        logger.success(f'实例 {self.instance_name} (PID: {self.pid}) 已安全关闭')
+                        self.instance_closed_signal.emit(self.instance_name)
+                        self.close()
+                        return
+                    except Exception as e:
+                        logger.warning(f'安全关闭失败，将尝试终止进程: {e}')
+                        
+                    # 安全关闭失败后回退到原终止逻辑
                     proc = psutil.Process(self.pid)
                     proc.terminate() # 尝试友好终止
                     try:

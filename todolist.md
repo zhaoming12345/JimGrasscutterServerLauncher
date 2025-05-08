@@ -12,6 +12,12 @@
 
  - [X] update_manager.py:实现检查更新功能
 
+ - [X] database_tab:数据库标签页
+
+ - [X] monitor_tab.py:关闭实例时自动刷新
+
+ - [X] monitor_tab.py:实例进程消失后自动关闭监控面板
+
  - [ ] plugin_manager.py:插件生命周期管理(一般)
 
  - [ ] download_tab.py:自动解压压缩包(一般)
@@ -23,12 +29,6 @@
  - [ ] Language\*:添加中英文翻译文件(一般)
 
  - [ ] building_tab:构建标签页(可能 | 用于构建割草机，非常简单而且不太实用所以优先级低)
-
- - [X] database_tab:数据库标签页(一般 | 用于管理数据库，提供清空、导出、导入、修改等功能)
-
- - [X] monitor_tab.py:关闭实例时自动刷新(一般)
-
- - [X] monitor_tab.py:实例进程消失后自动关闭监控面板(一般)
 
 ## 修复
 
@@ -42,9 +42,9 @@
 
 ## 修改
 
- - [ ] dispatch.py:地区列表应该从配置文件中读取(一般)
+ - [X] monitor_tab.py:关闭实例应优先通过对服务器发送"STOP"命令来进行安全的关闭(一般)
 
- - [ ] monitor_tab.py:关闭实例应优先通过对服务器发送"STOP"命令来进行安全的关闭(一般)
+ - [ ] dispatch.py:地区列表应该从配置文件中读取(一般)
 
 ## 删除
 
