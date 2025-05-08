@@ -6,10 +6,6 @@
 
 [介绍视频](https://www.bilibili.com/video/BV1B1VqzWEY7)
 
-## 已知问题
-
-打开监控面板有可能会导致服务端日志中多出几百万行的EOF的问题，该问题是Grasscutter.java的341行导致，为偶发性故障且原因不明，如果遇到请在配置文件中禁用控制台(game.enableConsole)并使用opencommand。
-
 ## 功能特性
 
  - 多实例服务器管理，独创集群功能，快速多地区，让服务器管理不再困难。
@@ -32,6 +28,8 @@
 
 #### 我们建议普通用户直接下载[Releases](https://github.com/Jimmy32767255/JimGrasscutterServerLauncher/releases)中的打包版本，无需安装依赖，解压缩后即可直接运行。
 
+###### 但是注意：Releases中的打包版本可能不是最新的！
+
 ### 或者，克隆仓库后使用代码:
 
 #### 安装依赖:
@@ -50,3 +48,7 @@ pip install -r requirements.txt
  - QQ群:985349267
 
  - [狐狐技术社区 | H.H.T.C.](https://t.me/Jimmy32767255_Community_recover)
+
+## 已知问题
+
+打开监控面板有可能会导致服务端日志中多出几百万行的EOF的问题，该问题是Grasscutter.java的341行导致，为偶发性故障且原因不明，如果遇到请在配置文件中禁用控制台(game.enableConsole)并使用opencommand。
