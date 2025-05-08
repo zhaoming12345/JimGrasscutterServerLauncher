@@ -9,10 +9,10 @@ REPO_NAME = "JimGrasscutterServerLauncher"
 GITHUB_API_URL_LATEST_RELEASE = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/latest"
 
 # 当前版本号
-VERSION = "V0.1.0B"
+VERSION = "V0.2.0R"
 
 class UpdateCheckThread(QThread):
-    #  定义一个信号，用来发送检查结果 (是否可用更新, 最新版本号)
+    # 定义一个信号，用来发送检查结果 (是否可用更新, 最新版本号)
     update_check_result = pyqtSignal(bool, str)
 
     def __init__(self, parent=None):
@@ -28,21 +28,21 @@ class UpdateCheckThread(QThread):
     def check_for_latest_release(self):
         """ 检查 GitHub 最新发行版"""
         try:
-            response = requests.get(GITHUB_API_URL_LATEST_RELEASE, timeout=10) #  设置10秒超时
-            response.raise_for_status() #  如果请求失败就抛出异常
+            response = requests.get(GITHUB_API_URL_LATEST_RELEASE, timeout=10) # 设置10秒超时
+            response.raise_for_status() # 如果请求失败就抛出异常
             latest_release_data = response.json()
             latest_version = latest_release_data.get('tag_name', 'N/A')
             logger.debug(f"获取到最新发行版标签: {latest_version}")
             
-            #  简单的版本比较逻辑，假设版本号格式类似 v1.2.3 或 1.2.3
+            # 简单的版本比较逻辑，假设版本号格式类似 v1.2.3 或 1.2.3
             current_v = VERSION.lstrip('V')
             latest_v = latest_version.lstrip('V')
             
-            #  使用分割后的版本号进行比较
+            # 使用分割后的版本号进行比较
             current_parts = list(map(int, current_v.split('.')))
             latest_parts = list(map(int, latest_v.split('.')))
             
-            #  补齐版本号长度以便比较
+            # 补齐版本号长度以便比较
             max_len = max(len(current_parts), len(latest_parts))
             current_parts.extend([0] * (max_len - len(current_parts)))
             latest_parts.extend([0] * (max_len - len(latest_parts)))
@@ -72,4 +72,4 @@ def handle_result(available, version):
     print(f"Update Available: {available}, Latest Version: {version}")
     checker.update_check_result.connect(handle_result)
     checker.start()
-    checker.wait() #  等待线程结束
+    checker.wait() # 等待线程结束

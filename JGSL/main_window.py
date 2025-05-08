@@ -8,6 +8,7 @@ from manage_tab import ManageTab
 from download_tab import DownloadTab
 from settings_tab import SettingsTab
 from cluster_tab import ClusterTab
+from database_tab import DatabaseTab
 from about_tab import AboutTab
 from loguru import logger
 
@@ -35,16 +36,18 @@ class MainWindow(QMainWindow):
         self.download_tab = DownloadTab()
         self.settings_tab = SettingsTab()
         self.cluster_tab = ClusterTab()
+        self.database_tab = DatabaseTab()
         self.about_tab = AboutTab()
 
         # 连接 LaunchTab 的信号到 MainWindow 的方法
         self.launch_tab.process_created.connect(self.register_process)
         self.launch_tab.process_finished_signal.connect(self.unregister_process)
 
-        # 添加选项卡
+        # 选项卡
         self.tabs.addTab(self.launch_tab, '启动')
         self.tabs.addTab(self.monitor_tab, '监控')
         self.tabs.addTab(self.manage_tab, '管理')
+        self.tabs.addTab(self.database_tab, '数据库')
         self.tabs.addTab(self.cluster_tab, '集群')
         self.tabs.addTab(self.download_tab, '下载')
         self.tabs.addTab(self.settings_tab, '设置')
@@ -56,7 +59,7 @@ class MainWindow(QMainWindow):
         # 应用样式
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
-    # 新增：注册 QProcess 对象
+    # 新增:注册 QProcess 对象
     def register_process(self, pid: int, process: QProcess):
         if pid in self.running_processes:
             logger.warning(f"尝试注册已存在的 PID: {pid}")
@@ -64,7 +67,7 @@ class MainWindow(QMainWindow):
             logger.info(f"注册进程 PID: {pid}")
             self.running_processes[pid] = process
 
-    # 新增：注销 QProcess 对象
+    # 新增:注销 QProcess 对象
     def unregister_process(self, pid: int):
         if pid in self.running_processes:
             logger.info(f"注销进程 PID: {pid}")
@@ -72,7 +75,7 @@ class MainWindow(QMainWindow):
         else:
             logger.warning(f"尝试注销不存在的 PID: {pid}")
 
-    # 新增：获取 QProcess 对象
+    # 新增:获取 QProcess 对象
     def get_process(self, pid: int) -> QProcess | None:
         process = self.running_processes.get(pid)
         if not process:

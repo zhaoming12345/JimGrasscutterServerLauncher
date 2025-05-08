@@ -132,10 +132,10 @@ class ManageTab(QWidget):
         button_layout.addWidget(self.create_btn)
         button_layout.addWidget(self.edit_config_btn)
         button_layout.addWidget(self.edit_btn)
-        button_layout.addWidget(self.clone_btn) # 添加克隆按钮到布局
+        button_layout.addWidget(self.clone_btn)
         button_layout.addWidget(self.delete_btn)
         
-        layout.addLayout(button_layout) # 添加按钮行到主布局
+        layout.addLayout(button_layout)
 
         self.setLayout(layout)
 
@@ -156,7 +156,7 @@ class ManageTab(QWidget):
         self.clone_btn.clicked.connect(self.clone_instance) # 连接克隆按钮的信号
 
     def _update_progress_dialog_label(self):
-        #  更新进度对话框的标签文本
+        # 更新进度对话框的标签文本
         if hasattr(self, 'progress_dialog') and self.progress_dialog:
             text_parts = []
             if self.current_operation_status:
@@ -166,14 +166,14 @@ class ManageTab(QWidget):
             self.progress_dialog.setLabelText("\n".join(text_parts) + "")
 
     def _handle_progress_update(self, value, status_text):
-        #  处理来自线程的进度更新信号
+        # 处理来自线程的进度更新信号
         if hasattr(self, 'progress_dialog') and self.progress_dialog:
             self.progress_dialog.setValue(value)
             self.current_operation_status = status_text
             self._update_progress_dialog_label()
 
     def _handle_current_file_update(self, file_name):
-        #  处理来自线程的当前文件更新信号
+        # 处理来自线程的当前文件更新信号
         if hasattr(self, 'progress_dialog') and self.progress_dialog:
             self.current_operation_file = file_name
             self._update_progress_dialog_label()
@@ -181,7 +181,7 @@ class ManageTab(QWidget):
     # 异步操作工作线程
     class OperationThread(QThread):
         progress_signal = pyqtSignal(int, str) # 当前进度值, 状态文本
-        current_file_signal = pyqtSignal(str) # 新增信号：当前正在处理的文件名
+        current_file_signal = pyqtSignal(str) # 新增信号:当前正在处理的文件名
         finished_signal = pyqtSignal(bool, str) # 是否成功, 消息文本
         _should_stop = False # 用于外部请求停止线程
 
@@ -380,7 +380,7 @@ class ManageTab(QWidget):
         if dialog.exec_():
             self.save_config(dialog.instance_config, is_new=False, original_instance_name=original_instance_name)
 
-    def save_config(self, config, is_new=True, original_instance_name=None): # 添加 original_instance_name 参数
+    def save_config(self, config, is_new=True, original_instance_name=None):
         logger.info('正在保存实例配置')
         new_instance_name = config['instance_name']
         new_instance_dir = os.path.join(self.root_dir, 'Servers', new_instance_name)
@@ -553,7 +553,7 @@ class ManageTab(QWidget):
     def is_instance_running(self, instance_name):
         # 检查实例是否正在运行的逻辑 (基于之前的代码，可能需要调整以适应 JGSL 的具体情况)
         # 这里的实现方式是检查是否有Java进程的命令行参数包含了该实例的路径特征
-        # 注意：这可能不是100%准确，但对于大多数情况应该有效
+        # 注意:这可能不是100%准确，但对于大多数情况应该有效
         instance_server_path_part = os.path.join('Servers', instance_name).replace('\\', '/') # 规范化路径分隔符
         try:
             for proc in psutil.process_iter(['pid', 'name', 'cmdline']):

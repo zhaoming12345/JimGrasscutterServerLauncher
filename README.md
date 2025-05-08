@@ -32,14 +32,14 @@
 
 #### 我们建议普通用户直接下载[Releases](https://github.com/Jimmy32767255/JimGrasscutterServerLauncher/releases)中的打包版本，无需安装依赖，解压缩后即可直接运行。
 
-### 或者，克隆仓库后使用代码：
+### 或者，克隆仓库后使用代码:
 
-#### 安装依赖：
+#### 安装依赖:
 
 ```bash
 pip install -r requirements.txt
 ```
-#### 运行JGSL：
+#### 运行JGSL:
 
 ```bash
 ./Start.bat
@@ -47,6 +47,6 @@ pip install -r requirements.txt
 
 ## 社交媒体
 
- - QQ群：985349267
+ - QQ群:985349267
 
  - [狐狐技术社区 | H.H.T.C.](https://t.me/Jimmy32767255_Community_recover)

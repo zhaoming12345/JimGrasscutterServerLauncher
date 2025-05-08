@@ -31,7 +31,7 @@ class ConfigEditorDialog(QDialog):
         # 初始化各配置模块
         self.init_ui()
         self.load_config()
-        # 添加保存按钮
+        # 保存按钮
         self.save_btn = QPushButton('保存配置')
         self.save_btn.clicked.connect(self.save_config)
         self.main_layout.addWidget(self.save_btn)
@@ -47,15 +47,15 @@ class ConfigEditorDialog(QDialog):
         self.packets_path = QLineEdit()
         self.scripts_path = QLineEdit()
         self.plugins_path = QLineEdit()
-        self.cache_path = QLineEdit() # 新增：缓存目录
+        self.cache_path = QLineEdit() # 新增:缓存目录
         
-        # 添加路径选择行
+        # 路径选择行
         structure_layout.addRow('资源目录:', self.resources_path)
         structure_layout.addRow('数据目录:', self.data_path)
         structure_layout.addRow('包目录:', self.packets_path)
         structure_layout.addRow('脚本目录:', self.scripts_path)
         structure_layout.addRow('插件目录:', self.plugins_path)
-        structure_layout.addRow('缓存目录:', self.cache_path) # 新增：缓存目录行
+        structure_layout.addRow('缓存目录:', self.cache_path) # 新增:缓存目录行
         self.structure_tab.setLayout(structure_layout)
 
         # 数据库标签页
@@ -66,7 +66,7 @@ class ConfigEditorDialog(QDialog):
         self.db_collection = QLineEdit()
         database_layout.addRow('集合名称:', self.db_collection)
 
-        # 新增：游戏数据库配置 (与服务器库分开)
+        # 新增:游戏数据库配置 (与服务器库分开)
         self.game_db_uri = QLineEdit()
         database_layout.addRow('游戏数据库URI:', self.game_db_uri)
         self.game_db_collection = QLineEdit()
@@ -77,22 +77,22 @@ class ConfigEditorDialog(QDialog):
         # 服务器设置标签页
         self.server_tab = QWidget()
         server_layout = QFormLayout()
-        self.http_bind_address = QLineEdit() # 新增：HTTP绑定地址
+        self.http_bind_address = QLineEdit() # 新增:HTTP绑定地址
         server_layout.addRow('调度绑定地址(HTTP):', self.http_bind_address)
         self.http_port = QLineEdit()
         server_layout.addRow('调度端口(HTTP):', self.http_port)
-        self.http_access_address = QLineEdit() # 新增：HTTP访问地址
+        self.http_access_address = QLineEdit() # 新增:HTTP访问地址
         server_layout.addRow('调度访问地址(HTTP):', self.http_access_address)
-        self.http_access_port = QLineEdit() # 新增：HTTP访问端口
+        self.http_access_port = QLineEdit() # 新增:HTTP访问端口
         server_layout.addRow('调度访问端口(HTTP):', self.http_access_port)
 
-        self.game_bind_address = QLineEdit() # 新增：Game绑定地址
+        self.game_bind_address = QLineEdit() # 新增:Game绑定地址
         server_layout.addRow('游戏绑定地址(UDP):', self.game_bind_address)
         self.game_port = QLineEdit()
         server_layout.addRow('游戏端口(UDP):', self.game_port)
-        self.game_access_address = QLineEdit() # 新增：Game访问地址
+        self.game_access_address = QLineEdit() # 新增:Game访问地址
         server_layout.addRow('游戏访问地址(UDP):', self.game_access_address)
-        self.game_access_port = QLineEdit() # 新增：Game访问端口
+        self.game_access_port = QLineEdit() # 新增:Game访问端口
         server_layout.addRow('游戏访问端口(UDP):', self.game_access_port)
 
         self.enable_console = QCheckBox('启用控制台')
@@ -108,15 +108,15 @@ class ConfigEditorDialog(QDialog):
         self.run_mode = QComboBox()
         self.run_mode.addItems(['HYBRID', 'DISPATCH_ONLY', 'GAME_ONLY'])
         server_layout.addRow('运行模式:', self.run_mode)
-        # 新增：树脂容量
+        # 新增:树脂容量
         self.resin_capacity = QSpinBox()
         self.resin_capacity.setRange(0, 9999)
         server_layout.addRow('树脂容量:', self.resin_capacity)
-        # 新增：树脂恢复时间
+        # 新增:树脂恢复时间
         self.resin_recovery_time = QSpinBox()
         self.resin_recovery_time.setRange(0, 9999)
         server_layout.addRow('树脂恢复时间:', self.resin_recovery_time)
-        # 新增：背包限制配置
+        # 新增:背包限制配置
         self.inventory_limit_group = QGroupBox('背包限制')
         self.inventory_limit_layout = QFormLayout()
         self.weapon_limit = QSpinBox()
@@ -133,7 +133,7 @@ class ConfigEditorDialog(QDialog):
         self.inventory_limit_layout.addRow('家具限制:', self.furniture_limit)
         self.inventory_limit_group.setLayout(self.inventory_limit_layout)
         server_layout.addRow(self.inventory_limit_group)
-        # 新增：角色限制配置
+        # 新增:角色限制配置
         self.character_limit_group = QGroupBox('角色限制')
         self.character_limit_layout = QFormLayout()
         self.single_char_limit = QSpinBox()
@@ -145,7 +145,7 @@ class ConfigEditorDialog(QDialog):
         self.character_limit_group.setLayout(self.character_limit_layout)
         server_layout.addRow(self.character_limit_group)
 
-        # 新增：更多游戏功能开关
+        # 新增:更多游戏功能开关
         self.game_options_switch_group = QGroupBox('游戏功能开关')
         self.game_options_switch_layout = QFormLayout()
         self.enable_avatar_events = QCheckBox('启用头像事件')
@@ -168,7 +168,7 @@ class ConfigEditorDialog(QDialog):
         self.game_options_switch_group.setLayout(self.game_options_switch_layout)
         server_layout.addRow(self.game_options_switch_group)
 
-        # 新增：任务选项配置
+        # 新增:任务选项配置
         self.quest_options_group = QGroupBox('任务选项')
         self.quest_options_layout = QFormLayout()
         self.enable_quests = QCheckBox('启用任务系统')
@@ -191,7 +191,7 @@ class ConfigEditorDialog(QDialog):
         self.quest_options_group.setLayout(self.quest_options_layout)
         server_layout.addRow(self.quest_options_group)
 
-        # 新增：手册选项配置
+        # 新增:手册选项配置
         self.handbook_options_group = QGroupBox('手册选项')
         self.handbook_options_layout = QFormLayout()
         self.allow_handbook = QCheckBox('允许手册')
@@ -207,7 +207,7 @@ class ConfigEditorDialog(QDialog):
         self.handbook_options_group.setLayout(self.handbook_options_layout)
         server_layout.addRow(self.handbook_options_group)
 
-        # 新增：视觉设置配置
+        # 新增:视觉设置配置
         self.view_settings_group = QGroupBox('视觉设置')
         self.view_settings_layout = QFormLayout()
         self.view_distance_table = QTableWidget(0, 3)
@@ -226,7 +226,7 @@ class ConfigEditorDialog(QDialog):
         self.view_settings_layout.addRow(view_button_layout)
         self.view_settings_group.setLayout(self.view_settings_layout)
         server_layout.addRow(self.view_settings_group)
-        # 新增：调试模式配置
+        # 新增:调试模式配置
         self.debug_mode_group = QGroupBox('调试模式')
         self.debug_mode_layout = QFormLayout()
         self.log_level = QComboBox()
@@ -236,7 +236,7 @@ class ConfigEditorDialog(QDialog):
         self.debug_mode_layout.addRow(self.show_packet_content)
         self.debug_mode_group.setLayout(self.debug_mode_layout)
         server_layout.addRow(self.debug_mode_group)
-        # 新增：调试白名单/黑名单
+        # 新增:调试白名单/黑名单
         self.debug_lists_group = QGroupBox('调试名单')
         self.debug_lists_layout = QFormLayout()
         self.debug_whitelist = QTextEdit() # 使用 QTextEdit 处理多行 ID
@@ -248,7 +248,7 @@ class ConfigEditorDialog(QDialog):
         self.debug_lists_group.setLayout(self.debug_lists_layout)
         server_layout.addRow(self.debug_lists_group)
 
-        # 新增：HTTP 加密配置
+        # 新增:HTTP 加密配置
         self.http_encryption_group = QGroupBox('HTTP 加密')
         self.http_encryption_layout = QFormLayout()
         self.use_http_encryption = QCheckBox('启用加密')
@@ -266,7 +266,7 @@ class ConfigEditorDialog(QDialog):
         self.http_encryption_group.setLayout(self.http_encryption_layout)
         server_layout.addRow(self.http_encryption_group)
 
-        # 新增：HTTP 策略配置
+        # 新增:HTTP 策略配置
         self.http_policies_group = QGroupBox('HTTP 策略')
         self.http_policies_layout = QFormLayout()
         self.enable_cors = QCheckBox('启用 CORS')
@@ -277,7 +277,7 @@ class ConfigEditorDialog(QDialog):
         self.http_policies_group.setLayout(self.http_policies_layout)
         server_layout.addRow(self.http_policies_group)
 
-        # 新增：HTTP 静态文件配置
+        # 新增:HTTP 静态文件配置
         self.http_files_group = QGroupBox('HTTP 静态文件')
         self.http_files_layout = QFormLayout()
         self.index_file = QLineEdit()
@@ -356,7 +356,7 @@ class ConfigEditorDialog(QDialog):
         self.permission_table = QTableWidget(0, 2)
         self.permission_table.setHorizontalHeaderLabels(['权限', '描述'])
         account_layout.addRow(self.permission_table)
-        # 新增：权限添加/删除按钮
+        # 新增:权限添加/删除按钮
         permission_button_layout = QHBoxLayout()
         add_perm_button = QPushButton('添加权限')
         add_perm_button.clicked.connect(self.add_permission)
@@ -379,7 +379,7 @@ class ConfigEditorDialog(QDialog):
         self.welcome_mail_attachments = QTableWidget(0, 2)
         self.welcome_mail_attachments.setHorizontalHeaderLabels(['物品ID', '数量'])
         welcome_mail_layout.addRow(self.welcome_mail_attachments)
-        # 新增：附件添加/删除按钮
+        # 新增:附件添加/删除按钮
         attachment_button_layout = QHBoxLayout()
         add_attach_button = QPushButton('添加附件')
         add_attach_button.clicked.connect(self.add_welcome_item)
@@ -390,7 +390,7 @@ class ConfigEditorDialog(QDialog):
         welcome_mail_layout.addRow(attachment_button_layout)
         self.welcome_mail_tab.setLayout(welcome_mail_layout)
 
-        # 添加标签页
+        # 标签页
         self.tab_widget.addTab(self.structure_tab, "文件结构")
         self.tab_widget.addTab(self.database_tab, "数据库")
         self.tab_widget.addTab(self.server_tab, "服务器设置")
@@ -411,7 +411,7 @@ class ConfigEditorDialog(QDialog):
             self.packets_path.setText(config.get('folderStructure', {}).get('packets', ''))
             self.scripts_path.setText(config.get('folderStructure', {}).get('scripts', ''))
             self.plugins_path.setText(config.get('folderStructure', {}).get('plugins', ''))
-            self.cache_path.setText(config.get('folderStructure', {}).get('cache', '')) # 新增：加载缓存路径
+            self.cache_path.setText(config.get('folderStructure', {}).get('cache', '')) # 新增:加载缓存路径
 
             # 加载数据库配置
             self.db_uri.setText(config.get('database', {}).get('server', {}).get('connectionUri', ''))
@@ -421,44 +421,44 @@ class ConfigEditorDialog(QDialog):
             server_config = config.get('server', {})
             http_config = server_config.get('http', {})
             game_config = server_config.get('game', {})
-            debug_config = server_config.get('debugMode', {}) # 修正：debugMode
+            debug_config = server_config.get('debugMode', {}) # 修正:debugMode
             dispatch_config = server_config.get('dispatch', {}) # 修正路径
-            http_encryption_config = http_config.get('encryption', {}) # 新增：加载 HTTP 加密
-            http_policies_config = http_config.get('policies', {}) # 新增：加载 HTTP 策略
-            http_files_config = http_config.get('files', {}) # 新增：加载 HTTP 文件
+            http_encryption_config = http_config.get('encryption', {}) # 新增:加载 HTTP 加密
+            http_policies_config = http_config.get('policies', {}) # 新增:加载 HTTP 策略
+            http_files_config = http_config.get('files', {}) # 新增:加载 HTTP 文件
 
-            self.http_bind_address.setText(http_config.get('bindAddress', '0.0.0.0')) # 新增：加载 HTTP 绑定地址
+            self.http_bind_address.setText(http_config.get('bindAddress', '0.0.0.0')) # 新增:加载 HTTP 绑定地址
             self.http_port.setText(str(http_config.get('bindPort', ''))) 
-            self.http_access_address.setText(http_config.get('accessAddress', '')) # 新增：加载 HTTP 访问地址
-            self.http_access_port.setText(str(http_config.get('accessPort', ''))) # 新增：加载 HTTP 访问端口
+            self.http_access_address.setText(http_config.get('accessAddress', '')) # 新增:加载 HTTP 访问地址
+            self.http_access_port.setText(str(http_config.get('accessPort', ''))) # 新增:加载 HTTP 访问端口
 
-            self.game_bind_address.setText(game_config.get('bindAddress', '0.0.0.0')) # 新增：加载 Game 绑定地址
+            self.game_bind_address.setText(game_config.get('bindAddress', '0.0.0.0')) # 新增:加载 Game 绑定地址
             self.game_port.setText(str(game_config.get('bindPort', ''))) 
-            self.game_access_address.setText(game_config.get('accessAddress', '')) # 新增：加载 Game 访问地址
-            self.game_access_port.setText(str(game_config.get('accessPort', ''))) # 新增：加载 Game 访问端口
+            self.game_access_address.setText(game_config.get('accessAddress', '')) # 新增:加载 Game 访问地址
+            self.game_access_port.setText(str(game_config.get('accessPort', ''))) # 新增:加载 Game 访问端口
 
             self.enable_console.setChecked(game_config.get('enableConsole', False))
-            self.fast_require.setChecked(server_config.get('fastRequire', True)) # 修正：fastRequire 在 server 下
-            self.start_immediately.setChecked(http_config.get('startImmediately', True)) # 修正：startImmediately 在 http 下
+            self.fast_require.setChecked(server_config.get('fastRequire', True)) # 修正:fastRequire 在 server 下
+            self.start_immediately.setChecked(http_config.get('startImmediately', True)) # 修正:startImmediately 在 http 下
             self.use_unique_packet_key.setChecked(game_config.get('useUniquePacketKey', False))
-            self.log_commands.setChecked(server_config.get('logCommands', False)) # 新增：加载 logCommands
-            self.run_mode.setCurrentText(server_config.get('runMode', 'HYBRID')) # 新增：加载 runMode
+            self.log_commands.setChecked(server_config.get('logCommands', False)) # 新增:加载 logCommands
+            self.run_mode.setCurrentText(server_config.get('runMode', 'HYBRID')) # 新增:加载 runMode
 
-            # 新增：加载树脂配置
+            # 新增:加载树脂配置
             resin_options = game_config.get('gameOptions', {}).get('resinOptions', {}) # 修正路径
             self.resin_capacity.setValue(resin_options.get('cap', 160))
             self.resin_recovery_time.setValue(resin_options.get('rechargeTime', 8))
-            # 新增：加载背包限制配置
+            # 新增:加载背包限制配置
             inventory_limits = game_config.get('gameOptions', {}).get('inventoryLimits', {}) # 修正路径和键名
             self.weapon_limit.setValue(inventory_limits.get('weaponLimit', 2000))
             self.reliquary_limit.setValue(inventory_limits.get('reliquaryLimit', 2000))
             self.material_limit.setValue(inventory_limits.get('materialLimit', 2000))
             self.furniture_limit.setValue(inventory_limits.get('furnitureLimit', 2000))
-            # 新增：加载角色限制配置
+            # 新增:加载角色限制配置
             character_limits = game_config.get('gameOptions', {}).get('characterLimits', {}) # 修正路径和键名
             self.single_char_limit.setValue(character_limits.get('singleCharacterLimit', 10))
             self.party_limit.setValue(character_limits.get('partyLimit', 4))
-            # 新增：加载游戏功能开关
+            # 新增:加载游戏功能开关
             game_options = game_config.get('gameOptions', {}) # 修正路径
             self.enable_avatar_events.setChecked(game_options.get('enableAvatarEvents', False)) # 新增
             self.enable_shop_items.setChecked(game_options.get('enableShopItems', False)) # 新增
@@ -469,7 +469,7 @@ class ConfigEditorDialog(QDialog):
             self.enable_housing.setChecked(game_options.get('enableHousing', False))
             self.enable_gacha.setChecked(game_options.get('enableGacha', False))
 
-            # 新增：加载任务选项配置
+            # 新增:加载任务选项配置
             quest_options = game_options.get('questOptions', {}) # 新增
             self.enable_quests.setChecked(quest_options.get('enabled', True))
             self.enable_main_quests.setChecked(quest_options.get('mainQuests', True))
@@ -479,7 +479,7 @@ class ConfigEditorDialog(QDialog):
             self.random_quests.setValue(quest_options.get('randomQuests', 1))
             self.talk_quests.setValue(quest_options.get('talkQuests', 1))
 
-            # 新增：加载手册选项配置
+            # 新增:加载手册选项配置
             handbook_options = game_options.get('handbook', {}) # 新增
             self.allow_handbook.setChecked(handbook_options.get('allowHandbook', True))
             self.handbook_server.setText(handbook_options.get('server', ''))
@@ -487,7 +487,7 @@ class ConfigEditorDialog(QDialog):
             self.handbook_max_requests.setValue(handbook_limits.get('maxRequests', 5))
             self.handbook_time_frame.setValue(handbook_limits.get('timeFrame', 60))
 
-            # 新增：加载视觉设置配置
+            # 新增:加载视觉设置配置
             vision_options = game_options.get('visionOptions', []) # 修正路径
             self.view_distance_table.setRowCount(0) # 清空表格
             for setting in vision_options:
@@ -500,11 +500,11 @@ class ConfigEditorDialog(QDialog):
                 except Exception as e:
                     logger.error(f'加载视觉设置时出错: {e}')
                     QMessageBox.warning(self, '加载错误', f'加载视觉设置时出错: {e}')
-            # 新增：加载调试模式配置
+            # 新增:加载调试模式配置
             self.log_level.setCurrentText(debug_config.get('serverLogLevel', 'INFO')) # 修正键名
             self.show_packet_content.setChecked(debug_config.get('showPacketContent', False))
 
-            # 新增：加载调试白名单/黑名单
+            # 新增:加载调试白名单/黑名单
             whitelist_ids = [str(uid) for uid in server_config.get('debugWhitelist', [])]
             self.debug_whitelist.setText('\n'.join(whitelist_ids))
             blacklist_ids = [str(uid) for uid in server_config.get('debugBlacklist', [])]
@@ -538,17 +538,17 @@ class ConfigEditorDialog(QDialog):
             self.document_language.setCurrentText(config.get('language', {}).get('documentLanguage', 'CHS'))
 
             # 加载账户系统配置
-            account_config = config.get('account', {}) # 修正：先获取 account 字典
+            account_config = config.get('account', {}) # 修正:先获取 account 字典
             self.auto_create_account.setChecked(account_config.get('autoCreate', False))
             logger.debug('成功加载所有配置项')
 
-            default_account_config = account_config.get('default', {}) # 修正：从 account_config 获取 default
+            default_account_config = account_config.get('default', {}) # 修正:从 account_config 获取 default
             self.avatar_id.setValue(default_account_config.get('avatarId', 10000000))
             self.name_card_id.setValue(default_account_config.get('nameCardId', 0))
             self.nickname.setText(default_account_config.get('nickname', ''))
             self.signature.setText(default_account_config.get('signature', ''))
             self.world_level.setValue(default_account_config.get('worldLevel', 0))
-            permissions = account_config.get('permissions', []) # 修正：从 account_config 获取 permissions
+            permissions = account_config.get('permissions', []) # 修正:从 account_config 获取 permissions
             self.permission_table.setRowCount(0) # 清空表格
             for perm in permissions:
                 try:
@@ -566,7 +566,7 @@ class ConfigEditorDialog(QDialog):
             self.welcome_mail_sender.setText(welcome_mail_config.get('sender', ''))
             self.welcome_mail_content.setText(welcome_mail_config.get('content', ''))
             # 加载欢迎邮件附件 (Assuming items are directly under welcomeMail)
-            items = welcome_mail_config.get('items', []) # 修正：从 welcome_mail_config 获取 items
+            items = welcome_mail_config.get('items', []) # 修正:从 welcome_mail_config 获取 items
             self.welcome_mail_attachments.setRowCount(0) # 清空表格
             for item in items:
                 try:
@@ -602,10 +602,10 @@ class ConfigEditorDialog(QDialog):
                 "packets": self.packets_path.text(), # Added missing keys
                 "scripts": self.scripts_path.text(), # Added missing keys
                 "plugins": self.plugins_path.text(),  # Added missing keys
-                "cache": self.cache_path.text() # 新增：保存缓存路径
+                "cache": self.cache_path.text() # 新增:保存缓存路径
             }
             # 更新数据库配置
-            # 注意：Java 配置中有 server 和 game 两个库，这里简化为只配置 server 库
+            # 注意:Java 配置中有 server 和 game 两个库，这里简化为只配置 server 库
             config['database'] = { # Corrected key name
                 "server": {
                     "connectionUri": self.db_uri.text(),
@@ -643,24 +643,24 @@ class ConfigEditorDialog(QDialog):
             # 确报 gameOptions 字典存在
             config['server']['game']['gameOptions'] = config['server']['game'].get('gameOptions', {})
 
-            # 新增：更新树脂配置
+            # 新增:更新树脂配置
             config['server']['game']['gameOptions']['resinOptions'] = {
                 "cap": self.resin_capacity.value(),
                 "rechargeTime": self.resin_recovery_time.value()
             }
-            # 新增：更新背包限制配置
+            # 新增:更新背包限制配置
             config['server']['game']['gameOptions']['inventoryLimits'] = { # 修正键名
                 "weaponLimit": self.weapon_limit.value(),
                 "reliquaryLimit": self.reliquary_limit.value(),
                 "materialLimit": self.material_limit.value(),
                 "furnitureLimit": self.furniture_limit.value()
             }
-            # 新增：更新角色限制配置
+            # 新增:更新角色限制配置
             config['server']['game']['gameOptions']['characterLimits'] = { # 修正键名
                 "singleCharacterLimit": self.single_char_limit.value(),
                 "partyLimit": self.party_limit.value()
             }
-            # 新增：更新游戏功能开关
+            # 新增:更新游戏功能开关
             config['server']['game']['gameOptions']['enableAvatarEvents'] = self.enable_avatar_events.isChecked() # 新增
             config['server']['game']['gameOptions']['enableShopItems'] = self.enable_shop_items.isChecked() # 新增
             config['server']['game']['gameOptions']['enableCostumes'] = self.enable_costumes.isChecked() # 新增
@@ -670,7 +670,7 @@ class ConfigEditorDialog(QDialog):
             config['server']['game']['gameOptions']['enableHousing'] = self.enable_housing.isChecked()
             config['server']['game']['gameOptions']['enableGacha'] = self.enable_gacha.isChecked()
 
-            # 新增：更新任务选项配置
+            # 新增:更新任务选项配置
             config['server']['game']['gameOptions']['questOptions'] = { # 新增
                 "enabled": self.enable_quests.isChecked(),
                 "mainQuests": self.enable_main_quests.isChecked(),
@@ -681,7 +681,7 @@ class ConfigEditorDialog(QDialog):
                 "talkQuests": self.talk_quests.value()
             }
 
-            # 新增：更新手册选项配置
+            # 新增:更新手册选项配置
             config['server']['game']['gameOptions']['handbook'] = { # 新增
                 "allowHandbook": self.allow_handbook.isChecked(),
                 "server": self.handbook_server.text(),
@@ -691,7 +691,7 @@ class ConfigEditorDialog(QDialog):
                 }
             }
 
-            # 新增：更新视觉设置配置
+            # 新增:更新视觉设置配置
             config['server']['game']['gameOptions']['visionOptions'] = []
             for row in range(self.view_distance_table.rowCount()):
                 try:
@@ -712,12 +712,12 @@ class ConfigEditorDialog(QDialog):
                 except Exception as e:
                     QMessageBox.critical(self, '保存错误', f'处理视觉设置表格第 {row+1} 行时出错: {e}')
                     return # 出现意外错误则停止保存
-            # 新增：更新调试模式配置
+            # 新增:更新调试模式配置
             config['server']['debugMode'] = { # 修正键名
                 "serverLogLevel": self.log_level.currentText(), # 修正键名
                 "showPacketContent": self.show_packet_content.isChecked()
             }
-            # 新增：更新调试白名单/黑名单
+            # 新增:更新调试白名单/黑名单
             try:
                 whitelist_ids = [int(uid.strip()) for uid in self.debug_whitelist.toPlainText().split('\n') if uid.strip().isdigit()]
             except ValueError:

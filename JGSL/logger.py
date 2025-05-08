@@ -16,7 +16,6 @@ logger.add(
     level="TRACE" # 显式设置文件日志级别为 TRACE
 )
 
-# 添加控制台输出，并设置级别为 INFO
 logger.add(
     sys.stderr, # 输出到标准错误流
     level="INFO", # 设置控制台日志级别为 INFO

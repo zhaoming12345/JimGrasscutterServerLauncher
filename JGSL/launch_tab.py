@@ -10,9 +10,9 @@ import json
 class LaunchTab(QWidget):
     instance_started = pyqtSignal(str, int)
     instance_stopped = pyqtSignal(str)
-    # 新增信号：进程创建时发射 (PID, QProcess 对象)
+    # 新增信号:进程创建时发射 (PID, QProcess 对象)
     process_created = pyqtSignal(int, QProcess)
-    # 新增信号：进程结束或错误时发射 (PID)
+    # 新增信号:进程结束或错误时发射 (PID)
     process_finished_signal = pyqtSignal(int) # 避免与内建 finished 冲突
 
     def __init__(self):

@@ -33,13 +33,13 @@ def check_port(port: int, protocol: str = 'tcp') -> tuple:
 def check_ports(ports: list) -> list:
     """
     批量检查多个端口的占用情况
-    :param ports: 端口配置列表，格式示例：
+    :param ports: 端口配置列表，格式示例:
         [
             (27017, 'tcp'),
             (443, 'tcp'),
             (22102, 'udp')
         ]
-    :return: 检查结果列表，每个元素格式：(端口号, 协议, 是否被占用, 占用信息)
+    :return: 检查结果列表，每个元素格式:(端口号, 协议, 是否被占用, 占用信息)
     """
     results = []
     occupied_count = 0

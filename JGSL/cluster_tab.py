@@ -46,12 +46,12 @@ class ClusterConfigDialog(QDialog):
         self.use_internal_dispatch_checkbox = QCheckBox('使用内置调度')
         self.use_internal_dispatch_checkbox.stateChanged.connect(self.toggle_internal_dispatch)
 
-        # 顶部布局：列表和选择标签
+        # 顶部布局:列表和选择标签
         dispatch_layout.addWidget(QLabel("调度服务器列表:"))
         dispatch_layout.addWidget(self.dispatch_server_list, 1) # stretch factor 为 1，使其占用更多垂直空间
         dispatch_layout.addWidget(self.dispatch_select_btn) # 按钮放在列表下方
 
-        # 底部布局：复选框
+        # 底部布局:复选框
         dispatch_bottom_layout = QHBoxLayout()
         dispatch_bottom_layout.addWidget(self.use_internal_dispatch_checkbox)
         dispatch_bottom_layout.addStretch()
@@ -333,7 +333,7 @@ class ClusterConfigDialog(QDialog):
             self.cluster_name_input.setFocus()
             return
             
-        # 集群名称验证：只能包含字母、数字、下划线和中文
+        # 集群名称验证:只能包含字母、数字、下划线和中文
         import re
         if not re.match(r'^[\w\u4e00-\u9fa5]+$', cluster_name):
             QMessageBox.warning(self, "错误", "集群名称只能包含字母、数字、下划线和中文")
@@ -344,7 +344,7 @@ class ClusterConfigDialog(QDialog):
         # 2. 获取调度服务器配置
         dispatch_servers = [self.dispatch_server_list.item(i).text() for i in range(self.dispatch_server_list.count())]
         use_internal = self.use_internal_dispatch_checkbox.isChecked()
-        # 验证调度配置 (例如：必须至少有一个调度服务器，除非使用内置)
+        # 验证调度配置 (例如:必须至少有一个调度服务器，除非使用内置)
         if not use_internal and not dispatch_servers:
             QMessageBox.warning(self, "错误", "请指定一个调度服务器，或勾选\"使用内置调度\"")
             self.config_tabs.setCurrentIndex(0) # 切换到"调度"标签页
@@ -378,7 +378,7 @@ class ClusterConfigDialog(QDialog):
 
     def load_config(self, config):
         """加载集群配置到对话框"""
-        print(f"加载集群配置: {config}") # 添加日志或打印以确认加载
+        print(f"加载集群配置: {config}") # 打印日志以确认加载
         try:
             self.cluster_name_input.setText(config.get('name', ''))
             # self.cluster_title_input.setText(config.get('title', '')) # 如果有标题输入框
@@ -418,7 +418,7 @@ class ClusterTab(QWidget):
         # 创建布局
         layout = QVBoxLayout()
         
-        # 添加控件
+        # 控件
         self.cluster_list = QListWidget()
         self.cluster_list.setSelectionMode(QListWidget.SingleSelection)
         
@@ -479,7 +479,7 @@ class ClusterTab(QWidget):
                 return # 文件刚创建，内容为空
             except Exception as e:
                 logger.error(f"创建集群配置文件失败: {e}")
-                QMessageBox.critical(self, "错误", f"无法创建集群配置文件：{e}")
+                QMessageBox.critical(self, "错误", f"无法创建集群配置文件:{e}")
                 return
 
         try:
@@ -492,7 +492,7 @@ class ClusterTab(QWidget):
             QMessageBox.critical(self, "错误", "集群配置文件格式错误，请检查或删除后重试")
         except Exception as e:
             logger.error(f"加载集群列表失败: {e}")
-            QMessageBox.critical(self, "错误", f"加载集群列表失败：{e}")
+            QMessageBox.critical(self, "错误", f"加载集群列表失败:{e}")
     
     def create_cluster(self):
         """创建新集群"""
@@ -625,7 +625,7 @@ class ClusterTab(QWidget):
 
         except Exception as e:
             logger.error(f"保存集群配置失败: {e}")
-            QMessageBox.critical(self, "错误", f"保存集群配置失败：{e}")
+            QMessageBox.critical(self, "错误", f"保存集群配置失败:{e}")
             return False
     
     def _update_server_role(self, server_name, role, cluster_name):
@@ -671,7 +671,7 @@ class ClusterTab(QWidget):
         except Exception as e:
             logger.error(f"更新服务器 {server_name} 角色配置出错: {e}")
             # 可以选择性地通知用户
-            # QMessageBox.warning(self, "警告", f"更新服务器 {server_name} 配置失败：{e}")
+            # QMessageBox.warning(self, "警告", f"更新服务器 {server_name} 配置失败:{e}")
 
     def _get_cluster_config(self, cluster_name):
         """根据名称获取单个集群的配置"""

@@ -90,6 +90,9 @@ class CircleProgress(QWidget):
 
 class MonitorPanel(QDialog):
     # 添加 process 参数，类型为 QProcess 或 None
+    instance_closed_signal = pyqtSignal(str) # 实例关闭信号，参数为 instance_name
+    process_disappeared_signal = pyqtSignal(str) # 进程消失信号，参数为 instance_name
+
     def __init__(self, instance_name, pid, log_path, process: QProcess | None = None, debug_mode=False):
         try:
             # 在日志中记录 process 对象
@@ -149,7 +152,7 @@ class MonitorPanel(QDialog):
                 self.command_button.setEnabled(False)
                 self.stop_button.setText("关闭调试面板")
                 self.stop_button.clicked.connect(self.close) # 调试模式下关闭按钮直接关闭窗口
-                self.log_text.setPlainText("logs logs logs logs logs logs logs logs logs logs logs logs\n" * 20)
+                self.log_text.setPlainText("logs logs logs logs logs logs logs logs logs logs logs logs logs\n" * 20)
                 self.clear_button.clicked.connect(self.clear_log)
             else:
                 self.setWindowTitle(f"监控面板: {self.instance_name}")
@@ -167,6 +170,7 @@ class MonitorPanel(QDialog):
             self.current_log = ""
             self.last_log_size = 0
             self.command_history = []
+            self._is_closing = False # 添加一个标志来防止重复关闭操作
 
             # 调试模式下不需要计算启动时间或读取真实日志
             if not self.debug_mode:
@@ -402,6 +406,44 @@ class MonitorPanel(QDialog):
             logger.error(f"清空日志显示时发生错误: {e}")
             QMessageBox.warning(self, "警告", f"清空日志显示失败: {e}")
 
+    def closeEvent(self, event):
+        """处理窗口关闭事件，确保资源得到释放"""
+        logger.info(f"监控面板关闭事件触发: {self.instance_name}")
+        # 检查 _is_closing 标志，防止重复关闭逻辑
+        if hasattr(self, '_is_closing') and self._is_closing:
+            event.accept()
+            return
+
+        if hasattr(self, '_is_closing'):
+            self._is_closing = True
+
+        # 停止定时器
+        try:
+            if hasattr(self, 'log_timer') and self.log_timer.isActive():
+                self.log_timer.stop()
+                logger.debug(f"日志定时器已为实例 {self.instance_name} 停止")
+        except Exception as e:
+            logger.error(f"停止日志定时器时出错 ({self.instance_name}): {e}")
+        
+        try:
+            if hasattr(self, 'resource_timer') and self.resource_timer.isActive():
+                self.resource_timer.stop()
+                logger.debug(f"资源定时器已为实例 {self.instance_name} 停止")
+        except Exception as e:
+            logger.error(f"停止资源定时器时出错 ({self.instance_name}): {e}")
+
+        # 停止日志读取线程 (仅在非调试模式下)
+        try:
+            if not self.debug_mode and hasattr(self, 'log_reader_thread') and self.log_reader_thread.isRunning():
+                logger.debug(f"正在停止实例 {self.instance_name} 的日志读取线程...")
+                self.log_reader_thread.stop() # stop() 内部调用了 wait()
+                logger.debug(f"实例 {self.instance_name} 的日志读取线程已请求停止")
+        except Exception as e:
+            logger.error(f"停止日志读取线程时出错 ({self.instance_name}): {e}")
+
+        logger.info(f"监控面板 {self.instance_name} 清理操作完成，准备关闭。")
+        super().closeEvent(event) # 调用父类的closeEvent以完成关闭过程
+
 
     # send_command 和 stop_instance 在调试模式下不应该被调用，但保留以防万一
     def send_command(self):
@@ -446,7 +488,376 @@ class MonitorPanel(QDialog):
                 # 出错时不清除输入或添加到历史记录
         else:
             process_state = self.process.state() if self.process else "N/A"
-            logger.error(f'无法发送命令：进程对象无效或进程未运行 (PID: {self.pid}, Process: {self.process}, State: {process_state})')
+            logger.error(f'无法发送命令:进程对象无效或进程未运行 (PID: {self.pid}, Process: {self.process}, State: {process_state})')
+            QMessageBox.warning(self, "错误", "目标进程无效或未运行，无法发送命令")
+            # 不清除输入或添加到历史记录
+
+    def stop_instance(self):
+        if self._is_closing: # 如果正在关闭，则不执行任何操作
+            return
+        self._is_closing = True # 设置正在关闭标志
+
+        if self.debug_mode:
+            logger.warning("尝试在调试模式下停止实例")
+            self.instance_closed_signal.emit(self.instance_name)
+            self.close() # 调试模式下直接关闭窗口
+            return
+        reply = QMessageBox.question(self, '确认', f'确定要关闭实例 {self.instance_name} (PID: {self.pid}) 吗？', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            logger.info(f'正在尝试关闭实例 {self.instance_name} (PID: {self.pid})')
+            try:
+                if self.pid and psutil.pid_exists(self.pid):
+                    proc = psutil.Process(self.pid)
+                    proc.terminate() # 尝试友好终止
+                    try:
+                        proc.wait(timeout=5) # 等待5秒
+                        logger.success(f'实例 {self.instance_name} (PID: {self.pid}) 已成功终止')
+                    except psutil.TimeoutExpired:
+                        logger.warning(f'实例 {self.instance_name} (PID: {self.pid}) 未能在5秒内终止，尝试强制结束')
+                        proc.kill() # 强制结束
+                        proc.wait()
+                        logger.success(f'实例 {self.instance_name} (PID: {self.pid}) 已强制结束')
+                    self.instance_closed_signal.emit(self.instance_name)
+                    self.close() # 关闭监控面板
+                else:
+                    logger.warning(f'实例 {self.instance_name} (PID: {self.pid}) 进程不存在或无效')
+                    QMessageBox.warning(self, '错误', '进程不存在或无效')
+                    self.process_disappeared_signal.emit(self.instance_name) # 进程不存在，也认为消失了
+                    self.instance_closed_signal.emit(self.instance_name)
+                    self.close() # 进程不在了也关闭面板
+            except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                logger.error(f'关闭实例 {self.instance_name} (PID: {self.pid}) 时出错: {e}')
+                QMessageBox.critical(self, '错误', f'关闭进程时出错: {e}')
+                self.instance_closed_signal.emit(self.instance_name)
+                self.close() # 出错了也关闭面板
+            except Exception as e:
+                logger.exception(f'关闭实例时发生未知错误: {e}')
+                QMessageBox.critical(self, '错误', f'关闭进程时发生未知错误: {e}')
+                self.instance_closed_signal.emit(self.instance_name)
+                self.close()
+        else:
+            self._is_closing = False # 用户取消关闭，重置标志
+
+    def update_resource_usage(self):
+        if self.debug_mode:
+            try:
+                # 调试模式下使用模拟数据
+                if self.debug_mode:
+                    try:
+                        # 使用较小范围的随机值，避免大幅度变化
+                        if hasattr(self, '_last_cpu_val'):
+                            # 在上次值的基础上小幅变化，模拟真实情况
+                            cpu_val = max(10, min(70, self._last_cpu_val + random.randint(-5, 5)))
+                        else:
+                            cpu_val = random.randint(20, 50)
+                        self._last_cpu_val = cpu_val
+                        self.cpu_usage.set_value(cpu_val)
+                    except Exception as e:
+                        logger.warning(f'调试模式 - 设置 CPU 模拟值失败: {e}')
+                        # 使用exception级别太高，改为warning
+
+                    try:
+                        # 模拟内存使用，改为百分比，同样小幅度变化
+                        if hasattr(self, '_last_mem_val'):
+                            mem_val = max(20, min(80, self._last_mem_val + random.randint(-3, 3)))
+                        else:
+                            mem_val = random.randint(30, 60)
+                        self._last_mem_val = mem_val
+                        self.mem_usage.set_value(mem_val)
+                    except Exception as e:
+                        logger.warning(f'调试模式 - 设置内存模拟值失败: {e}')
+
+                    self.update_uptime() # 调试模式也更新假的运行时间
+                elif self.pid and self.pid != -1:
+                    # 先检查进程是否存在，避免不必要的异常
+                    if not psutil.pid_exists(self.pid):
+                        if not hasattr(self, '_pid_warning_shown') or not self._pid_warning_shown:
+                            logger.warning(f'进程 {self.pid} 不存在，无法获取资源使用情况')
+                            self._pid_warning_shown = True
+                        self.cpu_usage.set_value(0)
+                        self.mem_usage.set_value(0)
+                        return
+                    
+                    # 进程存在，获取资源使用情况
+                    try:
+                        proc = psutil.Process(self.pid)
+                        # 使用非阻塞方式获取CPU使用率
+                        cpu_percent = int(proc.cpu_percent(interval=None))
+                        self.cpu_usage.set_value(cpu_percent)
+                        
+                        # 获取内存使用率
+                        mem_percent = int(proc.memory_percent())
+                        self.mem_usage.set_value(mem_percent)
+                        
+                        # 重置警告标志
+                        self._pid_warning_shown = False
+                        
+                        # 更新运行时间
+                        self.update_uptime()
+                    except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                        # 进程消失或无权限访问
+                        if not hasattr(self, '_resource_error_shown') or not self._resource_error_shown:
+                            logger.warning(f"访问进程 {self.pid} 信息失败: {e}")
+                            self._resource_error_shown = True
+                        self.cpu_usage.set_value(0)
+                        self.mem_usage.set_value(0)
+                    except Exception as e:
+                        # 其他错误
+                        if not hasattr(self, '_resource_error_shown') or not self._resource_error_shown:
+                            logger.error(f"获取资源使用情况时发生错误: {e}")
+                            self._resource_error_shown = True
+                        self.cpu_usage.set_value(0)
+                        self.mem_usage.set_value(0)
+                else:
+                    # PID无效
+                    self.cpu_usage.set_value(0)
+                    self.mem_usage.set_value(0)
+                    # 只在非调试模式下记录警告，且只记录一次
+                    if not self.debug_mode and (not hasattr(self, '_invalid_pid_warning_shown') or not self._invalid_pid_warning_shown):
+                        logger.warning('无效PID:{} 进程状态:{}', self.pid, psutil.pid_exists(self.pid) if self.pid and self.pid != -1 else 'N/A')
+                        self._invalid_pid_warning_shown = True
+            except Exception as e:
+                # 捕获所有未处理的异常
+                logger.error(f"更新资源使用情况时发生未知错误: {e}")
+                try:
+                    self.cpu_usage.set_value(0)
+                    self.mem_usage.set_value(0)
+                except Exception:
+                    # 忽略二次错误，避免日志过多
+                    pass
+
+            # 调试模式下使用模拟数据
+            if self.debug_mode:
+                try:
+                    # 使用较小范围的随机值，避免大幅度变化
+                    if hasattr(self, '_last_cpu_val'):
+                        # 在上次值的基础上小幅变化，模拟真实情况
+                        cpu_val = max(10, min(70, self._last_cpu_val + random.randint(-5, 5)))
+                    else:
+                        cpu_val = random.randint(20, 50)
+                    self._last_cpu_val = cpu_val
+                    self.cpu_usage.set_value(cpu_val)
+                except Exception as e:
+                    logger.warning(f'调试模式 - 设置 CPU 模拟值失败: {e}')
+                    # 使用exception级别太高，改为warning
+
+                try:
+                    # 模拟内存使用，改为百分比，同样小幅度变化
+                    if hasattr(self, '_last_mem_val'):
+                        mem_val = max(20, min(80, self._last_mem_val + random.randint(-3, 3)))
+                    else:
+                        mem_val = random.randint(30, 60)
+                    self._last_mem_val = mem_val
+                    self.mem_usage.set_value(mem_val)
+                except Exception as e:
+                    logger.warning(f'调试模式 - 设置内存模拟值失败: {e}')
+
+                self.update_uptime() # 调试模式也更新假的运行时间
+            elif self.pid and self.pid != -1:
+                # 先检查进程是否存在，避免不必要的异常
+                if not psutil.pid_exists(self.pid):
+                    if not hasattr(self, '_pid_warning_shown') or not self._pid_warning_shown:
+                        logger.warning(f'进程 {self.pid} 不存在，无法获取资源使用情况')
+                        self._pid_warning_shown = True
+                    self.cpu_usage.set_value(0)
+                    self.mem_usage.set_value(0)
+                    return
+                
+                # 进程存在，获取资源使用情况
+                try:
+                    proc = psutil.Process(self.pid)
+                    # 使用非阻塞方式获取CPU使用率
+                    cpu_percent = int(proc.cpu_percent(interval=None))
+                    self.cpu_usage.set_value(cpu_percent)
+                    
+                    # 获取内存使用率
+                    mem_percent = int(proc.memory_percent())
+                    self.mem_usage.set_value(mem_percent)
+                    
+                    # 重置警告标志
+                    self._pid_warning_shown = False
+                    
+                    # 更新运行时间
+                    self.update_uptime()
+                except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                    # 进程消失或无权限访问
+                    if not hasattr(self, '_resource_error_shown') or not self._resource_error_shown:
+                        logger.warning(f"访问进程 {self.pid} 信息失败: {e}")
+                        self._resource_error_shown = True
+                    self.cpu_usage.set_value(0)
+                    self.mem_usage.set_value(0)
+                except Exception as e:
+                    # 其他错误
+                    if not hasattr(self, '_resource_error_shown') or not self._resource_error_shown:
+                        logger.error(f"获取资源使用情况时发生错误: {e}")
+                        self._resource_error_shown = True
+                    self.cpu_usage.set_value(0)
+                    self.mem_usage.set_value(0)
+            else:
+                # PID无效
+                self.cpu_usage.set_value(0)
+                self.mem_usage.set_value(0)
+                # 只在非调试模式下记录警告，且只记录一次
+                if not self.debug_mode and (not hasattr(self, '_invalid_pid_warning_shown') or not self._invalid_pid_warning_shown):
+                    logger.warning('无效PID:{} 进程状态:{}', self.pid, psutil.pid_exists(self.pid) if self.pid and self.pid != -1 else 'N/A')
+                    self._invalid_pid_warning_shown = True
+
+    def update_uptime(self):
+        if self.start_time:
+            uptime = datetime.datetime.now() - self.start_time
+            hours, remainder = divmod(uptime.total_seconds(), 3600)
+            minutes, seconds = divmod(remainder, 60)
+            # 调试模式标题加上提示
+            title_prefix = f"{self.instance_name} (调试模式)" if self.debug_mode else self.instance_name
+            self.uptime_label.setText(f"UpTime:\n{int(hours):02d}h{int(minutes):02d}m{int(seconds):02d}s")
+        else:
+            self.uptime_label.setText("UpTime:\nN/A") # Also add newline here for consistency
+
+    # 添加处理日志读取线程信号的方法
+    def append_log(self, log_content):
+        try:
+            # 使用QTimer.singleShot将UI更新操作放到主线程事件循环中执行
+            # 这样可以避免在非主线程中直接操作UI元素导致的问题
+            if not hasattr(self, '_log_buffer'):
+                self._log_buffer = ""
+                self._log_buffer_timer = QTimer()
+                self._log_buffer_timer.timeout.connect(self._flush_log_buffer)
+                self._log_buffer_timer.start(100)  # 每100ms刷新一次日志缓冲区
+            
+            # 将日志内容添加到缓冲区
+            self._log_buffer += log_content
+            
+            # 如果缓冲区过大，立即刷新
+            if len(self._log_buffer) > 5000:
+                QTimer.singleShot(0, self._flush_log_buffer)
+        except Exception as e:
+            logger.error(f"添加日志内容时发生错误: {e}")
+    
+    # 添加一个方法来刷新日志缓冲区
+    def _flush_log_buffer(self):
+        try:
+            if hasattr(self, '_log_buffer') and self._log_buffer:
+                # 获取当前滚动条位置
+                scrollbar = self.log_text.verticalScrollBar()
+                at_bottom = scrollbar.value() >= scrollbar.maximum() - 10
+                
+                # 更新文本
+                cursor = self.log_text.textCursor()
+                cursor.movePosition(QTextCursor.MoveOperation.End)
+                cursor.insertText(self._log_buffer)
+                self._log_buffer = ""
+                
+                # 如果之前在底部，则保持在底部
+                if at_bottom:
+                    scrollbar.setValue(scrollbar.maximum())
+                
+                # 检查是否需要裁剪日志
+                if self.log_text.document().lineCount() > 1000:
+                    QTimer.singleShot(0, self.trim_log_text)
+        except Exception as e:
+            logger.error(f"刷新日志缓冲区时发生错误: {e}")
+            self._log_buffer = ""  # 出错时清空缓冲区
+
+    def handle_log_error(self, error_message):
+        try:
+            logger.error(f"日志读取错误: {error_message}")
+            # 使用QTimer.singleShot确保在主线程中更新UI
+            QTimer.singleShot(0, lambda: self.log_text.append(f"<font color='red'>日志读取错误: {error_message}</font>"))
+        except Exception as e:
+            logger.error(f"处理日志错误时发生异常: {e}")
+            
+    def clear_log(self):
+        """清空日志显示区域"""
+        try:
+            self.log_text.clear()
+            logger.info(f"已清空监控面板日志显示 实例:{self.instance_name}")
+        except Exception as e:
+            logger.error(f"清空日志显示时发生错误: {e}")
+            QMessageBox.warning(self, "警告", f"清空日志显示失败: {e}")
+
+    def closeEvent(self, event):
+        """处理窗口关闭事件，确保资源得到释放"""
+        logger.info(f"监控面板关闭事件触发: {self.instance_name}")
+        # 检查 _is_closing 标志，防止重复关闭逻辑
+        if hasattr(self, '_is_closing') and self._is_closing:
+            event.accept()
+            return
+
+        if hasattr(self, '_is_closing'):
+            self._is_closing = True
+
+        # 停止定时器
+        try:
+            if hasattr(self, 'log_timer') and self.log_timer.isActive():
+                self.log_timer.stop()
+                logger.debug(f"日志定时器已为实例 {self.instance_name} 停止")
+        except Exception as e:
+            logger.error(f"停止日志定时器时出错 ({self.instance_name}): {e}")
+        
+        try:
+            if hasattr(self, 'resource_timer') and self.resource_timer.isActive():
+                self.resource_timer.stop()
+                logger.debug(f"资源定时器已为实例 {self.instance_name} 停止")
+        except Exception as e:
+            logger.error(f"停止资源定时器时出错 ({self.instance_name}): {e}")
+
+        # 停止日志读取线程 (仅在非调试模式下)
+        try:
+            if not self.debug_mode and hasattr(self, 'log_reader_thread') and self.log_reader_thread.isRunning():
+                logger.debug(f"正在停止实例 {self.instance_name} 的日志读取线程...")
+                self.log_reader_thread.stop() # stop() 内部调用了 wait()
+                logger.debug(f"实例 {self.instance_name} 的日志读取线程已请求停止")
+        except Exception as e:
+            logger.error(f"停止日志读取线程时出错 ({self.instance_name}): {e}")
+
+        logger.info(f"监控面板 {self.instance_name} 清理操作完成，准备关闭。")
+        super().closeEvent(event) # 调用父类的closeEvent以完成关闭过程
+
+
+    # send_command 和 stop_instance 在调试模式下不应该被调用，但保留以防万一
+    def send_command(self):
+        if self.debug_mode:
+            logger.warning("尝试在调试模式下发送命令")
+            QMessageBox.warning(self, "提示", "调试模式下无法发送命令")
+            return
+        command = self.command_input.text()
+        if not command:
+            return
+
+        logger.info(f'向实例 {self.instance_name} (PID: {self.pid}) 发送命令: {command}')
+
+        # 使用 self.process (QProcess 对象) 发送命令
+        if self.process and self.process.state() == QProcess.ProcessState.Running:
+            try:
+                # 确保命令以换行符结束
+                full_command = (command + '\n').encode('utf-8')
+                bytes_written = self.process.write(full_command)
+                
+                # 检查写入是否成功
+                if bytes_written == -1:
+                    error_string = self.process.errorString()
+                    logger.error(f"写入命令到进程 {self.pid} 失败. QProcess 错误: {error_string}")
+                    QMessageBox.critical(self, "错误", f"发送命令失败: {error_string}")
+                elif bytes_written < len(full_command):
+                    logger.warning(f"命令可能未完全写入进程 {self.pid}. 写入 {bytes_written}/{len(full_command)} 字节.")
+                    QMessageBox.warning(self, "警告", "命令可能未完全发送")
+                    # 即使部分写入，也可能需要记录历史和清空输入
+                    QMessageBox.information(self, "提示", f"命令 '{command}' 已发送 (可能不完整)")
+                    self.command_history.append(command)
+                    self.command_input.clear()
+                else:
+                    logger.success(f'命令成功发送到进程 {self.pid} (通过 QProcess)')
+                    QMessageBox.information(self, "提示", f"命令 '{command}' 已成功发送")
+                    self.command_history.append(command) # 仅在成功或部分写入时添加到历史记录
+                    self.command_input.clear()
+
+            except Exception as e:
+                logger.error(f'通过 QProcess 发送命令时出错: {e}')
+                QMessageBox.critical(self, "错误", f"发送命令时发生意外错误: {e}")
+                # 出错时不清除输入或添加到历史记录
+        else:
+            process_state = self.process.state() if self.process else "N/A"
+            logger.error(f'无法发送命令:进程对象无效或进程未运行 (PID: {self.pid}, Process: {self.process}, State: {process_state})')
             QMessageBox.warning(self, "错误", "目标进程无效或未运行，无法发送命令")
             # 不清除输入或添加到历史记录
 
@@ -470,6 +881,7 @@ class MonitorPanel(QDialog):
                         proc.kill() # 强制结束
                         proc.wait()
                         logger.success(f'实例 {self.instance_name} (PID: {self.pid}) 已强制结束')
+                    self.instance_closed_signal.emit(self.instance_name)
                     self.close() # 关闭监控面板
                 else:
                     logger.warning(f'实例 {self.instance_name} (PID: {self.pid}) 进程不存在或无效')
@@ -478,10 +890,12 @@ class MonitorPanel(QDialog):
             except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
                 logger.error(f'关闭实例 {self.instance_name} (PID: {self.pid}) 时出错: {e}')
                 QMessageBox.critical(self, '错误', f'关闭进程时出错: {e}')
+                self.instance_closed_signal.emit(self.instance_name)
                 self.close() # 出错了也关闭面板
             except Exception as e:
                 logger.exception(f'关闭实例时发生未知错误: {e}')
                 QMessageBox.critical(self, '错误', f'关闭进程时发生未知错误: {e}')
+                self.instance_closed_signal.emit(self.instance_name)
                 self.close()
 
     # 重写 closeEvent，确保在关闭窗口时停止定时器和线程
@@ -669,8 +1083,8 @@ class MonitorTab(QWidget):
     def __init__(self):
         super().__init__()
         self.instance_list = QListWidget()
-        self.db_status = QLabel("数据库状态：未连接")
-        self.instance_status = QLabel("运行实例数：0")
+        self.db_status = QLabel("数据库状态:未连接")
+        self.instance_status = QLabel("运行实例数:0")
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.instance_status)
         self.layout.addWidget(QLabel("运行实例:"))
@@ -731,7 +1145,7 @@ class MonitorTab(QWidget):
             # 检查 main_window 是否有 running_processes 属性
             if not hasattr(main_window, 'running_processes'):
                 logger.error("无法获取 MainWindow 实例或其不包含 running_processes 字典")
-                QMessageBox.critical(self, '错误', '内部错误：无法访问主窗口的进程列表，无法打开监控面板。')
+                QMessageBox.critical(self, '错误', '内部错误:无法访问主窗口的进程列表，无法打开监控面板。')
                 return
 
             # 获取进程对象
@@ -786,9 +1200,9 @@ class MonitorTab(QWidget):
                 if proc.info['name'] == "mongod.exe" and any('dbpath' in part for part in proc.info['cmdline']):
                     db_status = True
             if db_status:
-                self.db_status.setText("数据库状态：已连接")
+                self.db_status.setText("数据库状态:已连接")
             else:
-                self.db_status.setText("数据库状态：未连接")
+                self.db_status.setText("数据库状态:未连接")
         except Exception as e:
             logger.error(f"更新资源使用情况时发生错误: {e}")
 
@@ -847,7 +1261,7 @@ class MonitorTab(QWidget):
         self.instance_list.clear()
         instance_names = sorted([os.path.basename(path) for pid, path in self.running_instances])
         self.instance_list.addItems(instance_names)
-        self.instance_status.setText(f"运行实例数：{len(self.running_instances)}")
+        self.instance_status.setText(f"运行实例数:{len(self.running_instances)}")
         
         # 尝试恢复之前的选中项
         if current_selected:
@@ -863,7 +1277,7 @@ class MonitorTab(QWidget):
         self.instance_list.clear()
         instance_names = sorted([os.path.basename(path) for pid, path in self.running_instances])
         self.instance_list.addItems(instance_names)
-        self.instance_status.setText(f"运行实例数：{len(self.running_instances)}")
+        self.instance_status.setText(f"运行实例数:{len(self.running_instances)}")
         
         # 尝试恢复之前的选中项
         if current_selected:

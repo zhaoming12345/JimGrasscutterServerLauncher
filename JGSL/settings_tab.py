@@ -27,7 +27,7 @@ class SettingsTab(QWidget):
         
         # 自动更新
         self.auto_update = QCheckBox("启用自动更新")
-        self.update_status_label = QLabel(f"当前版本: {VERSION}") #  显示当前版本
+        self.update_status_label = QLabel(f"当前版本: {VERSION}") # 显示当前版本
         
         # 最大日志行数
         self.max_log_label = QLabel("最大日志行数:")
@@ -42,7 +42,7 @@ class SettingsTab(QWidget):
         # 保存按钮
         self.save_btn = QPushButton("保存设置")
 
-        # 添加调试按钮
+        # 调试按钮
         self.debug_monitor_btn = QPushButton("DEBUG: 打开监控面板")
         
         layout = QVBoxLayout()
@@ -66,7 +66,7 @@ class SettingsTab(QWidget):
         
         # 连接信号
         self.save_btn.clicked.connect(self.save_settings)
-        self.auto_update.stateChanged.connect(self.toggle_auto_update) #  连接复选框状态变化信号
+        self.auto_update.stateChanged.connect(self.toggle_auto_update) # 连接复选框状态变化信号
         # 连接调试按钮的点击信号
         self.debug_monitor_btn.clicked.connect(self.open_debug_monitor_panel)
         
@@ -102,7 +102,7 @@ class SettingsTab(QWidget):
         self.auto_update.setChecked(auto_update)
         self._apply_theme(theme)
 
-        #  如果启用了自动更新，就在加载设置后启动检查
+        # 如果启用了自动更新，就在加载设置后启动检查
         if auto_update:
             self.run_update_check()
 
@@ -152,10 +152,10 @@ class SettingsTab(QWidget):
         except Exception as e:
             logger.error(f'应用主题时出错: {e}')
 
-    #  添加一个方法来启动更新检查线程
+    # 添加一个方法来启动更新检查线程
     def run_update_check(self):
         logger.info("开始后台检查更新...")
-        #  检查是否已有线程在运行，避免重复启动
+        # 检查是否已有线程在运行，避免重复启动
         if hasattr(self, 'update_thread') and self.update_thread.isRunning():
             logger.warning("更新检查线程已在运行中")
             return
@@ -163,36 +163,36 @@ class SettingsTab(QWidget):
         self.update_thread.update_check_result.connect(self.handle_update_result)
         self.update_thread.start()
 
-    #  添加一个方法来处理更新检查结果
+    # 添加一个方法来处理更新检查结果
     def handle_update_result(self, update_available, latest_version):
         if update_available:
             self.update_status_label.setText(f"发现新版本: {latest_version}！请前往 GitHub 下载")
-            #  这里可以添加更明显的提示，比如修改标签样式或者弹窗
+            # 这里可以添加更明显的提示，比如修改标签样式或者弹窗
             logger.success(f"检查到新版本: {latest_version}")
         else:
-            #  确保使用最新的 VERSION 显示状态
+            # 确保使用最新的 VERSION 显示状态
             self.update_status_label.setText(f"当前版本: {VERSION} (已是最新)")
             logger.info("未发现新版本或检查更新失败")
 
-    #  添加一个方法来处理复选框状态变化
+    # 添加一个方法来处理复选框状态变化
     def toggle_auto_update(self, state):
         if state == 2: 
             self.run_update_check()
         else:
-            #  如果取消勾选，可以考虑停止正在进行的检查(如果需要)
+            # 如果取消勾选，可以考虑停止正在进行的检查(如果需要)
             if hasattr(self, 'update_thread') and self.update_thread.isRunning():
                 logger.info("尝试终止更新检查线程...")
-                self.update_thread.quit() #  请求线程退出
-                self.update_thread.wait(1000) #  等待最多1秒
+                self.update_thread.quit() # 请求线程退出
+                self.update_thread.wait(1000) # 等待最多1秒
                 if self.update_thread.isRunning():
                     logger.warning("更新检查线程未能正常退出，将强制终止")
-                    self.update_thread.terminate() #  强制终止
-                    self.update_thread.wait() #  等待终止完成
-            #  恢复显示当前版本
+                    self.update_thread.terminate() # 强制终止
+                    self.update_thread.wait() # 等待终止完成
+            # 恢复显示当前版本
             self.update_status_label.setText(f"当前版本: {VERSION}") 
             logger.info("自动更新已禁用")
 
-    # 添加打开调试监控面板的方法
+    # 打开调试监控面板的方法
     def open_debug_monitor_panel(self):
         logger.info("打开调试模式的监控面板")
         # 传入 debug_mode=True 来启动调试模式
