@@ -10,6 +10,11 @@
 *.tar.xz
 *.tar
 
+# 排除编译文件
+main.spec
+/dist/*
+/build/*
+
 # 排除以下目录内容
 /Web/*
 /Servers/*
