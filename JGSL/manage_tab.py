@@ -203,12 +203,6 @@ class ManageTab(QWidget):
             self._should_stop = True
             logger.info("请求停止操作线程")
 
-        def run(self):
-            if self.operation_type == "clone":
-                self._clone_instance()
-            elif self.operation_type == "delete":
-                self._delete_instance()
-
         def _get_total_files_dirs(self, path):
             total = 0
             for _, dirs, files in os.walk(path):
@@ -290,17 +284,6 @@ class ManageTab(QWidget):
                 logger.error(f'克隆实例 "{original_instance_name}" 失败: {e}')
                 self.finished_signal.emit(False, f'克隆实例失败: {e}')
 
-    def open_plugin_manager(self):
-        logger.info("打开插件管理器")
-        current_item = self.server_list.currentItem()
-        if not current_item:
-            QMessageBox.warning(self, '提示', '请先选择一个实例')
-            return
-        instance_name = current_item.text()
-        instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
-        plugin_manager_dialog = PluginManagerDialog(self, instance_name, instance_dir)
-        plugin_manager_dialog.exec_()
-
         def _delete_instance(self):
             instance_dir = self.kwargs['instance_dir']
             instance_name = self.kwargs['instance_name']
@@ -327,6 +310,7 @@ class ManageTab(QWidget):
                         except OSError as e:
                             logger.error(f"删除文件 {file_path} 失败: {e}")
                             # 可以选择在这里停止或继续
+
                     if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
                     for name in dirs:
                         if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
@@ -339,21 +323,38 @@ class ManageTab(QWidget):
                             self.progress_signal.emit(progress, f'正在删除目录 ({deleted_items}/{total_items})...')
                         except OSError as e:
                             logger.error(f"删除目录 {dir_path} 失败: {e}")
-                            # 可以选择在这里停止或继续
-                
-                if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
-                # 最后删除实例根目录本身
-                try:
-                    os.rmdir(instance_dir)
-                    self.current_file_signal.emit(f'删除实例根目录: {instance_name}')
-                except OSError as e:
-                     logger.error(f"删除实例根目录 {instance_dir} 失败: {e}")
+                    
+                    if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
+                    # 最后删除实例根目录本身
+                    try:
+                        os.rmdir(instance_dir)
+                        self.current_file_signal.emit(f'删除实例根目录: {instance_name}')
+                    except OSError as e:
+                        logger.error(f"删除实例根目录 {instance_dir} 失败: {e}")
 
-                self.progress_signal.emit(100, f'删除完成!')
-                self.finished_signal.emit(True, f'实例 {instance_name} 已成功删除')
+                    self.progress_signal.emit(100, f'删除完成!')
+                    self.finished_signal.emit(True, f'实例 {instance_name} 已成功删除')
+
             except Exception as e:
                 logger.error(f'删除实例 {instance_name} 失败: {e}')
                 self.finished_signal.emit(False, f'删除实例失败: {e}')
+
+    def run(self):
+        if self.operation_type == "clone":
+            self._clone_instance()
+        elif self.operation_type == "delete":
+            self._delete_instance()
+
+    def open_plugin_manager(self):
+        logger.info("打开插件管理器")
+        current_item = self.server_list.currentItem()
+        if not current_item:
+            QMessageBox.warning(self, '提示', '请先选择一个实例')
+            return
+        instance_name = current_item.text()
+        instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
+        plugin_manager_dialog = PluginManagerDialog(self, instance_name, instance_dir)
+        plugin_manager_dialog.exec_()
 
     def create_instance(self):
         dialog = InstanceConfigDialog(self, root_dir=self.root_dir)
