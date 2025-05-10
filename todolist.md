@@ -18,7 +18,7 @@
 
  - [X] monitor_tab.py:实例进程消失后自动关闭监控面板
 
- - [ ] plugin_manager.py:插件生命周期管理(一般)
+ - [x] plugin_manager.py:插件生命周期管理
 
  - [ ] download_tab.py:自动解压压缩包(一般)
 

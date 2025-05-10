@@ -6,6 +6,7 @@ from loguru import logger
 import shutil
 import psutil
 from config_editor import ConfigEditorDialog
+from plugin_manager import PluginManagerDialog # 导入插件管理器对话框
 
 
 class InstanceConfigDialog(QDialog):
@@ -119,6 +120,7 @@ class ManageTab(QWidget):
         self.edit_btn = QPushButton('修改实例配置')
         self.delete_btn = QPushButton('删除实例')
         self.clone_btn = QPushButton('克隆实例') # 新增克隆按钮
+        self.plugin_btn = QPushButton('插件管理') # 新增插件管理按钮
 
         # 用于在进度对话框中显示状态和当前文件
         self.current_operation_status = ""
@@ -127,15 +129,20 @@ class ManageTab(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.server_list)
 
-        # 按钮行布局
-        button_layout = QHBoxLayout()
-        button_layout.addWidget(self.create_btn)
-        button_layout.addWidget(self.edit_config_btn)
-        button_layout.addWidget(self.edit_btn)
-        button_layout.addWidget(self.clone_btn)
-        button_layout.addWidget(self.delete_btn)
+        # 第1行布局
+        button_1_layout = QHBoxLayout()
+        button_1_layout.addWidget(self.create_btn)
+        button_1_layout.addWidget(self.edit_btn)
+        button_1_layout.addWidget(self.clone_btn)
+        button_1_layout.addWidget(self.delete_btn)
         
-        layout.addLayout(button_layout)
+        layout.addLayout(button_1_layout)
+
+        # 第2行按钮布局
+        button_2_layout = QHBoxLayout()
+        button_2_layout.addWidget(self.plugin_btn)
+        button_2_layout.addWidget(self.edit_config_btn)
+        layout.addLayout(button_2_layout)
 
         self.setLayout(layout)
 
@@ -154,6 +161,7 @@ class ManageTab(QWidget):
         self.edit_btn.clicked.connect(self.edit_instance)
         self.delete_btn.clicked.connect(self.delete_instance)
         self.clone_btn.clicked.connect(self.clone_instance) # 连接克隆按钮的信号
+        self.plugin_btn.clicked.connect(self.open_plugin_manager) # 连接插件管理按钮的信号
 
     def _update_progress_dialog_label(self):
         # 更新进度对话框的标签文本
@@ -281,6 +289,17 @@ class ManageTab(QWidget):
             except Exception as e:
                 logger.error(f'克隆实例 "{original_instance_name}" 失败: {e}')
                 self.finished_signal.emit(False, f'克隆实例失败: {e}')
+
+    def open_plugin_manager(self):
+        logger.info("打开插件管理器")
+        current_item = self.server_list.currentItem()
+        if not current_item:
+            QMessageBox.warning(self, '提示', '请先选择一个实例')
+            return
+        instance_name = current_item.text()
+        instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
+        plugin_manager_dialog = PluginManagerDialog(self, instance_name, instance_dir)
+        plugin_manager_dialog.exec_()
 
         def _delete_instance(self):
             instance_dir = self.kwargs['instance_dir']
