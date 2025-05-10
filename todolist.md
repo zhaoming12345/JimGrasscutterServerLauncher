@@ -30,6 +30,12 @@
 
  - [ ] building_tab:构建标签页(可能 | 用于构建割草机，非常简单而且不太实用所以优先级低)
 
+ - [ ] data_manager:可视化json编辑，如Banners、Shop、ActivityConfig、Announcement等等(一般)
+
+ - [ ] resources_manager:可视化编辑TextMap中的游戏文本(一般)
+
+ - [ ] download_tab.py&download-list.json:添加不可自动下载的资源的支持(一般)
+
 ## 修复
 
  - [X] monitor_tab.py:解决监控面板打开崩溃
@@ -45,6 +51,10 @@
  - [X] monitor_tab.py:关闭实例应优先通过对服务器发送"STOP"命令来进行安全的关闭
 
  - [ ] dispatch.py:地区列表应该从配置文件中读取(一般)
+
+ - [ ] download_tab.py&download-list.json:在json中指定文件名、目标位置、是否可自动下载等(一般)
+
+ - [ ] cluster_tab.py:应该遵循[多服务器配置教程](https://www.bilibili.com/video/BV1L5CXY4Eaj)，适当复用资源，减少空间浪费(一般)
 
 ## 删除
 
