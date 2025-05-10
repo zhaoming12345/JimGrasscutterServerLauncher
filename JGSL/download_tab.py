@@ -38,7 +38,10 @@ class DownloadThread(QThread):
                         for chunk in r.iter_content(1024):
                             f.write(chunk)
                             downloaded += len(chunk)
-                            progress = int(downloaded / total_size * 100)
+                            if total_size > 0:
+                                progress = int(downloaded / total_size * 100)
+                            else:
+                                progress = 0 # 如果 total_size 为0，则进度为0
                             self.logger.trace(f'下载进度 {progress}%')
                             self.progress_signal.emit(progress)
                     self.finished_signal.emit(self.save_path)
@@ -114,8 +117,6 @@ class DownloadTab(QWidget):
         }
         """)
         self.status_label = QLabel('准备就绪')
-        self.unavailable_label = QLabel('<h2 style="color: red;">⚠️ 该功能暂时不可用，正在修复中！</h2>')
-        self.unavailable_label.setAlignment(Qt.AlignCenter)
         self.thread_count_label = QLabel('线程数: 64')
         self.thread_count_slider = QSlider(Qt.Horizontal)
         self.thread_count_slider.setRange(1, 128)
@@ -125,7 +126,6 @@ class DownloadTab(QWidget):
         layout = QVBoxLayout()
         layout.setSpacing(20)
         layout.addWidget(self.tree,7)
-        layout.addWidget(self.unavailable_label)
         layout.addWidget(self.download_btn)
         layout.addWidget(self.progress_bar)
         layout.addWidget(self.status_label)
@@ -229,7 +229,105 @@ class DownloadTab(QWidget):
     def update_thread_count(self, value):
         self.thread_count = value
         self.thread_count_label.setText(f'线程数: {value}')
-    
+
+    def move_file(self, downloaded_file_path, item_data):
+        """处理下载完成后的文件移动或解压"""
+        target_location = item_data.get('target_location')
+        target_filename = item_data.get('target_filename')
+        is_zipped = item_data.get('is_zipped', False)
+        item_title = item_data.get('title', '未知项目')
+
+        if not target_location or not target_filename:
+            self.logger.error(f"移动文件失败: 项目 '{item_title}' 的元数据不完整 (target_location 或 target_filename 缺失)。")
+            QMessageBox.critical(self, '错误', f"项目 '{item_title}' 的元数据不完整，无法移动文件。")
+            return
+
+        final_target_dir = ""
+
+        if target_location.startswith('Servers/{instance_name}'):
+            if not self.current_instance:
+                self.logger.error(f"移动文件 '{target_filename}' 失败: 未选择实例。")
+                QMessageBox.warning(self, '错误', f"移动文件 '{target_filename}' 失败: 需要选择实例但当前未选择。")
+                return
+            instance_base_path = os.path.join(self.root_dir, 'Servers', self.current_instance)
+            location_parts = target_location.split('/')
+            if len(location_parts) == 2: # e.g., "Servers/{instance_name}"
+                final_target_dir = instance_base_path
+            elif len(location_parts) > 2: # e.g., "Servers/{instance_name}/plugins"
+                sub_dir_name = '/'.join(location_parts[2:]) # Handles nested subdirs like 'data/some/folder'
+                final_target_dir = os.path.join(instance_base_path, sub_dir_name)
+            else:
+                self.logger.error(f"无法解析目标位置 '{target_location}' for instance '{self.current_instance}'.")
+                QMessageBox.critical(self, '错误', f"无法解析实例 '{self.current_instance}' 的目标位置 '{target_location}'。")
+                return
+        elif target_location == 'Database':
+            final_target_dir = os.path.join(self.root_dir, 'Database')
+        elif target_location == 'Java':
+            final_target_dir = os.path.join(self.root_dir, 'Java')
+        elif target_location == 'Config':
+            final_target_dir = os.path.join(self.root_dir, 'Config')
+        else:
+            # 尝试将 target_location 视为相对于 root_dir 的路径
+            # 这适用于 download-list.json 中可能定义的自定义位置
+            self.logger.info(f"目标位置 '{target_location}' 不属于标准分类，将作为根目录 '{self.root_dir}' 下的相对路径 '{target_location}' 处理。")
+            final_target_dir = os.path.join(self.root_dir, target_location)
+
+        if not final_target_dir:
+            self.logger.error(f"无法确定项目 '{item_title}' 的目标目录，target_location: {target_location}")
+            QMessageBox.critical(self, '错误', f"无法确定项目 '{item_title}' 的目标目录。")
+            return
+
+        try:
+            if not os.path.exists(final_target_dir):
+                os.makedirs(final_target_dir, exist_ok=True)
+                self.logger.info(f"创建目录: {final_target_dir}")
+            if not os.access(final_target_dir, os.W_OK):
+                raise PermissionError(f"目录 {final_target_dir} 无写入权限")
+        except PermissionError as e:
+            self.logger.error(f"目标目录权限错误: {e}")
+            QMessageBox.critical(self, '错误', str(e))
+            return
+        except Exception as e:
+            self.logger.error(f"创建目标目录失败: {e}")
+            QMessageBox.critical(self, '错误', f"创建目标目录失败: {e}")
+            return
+
+        try:
+            if is_zipped:
+                extract_destination = final_target_dir
+                self.logger.info(f"开始解压 '{downloaded_file_path}' 到 '{extract_destination}'")
+                # Patoolib 会自动处理常见的压缩格式
+                patoolib.extract_archive(str(downloaded_file_path), outdir=str(extract_destination), verbosity=-1)
+                self.logger.info(f"解压完成: '{item_title}' 已解压到 '{extract_destination}'")
+                self.status_label.setText(f'{item_title} 解压完成')
+                try:
+                    os.remove(downloaded_file_path) # 删除临时下载的压缩文件
+                    self.logger.info(f"已删除临时压缩文件: {downloaded_file_path}")
+                except Exception as e:
+                    self.logger.error(f"删除临时压缩文件 '{downloaded_file_path}' 失败: {e}")
+            else: # 非压缩文件，直接移动
+                final_file_path = os.path.join(final_target_dir, target_filename)
+                if os.path.exists(final_file_path):
+                    self.logger.warning(f"目标文件 '{final_file_path}' 已存在，将被覆盖。")
+                    # shutil.move 会覆盖文件，如果是目录则会出错，但这里是文件
+                self.logger.info(f"开始移动 '{downloaded_file_path}' 到 '{final_file_path}'")
+                shutil.move(str(downloaded_file_path), str(final_file_path))
+                self.logger.info(f"移动完成: '{item_title}' 已移动到 '{final_file_path}'")
+                self.status_label.setText(f'{item_title} 移动完成')
+            
+            QMessageBox.information(self, '成功', f'{item_title} 处理完成！')
+
+        except patoolib.util.PatoolError as e:
+            self.logger.error(f"解压文件 '{downloaded_file_path}' 失败: {e}")
+            QMessageBox.critical(self, '解压错误', f"解压 '{item_title}' 失败: {e}\n请确保已安装相应解压工具 (如 7-Zip, WinRAR) 并将其添加到系统 PATH。")
+            # 保留下载的压缩文件以便用户手动处理
+        except PermissionError as e:
+            self.logger.error(f"移动/解压文件 '{item_title}' 权限错误: {e}")
+            QMessageBox.critical(self, '权限错误', f"处理 '{item_title}' 时发生权限错误: {e}")
+        except Exception as e:
+            self.logger.error(f"移动/解压文件 '{item_title}' 失败: {e}", exc_info=True)
+            QMessageBox.critical(self, '错误', f"处理 '{item_title}' 时发生未知错误: {e}")
+
     def start_download(self):
         selected_items = self.tree.selectedItems()
         if not selected_items:
@@ -297,20 +395,20 @@ class DownloadTab(QWidget):
         actual_save_file_path = os.path.join(temp_save_path, target_filename)
 
         # 检查是否已有相同任务在下载
-        for thread, (item_name, _) in self.download_queue.items():
-            if item_name == selected_item_data['name'] and thread.isRunning():
-                QMessageBox.information(self, '提示', f'{selected_item_data["name"]} 已在下载队列中。')
+        for thread, (item_title_in_queue, _) in self.download_queue.items(): # 修改变量名以更清晰
+            if item_title_in_queue == selected_item_data['title'] and thread.isRunning():
+                QMessageBox.information(self, '提示', f'{selected_item_data["title"]} 已在下载队列中。')
                 return
 
-        self.logger.info(f'准备下载: {selected_item_data["name"]} 从 {url} 到 {actual_save_file_path}')
-        self.status_label.setText(f'正在下载 {selected_item_data["name"]}...')
+        self.logger.info(f'准备下载: {selected_item_data["title"]} 从 {url} 到 {actual_save_file_path}')
+        self.status_label.setText(f'正在下载 {selected_item_data["title"]}...')
         self.progress_bar.setValue(0)
         
         thread = DownloadThread(url, actual_save_file_path)
         thread.progress_signal.connect(self.update_progress)
         thread.finished_signal.connect(self.download_finished)
         # 存储项目名和保存路径，用于 download_finished 中查找元数据
-        self.download_queue[thread] = (selected_item_data['name'], actual_save_file_path) 
+        self.download_queue[thread] = (selected_item_data['title'], actual_save_file_path) 
         thread.start()
 
     def update_progress(self, value):
@@ -410,7 +508,7 @@ class DownloadTab(QWidget):
                 self.logger.success(f'文件解压完成: {extract_to_full_path}')
                 extracted_path = extract_to_full_path
                 # 传递 item_data 给 move_file
-                self.move_file(extracted_path, item_data, is_extracted_folder=True)
+                self.move_file(extracted_path, item_data)
                 try:
                     os.remove(downloaded_file_path) 
                     self.logger.info(f'已删除原始压缩包: {downloaded_file_path}')
@@ -420,14 +518,14 @@ class DownloadTab(QWidget):
             except patoolib.util.PatoolError as e:
                 self.logger.error(f'解压失败 ({item_data.get("name")}): {e}，将尝试直接移动原始文件。')
                 QMessageBox.warning(self, '解压失败', f'解压 {item_data.get("name")} 失败: {e}\n将尝试移动原始压缩包。')
-                self.move_file(downloaded_file_path, item_data, is_extracted_folder=False)
+                self.move_file(downloaded_file_path, item_data)
             except Exception as e:
                 self.logger.error(f'解压过程中发生未知错误 ({item_data.get("name")}): {e}')
                 QMessageBox.critical(self, '错误', f'解压 {item_data.get("name")} 时发生未知错误: {e}')
-                self.move_file(downloaded_file_path, item_data, is_extracted_folder=False) 
+                self.move_file(downloaded_file_path, item_data) # 更新调用以匹配新的 move_file 签名
         else:
             # 非压缩文件，直接移动，传递 item_data
-            self.move_file(downloaded_file_path, item_data, is_extracted_folder=False)
+            self.move_file(downloaded_file_path, item_data)
 
         # 再次检查并清理下载队列
         active_threads = False

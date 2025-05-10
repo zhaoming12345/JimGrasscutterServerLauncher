@@ -42,7 +42,7 @@
 
  - [X] dispatch.py:修复在集群界面中选中其复选框时崩溃的问题(一般)
 
- - [ ] download_tab.py:修复下载过程中提示权限不足的问题(紧急 | 此问题需要与微软合作，暂时忽略)
+ - [X] download_tab.py:修复下载过程中提示权限不足的问题
 
  - [ ] monitor_tab.py:修复打开监控面板会导致服务端日志中多出几百万行的EOF的问题(紧急 | 偶发性问题且原因不明，暂时忽略)
 
@@ -50,9 +50,9 @@
 
  - [X] monitor_tab.py:关闭实例应优先通过对服务器发送"STOP"命令来进行安全的关闭
 
- - [ ] dispatch.py:地区列表应该从配置文件中读取(一般)
+ - [X] download_tab.py&download-list.json:在json中指定文件名、目标位置、是否可自动下载等
 
- - [ ] download_tab.py&download-list.json:在json中指定文件名、目标位置、是否可自动下载等(一般)
+ - [ ] dispatch.py:地区列表应该从配置文件中读取(一般)
 
  - [ ] cluster_tab.py:应该遵循[多服务器配置教程](https://www.bilibili.com/video/BV1L5CXY4Eaj)，适当复用资源，减少空间浪费(一般)
 
