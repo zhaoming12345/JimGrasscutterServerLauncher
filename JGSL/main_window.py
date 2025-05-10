@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QApplication
+from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QApplication, QDesktopWidget
 from PyQt5.QtCore import Qt, QEvent, QProcess
 from PyQt5.QtGui import QIcon
 import qdarkstyle
@@ -17,8 +17,12 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('JimGrasscutterServerLauncher')
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(0, 0, 760, 600)
+        self.setMinimumSize(495, 495)  # 设置最小窗口尺寸
         self.setWindowIcon(QIcon('Assets/JGSL-Logo.ico'))
+
+        # 居中窗口
+        self._center_window()
 
         # 用于存储运行中的 QProcess 对象，以 PID 为键
         self.running_processes: dict[int, QProcess] = {}
@@ -81,6 +85,17 @@ class MainWindow(QMainWindow):
         if not process:
             logger.warning(f"无法找到 PID: {pid} 对应的 QProcess 对象")
         return process
+
+    def _center_window(self):
+        # 获取屏幕的尺寸
+        screen_geometry = QApplication.desktop().screenGeometry()
+        # 获取窗口的尺寸
+        window_geometry = self.geometry()
+        # 计算窗口居中时的左上角坐标
+        x = (screen_geometry.width() - window_geometry.width()) // 2
+        y = (screen_geometry.height() - window_geometry.height()) // 2
+        # 移动窗口到计算出的坐标
+        self.move(x, y)
 
     def cleanup_and_exit(self):
         self.launch_tab.cleanup()
