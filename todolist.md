@@ -20,7 +20,7 @@
 
  - [x] plugin_manager.py:插件生命周期管理
 
- - [ ] download_tab.py:自动解压压缩包(一般)
+ - [X] download_tab.py:自动解压压缩包
 
  - [ ] download_tab.py:分卷压缩包支持(计划)
 
