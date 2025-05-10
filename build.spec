@@ -61,7 +61,7 @@ coll = COLLECT(
     a.binaries,
     a.zipfiles,
     a.datas,
-    name='Dist',
+    name='dist',
     strip=False,
     upx=True
 )
