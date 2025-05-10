@@ -13,11 +13,10 @@ class DownloadThread(QThread):
     progress_signal = pyqtSignal(int)
     finished_signal = pyqtSignal(str)
     
-    def __init__(self, url, save_path, sn):
+    def __init__(self, url, save_path):
         super().__init__()
         self.url = url
         self.save_path = save_path
-        self.save_name = sn
         self.logger = logger
     
     def run(self):
@@ -32,25 +31,17 @@ class DownloadThread(QThread):
                         test_file = os.path.join(os.path.dirname(self.save_path), 'test.tmp')
                         with open(test_file, 'w') as f:
                             f.write('test')
-                        print('成功写入测试文件，测试文件将在1秒后删除')
                         os.remove(test_file)
-                        print('成功删除测试文件')
                     except Exception as e:
                         raise PermissionError(f'目录 {os.path.dirname(self.save_path)} 无写入权限: {e}')
-                    with open(os.path.join(self.save_path, self.save_name), 'wb') as f:
-                        if total_size == 0:
-                            print("服务器未返回有效文件大小")
+                    with open(self.save_path, 'wb') as f:
                         for chunk in r.iter_content(1024):
                             f.write(chunk)
                             downloaded += len(chunk)
-                            if total_size > 0:
-                                progress = int(downloaded / total_size * 100)
-                                self.progress_signal.emit(progress)
-                            else:
-                                progress = 0
+                            progress = int(downloaded / total_size * 100)
                             self.logger.trace(f'下载进度 {progress}%')
                             self.progress_signal.emit(progress)
-                        self.finished_signal.emit(self.save_path)
+                    self.finished_signal.emit(self.save_path)
                 except PermissionError as e:
                     self.logger.error(f'文件写入权限检查失败: {e}')
                     self.finished_signal.emit(f'Error: {str(e)}')
@@ -95,7 +86,6 @@ class DownloadTab(QWidget):
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         self.logger = logger
         self.current_instance = None
-        self.current_mirror = None
         self.category_paths = {
             'MongoDB 数据库社区版': os.path.join(self.root_dir, 'Database'),
             'Java运行时': os.path.join(self.root_dir, 'Java'),
@@ -130,7 +120,6 @@ class DownloadTab(QWidget):
         self.thread_count_slider = QSlider(Qt.Horizontal)
         self.thread_count_slider.setRange(1, 128)
         self.thread_count_slider.setValue(64)
-        self.thread_count_slider.valueChanged.connect(self.update_thread_count)
         self.thread_count = 64
         
         layout = QVBoxLayout()
@@ -181,20 +170,61 @@ class DownloadTab(QWidget):
     def _init_tree_data(self):
         # 从JSON配置文件加载下载列表
         config_path = os.path.join(self.root_dir, 'Config', 'download-list.json')
+        self.tree.clear() # 清除现有项目以避免重复
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                for category in data['categories']:
-                    root = QTreeWidgetItem(self.tree)
-                    root.setText(0, category['name'])
-                    for item in category['items']:
-                        child = QTreeWidgetItem(root)
-                        child.setText(0, item['name'])
-                        child.setData(0, Qt.UserRole, item['url'])
-                        child.setData(0, Qt.UserRole + 1, item['sn'])
+                categories_data = json.load(f)
+
+                # 检查顶层是否为字典，并且是否包含 'categories' 键
+                if not isinstance(categories_data, dict) or 'categories' not in categories_data:
+                    self.logger.error(f"下载列表格式错误：顶层应为包含 'categories' 键的对象。文件: {config_path}")
+                    QMessageBox.critical(self, '错误', f'下载列表配置文件 {os.path.basename(config_path)} 格式错误：顶层应为包含 \'categories\' 键的对象。')
+                    return
+
+                actual_categories_list = categories_data['categories']
+                if not isinstance(actual_categories_list, list):
+                    self.logger.error(f"下载列表格式错误：'categories' 字段应为列表。文件: {config_path}")
+                    QMessageBox.critical(self, '错误', f'下载列表配置文件 {os.path.basename(config_path)} 格式错误：\'categories\' 字段应为列表。')
+                    return
+
+                for category_data in actual_categories_list:
+                    # 检查分类数据是否为字典，并且是否包含 'name' 和 'items' 键
+                    if not isinstance(category_data, dict) or 'name' not in category_data or 'items' not in category_data:
+                        self.logger.warning(f"跳过无效的分类数据或缺少必要字段（需要 'name' 和 'items'）: {category_data}")
+                        continue
+
+                    category_name = category_data['name'] # 使用 'name' 键获取分类名称
+                    category_item = QTreeWidgetItem(self.tree)
+                    category_item.setText(0, category_name)
+                    category_item.setFlags(category_item.flags() & ~Qt.ItemIsSelectable) # 分类不可选
+
+                    items_list = category_data['items']
+                    if not isinstance(items_list, list):
+                        self.logger.warning(f"分类 '{category_name}' 中的 'items' 字段非列表类型。")
+                        continue
+
+                    for item_data in items_list:
+                        if not isinstance(item_data, dict) or 'title' not in item_data: # 确保项目是字典且有 'title'
+                            self.logger.warning(f"跳过分类 '{category_name}' 中无效的项目数据或缺少 'title': {item_data}")
+                            continue
+                        
+                        # 确保 'download_url', 'target_filename', 'target_location' 也存在，否则下载会失败
+                        if not all(key in item_data for key in ['download_url', 'target_filename', 'target_location']):
+                            self.logger.warning(f"跳过分类 '{category_name}' 中缺少必要下载信息的项目 ('download_url', 'target_filename', 'target_location'): {item_data.get('title', '无标题项目')}")
+                            continue
+
+                        child_item = QTreeWidgetItem(category_item)
+                        child_item.setText(0, item_data['title'])
+                        child_item.setData(0, Qt.UserRole, item_data) # 存储完整的项目元数据
+        except FileNotFoundError:
+            self.logger.error(f'下载列表配置文件未找到: {config_path}')
+            QMessageBox.critical(self, '错误', f'下载列表配置文件 {os.path.basename(config_path)} 未找到。')
+        except json.JSONDecodeError as e:
+            self.logger.error(f'下载列表配置文件JSON解析错误: {config_path} - {e}')
+            QMessageBox.critical(self, '错误', f'下载列表配置文件 {os.path.basename(config_path)} 格式错误。')
         except Exception as e:
-            self.logger.error(f'加载下载列表失败: {e}')
-            QMessageBox.critical(self, '错误', '下载列表配置文件损坏或不存在')
+            self.logger.error(f'加载下载列表失败: {e}', exc_info=True) # 添加 exc_info=True 获取更详细的堆栈跟踪
+            QMessageBox.critical(self, '错误', f'加载下载列表时发生未知错误: {e}')
 
     def update_thread_count(self, value):
         self.thread_count = value
@@ -204,66 +234,95 @@ class DownloadTab(QWidget):
         selected_items = self.tree.selectedItems()
         if not selected_items:
             return
-        save_path = os.path.join(self.root_dir, 'DownloadTemp')
-        try:
-            if not os.path.exists(save_path):
-                os.makedirs(save_path)
-                print(save_path)
-            if not os.access(save_path, os.W_OK):
-                raise PermissionError(f'目录 {save_path} 无写入权限')
-        except Exception as e:
-            self.logger.error(f'目录检查失败: {e}')
-            QMessageBox.critical(self, '错误', f'目录检查失败: {e}')
+        
+        selected_item_data = selected_items[0].data(0, Qt.UserRole)
+        if not selected_item_data:
+            QMessageBox.warning(self, '错误', '无法获取选中项目的下载信息。')
             return
-        for selected_item in selected_items:
-            category = selected_item.parent().text(0)
-            if category in ['服务端核心', '插件', '卡池配置文件']:
-                dialog = InstanceSelectionDialog(category, self)
-                dialog.refresh_instances()
-                if not dialog.list_widget.count() > 0:
-                    QMessageBox.warning(self, '警告', '请先创建至少一个实例')
-                    return
-                if dialog.exec_() == QDialog.Accepted:
-                    if dialog.list_widget.currentItem():
-                        instance_name = dialog.list_widget.currentItem().text()
-                        self.current_instance = instance_name
-                        save_path = os.path.join(save_path, instance_name)
-                    else:
-                        QMessageBox.warning(self, '警告', '未选择实例')
-                        return
+
+        url = selected_item_data.get('download_url') # 修改: 使用 download_url
+        target_filename = selected_item_data.get('target_filename')
+        target_location = selected_item_data.get('target_location')
+        # is_zipped 在 download_finished 中根据 item_data 获取
+        item_title = selected_item_data.get('title', '未知项目') # 修改: 使用 title, 并提供默认值
+
+        if not url or not target_filename or not target_location:
+            QMessageBox.warning(self, '错误', f'项目 "{item_title}" 的下载信息不完整 (需要 download_url, target_filename, target_location)。')
+            return
+
+        # 根据 target_location 判断是否需要选择实例
+        self.current_instance = None # 重置当前实例
+        if target_location.startswith('Servers/{instance_name}'):
+            # 使用项目标题作为对话框的提示信息
+            category_for_dialog = item_title # 修改: 使用 item_title
+            dialog = InstanceSelectionDialog(category_for_dialog, self)
+            if dialog.exec_() == QDialog.Accepted:
+                current_item = dialog.list_widget.currentItem()
+                if current_item:
+                    self.current_instance = current_item.text()
+                    self.logger.info(f'为 {item_title} 选择了实例: {self.current_instance}') # 修改: 使用 item_title
                 else:
-                    return
-            selected = selected_item.text(0)
-            save_path = os.path.join(save_path, selected)
-            # 自动创建实例目录
-            try:
-                os.makedirs(save_path, exist_ok=True)
-                self.logger.success(f'成功创建目录: {save_path}')
-            except Exception as e:
-                self.logger.error(f'目录创建失败: {e}')
-                QMessageBox.critical(self, '错误', f'目录创建失败: {e}')
+                    QMessageBox.warning(self, '提示', '未选择实例，下载取消。')
+                    return                    
+            else:
+                QMessageBox.warning(self, '提示', '未选择实例，下载取消。')
                 return
-            # 获取下载URL并应用镜像源
-            url = selected_item.data(0, Qt.UserRole)  # 确保正确获取 URL
-            if self.current_mirror and 'github.com' in url:
-                url = url.replace('https://github.com', self.current_mirror)
-            save_name = selected_item.data(0, Qt.UserRole + 1)
-            thread = DownloadThread(url, save_path, save_name)
-            thread.progress_signal.connect(self.update_progress)
-            thread.finished_signal.connect(self.download_finished)
-            thread.start()
-            self.download_queue[thread] = thread
-    
+        # 其他 target_location 类型 (如 'Java', 'Database', 'Config/...') 不需要选择实例
+
+        # 处理GitHub镜像源
+        if 'github.com' in url and hasattr(self, 'current_mirror') and self.current_mirror:
+            original_url = url
+            url = url.replace('https://github.com', self.current_mirror)
+            self.logger.info(f'使用镜像源: {self.current_mirror} 替换 https://github.com. 原URL: {original_url}, 新URL: {url}')
+
+
+        # 确定最终保存路径
+        # 文件将首先下载到 DownloadTemp 目录
+        temp_save_path = os.path.join(self.root_dir, 'DownloadTemp')
+        try:
+            if not os.path.exists(temp_save_path):
+                os.makedirs(temp_save_path)
+            if not os.access(temp_save_path, os.W_OK):
+                raise PermissionError(f'目录 {temp_save_path} 无写入权限')
+        except PermissionError as e:
+            self.logger.error(f'下载目录权限错误: {e}')
+            QMessageBox.critical(self, '错误', str(e))
+            return
+        except Exception as e:
+            self.logger.error(f'创建下载目录失败: {e}')
+            QMessageBox.critical(self, '错误', f'创建下载目录失败: {e}')
+            return
+
+        # 实际下载的文件名，使用 target_filename
+        actual_save_file_path = os.path.join(temp_save_path, target_filename)
+
+        # 检查是否已有相同任务在下载
+        for thread, (item_name, _) in self.download_queue.items():
+            if item_name == selected_item_data['name'] and thread.isRunning():
+                QMessageBox.information(self, '提示', f'{selected_item_data["name"]} 已在下载队列中。')
+                return
+
+        self.logger.info(f'准备下载: {selected_item_data["name"]} 从 {url} 到 {actual_save_file_path}')
+        self.status_label.setText(f'正在下载 {selected_item_data["name"]}...')
+        self.progress_bar.setValue(0)
+        
+        thread = DownloadThread(url, actual_save_file_path)
+        thread.progress_signal.connect(self.update_progress)
+        thread.finished_signal.connect(self.download_finished)
+        # 存储项目名和保存路径，用于 download_finished 中查找元数据
+        self.download_queue[thread] = (selected_item_data['name'], actual_save_file_path) 
+        thread.start()
+
     def update_progress(self, value):
-        total = sum(t.isRunning() for t in self.download_queue.values())
+        total = sum(t.isRunning() for t in self.download_queue.keys()) # Iterate over keys for threads
         if total > 0:
-            # 先收集所有线程的进度值再计算平均值
-            progress_values = [t.progress for t in self.download_queue.values() if hasattr(t, 'progress')]
-            progress = int(sum(progress_values) / total) if progress_values else 0
+            current_progress = self.progress_bar.value()
+            # A more robust way to average progress if multiple downloads are simultaneous
+            # This simple approach just updates with the latest signal, assuming one main download at a time for the bar
+            self.progress_bar.setValue(value)
         else:
-            progress = 0
-        self.progress_bar.setValue(progress)
-    
+            self.progress_bar.reset()
+
     def download_finished(self, msg):
         if msg.startswith('Error'):
             self.logger.error(f'下载失败: {msg}')
@@ -271,237 +330,113 @@ class DownloadTab(QWidget):
             self.status_label.setText(msg)
             self.progress_bar.reset()
             # 尝试移除下载队列中的线程
-            for thread, _ in list(self.download_queue.items()): # 使用list进行迭代，因为我们可能会修改字典
-                if not thread.isRunning():
-                    del self.download_queue[thread]
+            finished_thread = None
+            # 查找发送错误信号的线程。这部分逻辑比较复杂，因为错误信息不直接包含线程标识。
+            # 一个简单的方法是，假设DownloadThread在出错时也发送其save_path或一个特殊标记。
+            # 当前实现中，DownloadThread的finished_signal在出错时发送 'Error: ...'
+            # 我们需要找到一个非运行的线程并假设它是出错的那个，或者改进信号传递。
+            for thread, (item_name, path) in list(self.download_queue.items()): # 使用list迭代以允许修改
+                if not thread.isRunning(): # 找到第一个非运行线程
+                    # 无法直接通过msg（如 'Error:权限不足'）关联到特定path
+                    # 因此，如果发生错误，我们可能需要更智能地清理，或者接受可能清理错误的线程
+                    self.logger.warning(f'下载线程 {item_name} 可能已出错并停止。')
+                    finished_thread = thread
+                    break 
+            if finished_thread and finished_thread in self.download_queue:
+                del self.download_queue[finished_thread]
+                self.logger.info(f'从队列中移除了可能出错的下载任务: {self.download_queue.get(finished_thread, ("未知项目",))[0]}')
+            
+            # 检查是否所有下载都完成了
+            if not any(thread.isRunning() for thread in self.download_queue.keys()):
+                self.progress_bar.reset()
+                self.status_label.setText('部分下载失败，队列已空')
+                self.current_instance = None # 重置当前实例
             return
 
-        self.logger.success(f'文件下载完成: {msg}')
-        self.status_label.setText(f'文件下载完成: {msg}')
+        self.logger.success(f'文件下载完成: {msg}') # msg 现在是下载文件的完整路径
+        self.status_label.setText(f'文件下载完成: {os.path.basename(msg)}')
         self.progress_bar.reset()
 
-        # 检查是否是压缩包
-        file_path = msg
-        file_name = os.path.basename(file_path)
+        downloaded_file_path = msg
+        downloaded_file_name = os.path.basename(downloaded_file_path)
+
+        # 从下载队列中找到对应的项目元数据和线程
+        item_data = None
+        item_name_for_tree_lookup = None
+        finished_thread_key = None
+
+        for thread, (name, path) in self.download_queue.items():
+            if path == downloaded_file_path and not thread.isRunning(): # 确保是已完成的线程
+                item_name_for_tree_lookup = name
+                finished_thread_key = thread
+                break
+        
+        if item_name_for_tree_lookup:
+            # 通过 item_name_for_tree_lookup (即 selected_item_data['name']) 在树中找到对应的 QTreeWidgetItem
+            # 注意：如果树中项目名不唯一，这里可能需要更精确的匹配
+            items = self.tree.findItems(item_name_for_tree_lookup, Qt.MatchExactly | Qt.MatchRecursive, 0)
+            if items:
+                item_data = items[0].data(0, Qt.UserRole)
+            else:
+                self.logger.error(f'在树中未找到与名称 "{item_name_for_tree_lookup}" 匹配的项目以下载元数据。')
+        
+        if finished_thread_key and finished_thread_key in self.download_queue:
+            del self.download_queue[finished_thread_key]
+            self.logger.info(f'已完成并从队列移除下载任务: {item_name_for_tree_lookup}')
+
+        if not item_data:
+            self.logger.error(f'无法找到 {downloaded_file_name} (原始名称: {item_name_for_tree_lookup}) 的下载元数据。')
+            QMessageBox.critical(self, '错误', f'处理下载文件 {downloaded_file_name} 失败：未找到元数据。')
+            if os.path.exists(downloaded_file_path):
+                try:
+                    os.remove(downloaded_file_path)
+                    self.logger.info(f'已删除未找到元数据的临时文件: {downloaded_file_path}')
+                except Exception as e_rm:
+                    self.logger.error(f'删除临时文件失败: {downloaded_file_path}, 错误: {e_rm}')
+            return
+
+        is_zipped = item_data.get('is_zipped', False)
         extracted_path = None
-        is_archive = False
-        archive_extensions = (".zip", ".rar", ".7z", ".tar.gz", ".tgz", ".tar.bz2", ".tbz2") # 常见压缩包后缀
-        if any(file_name.endswith(ext) for ext in archive_extensions):
-            is_archive = True
+
+        if is_zipped:
             try:
-                # 创建解压目标路径，例如 DownloadTemp/instance_name/archive_name_extracted
-                extract_to_dir_name = f"{os.path.splitext(file_name)[0]}_extracted"
-                extract_to_full_path = os.path.join(os.path.dirname(file_path), extract_to_dir_name)
+                # 解压目标文件夹名基于 target_filename (下载时的文件名)
+                extract_to_dir_name = f"{os.path.splitext(item_data.get('target_filename'))[0]}_extracted"
+                extract_to_full_path = os.path.join(os.path.dirname(downloaded_file_path), extract_to_dir_name)
                 os.makedirs(extract_to_full_path, exist_ok=True)
-                self.logger.info(f'开始解压 {file_path} 到 {extract_to_full_path}')
-                self.status_label.setText(f'正在解压 {file_name}...') # 更新状态
-                patoolib.extract_archive(file_path, outdir=extract_to_full_path, verbosity=-1) # verbosity=-1 静默模式
+                self.logger.info(f'开始解压 {downloaded_file_path} 到 {extract_to_full_path}')
+                self.status_label.setText(f'正在解压 {item_data.get("name")}...') 
+                patoolib.extract_archive(downloaded_file_path, outdir=extract_to_full_path, verbosity=-1)
                 self.logger.success(f'文件解压完成: {extract_to_full_path}')
                 extracted_path = extract_to_full_path
-                # 移动解压后的文件，然后删除原始压缩包和临时解压目录
-                self.move_file(extracted_path, is_extracted_folder=True)
+                # 传递 item_data 给 move_file
+                self.move_file(extracted_path, item_data, is_extracted_folder=True)
                 try:
-                    os.remove(file_path) # 删除原始压缩包
-                    self.logger.info(f'已删除原始压缩包: {file_path}')
+                    os.remove(downloaded_file_path) 
+                    self.logger.info(f'已删除原始压缩包: {downloaded_file_path}')
                 except Exception as e:
-                    self.logger.error(f'删除原始压缩包失败: {file_path},错误: {e}')
+                    self.logger.error(f'删除原始压缩包失败: {downloaded_file_path},错误: {e}')
 
             except patoolib.util.PatoolError as e:
-                self.logger.error(f'解压失败: {e}，将尝试直接移动原始文件。')
-                QMessageBox.warning(self, '解压失败', f'解压 {file_name} 失败: {e}\n将尝试移动原始压缩包。')
-                self.move_file(file_path) # 解压失败，移动原始文件
+                self.logger.error(f'解压失败 ({item_data.get("name")}): {e}，将尝试直接移动原始文件。')
+                QMessageBox.warning(self, '解压失败', f'解压 {item_data.get("name")} 失败: {e}\n将尝试移动原始压缩包。')
+                self.move_file(downloaded_file_path, item_data, is_extracted_folder=False)
             except Exception as e:
-                self.logger.error(f'解压过程中发生未知错误: {e}')
-                QMessageBox.critical(self, '错误', f'解压 {file_name} 时发生未知错误: {e}')
-                self.move_file(file_path) # 其他错误，也尝试移动原始文件
+                self.logger.error(f'解压过程中发生未知错误 ({item_data.get("name")}): {e}')
+                QMessageBox.critical(self, '错误', f'解压 {item_data.get("name")} 时发生未知错误: {e}')
+                self.move_file(downloaded_file_path, item_data, is_extracted_folder=False) 
         else:
-            self.move_file(file_path)
+            # 非压缩文件，直接移动，传递 item_data
+            self.move_file(downloaded_file_path, item_data, is_extracted_folder=False)
 
-        # 尝试移除下载队列中的线程
-        for thread, _ in list(self.download_queue.items()): # 使用list进行迭代，因为我们可能会修改字典
-            if not thread.isRunning():
-                del self.download_queue[thread]
-    
-    def move_file(self, source_path, is_extracted_folder=False):
-        if not os.path.exists(source_path):
-            self.logger.error(f'源文件/目录不存在: {source_path}')
-            QMessageBox.critical(self, '错误', f'源文件/目录不存在: {source_path}')
-            return
-
-        source_path = os.path.normpath(source_path)
-        original_file_name_for_tree_lookup = os.path.basename(source_path) # 用于在树中查找的原始文件名
-        if is_extracted_folder:
-            # 如果是解压后的文件夹，我们需要找到原始压缩包的名称来确定下载项目
-            # 假设解压后的文件夹名为 'xxx_extracted', 原始文件名为 'xxx.zip'
-            if original_file_name_for_tree_lookup.endswith('_extracted'):
-                base_name = original_file_name_for_tree_lookup[:-len('_extracted')]
-                # 尝试匹配所有可能的压缩包后缀
-                possible_archive_extensions = (".zip", ".rar", ".7z", ".tar.gz", ".tgz", ".tar.bz2", ".tbz2", ".jar")
-                found_original = False
-                for ext in possible_archive_extensions:
-                    # 检查DownloadTemp目录下是否存在原始压缩包名，以确定selected_item
-                    # 这里的逻辑是，selected_item的text(0)是下载列表中的名称，它可能不带后缀，或者带特定后缀
-                    # 我们需要一种方式从解压后的文件夹名反推回下载列表中的项目名
-                    # 一个简单的方法是，假设下载列表中的名称就是不带任何已知压缩后缀的文件名
-                    # 或者，如果下载项本身就是带后缀的，那我们直接用那个名字
-                    # 当前实现中，selected_item.text(0) 就是下载列表中的名字，比如 "grasscutter.jar"
-                    # 而下载下来的文件名可能是 "grasscutter.jar"
-                    # 解压后可能是 "grasscutter_extracted"
-                    # 我们需要通过 "grasscutter_extracted" 找到树中的 "grasscutter.jar" 项
-                    # 或者，如果下载项是 "SomePlugin" (url 指向 zip), 下载后是 "SomePlugin.zip", 解压后是 "SomePlugin_extracted"
-                    # 我们需要通过 "SomePlugin_extracted" 找到树中的 "SomePlugin" 项
-
-                    # 简化逻辑：我们假设selected_item的text(0)是下载列表中的原始名称（可能不含通用压缩后缀，但可能含.jar这类特殊后缀）
-                    # 我们通过解压后的文件夹名（去除了_extracted）来匹配树节点
-                    # 这是一个启发式方法，可能不完美
-                    items_in_tree = self.tree.findItems(base_name, Qt.MatchStartsWith | Qt.MatchRecursive, 0)
-                    if items_in_tree:
-                        original_file_name_for_tree_lookup = items_in_tree[0].text(0)
-                        found_original = True
-                        break
-                if not found_original:
-                    # 如果找不到，就用去除_extracted的名称
-                    original_file_name_for_tree_lookup = base_name
-            else:
-                # 如果解压文件夹名不规范，直接使用文件夹名在树中查找，可能找不到正确的项目
-                pass 
-
-        # 查找下载项目以确定目标路径
-        selected_item = None
-        # 尝试精确匹配，如果找不到，再尝试用 original_file_name_for_tree_lookup （可能已经去除了压缩包后缀）
-        exact_match_items = self.tree.findItems(os.path.basename(source_path), Qt.MatchExactly | Qt.MatchRecursive, 0)
-        if exact_match_items:
-            selected_item = exact_match_items[0]
-        else:
-            # 尝试使用 original_file_name_for_tree_lookup (这通常是去除了_extracted后缀的名称)
-            heuristic_match_items = self.tree.findItems(original_file_name_for_tree_lookup, Qt.MatchContains | Qt.MatchRecursive, 0)
-            if heuristic_match_items:
-                selected_item = heuristic_match_items[0]
-            else:
-                 # 最后尝试，如果原始下载文件名（带后缀）能在树中找到，也用它
-                downloaded_file_name_itself = os.path.basename(source_path if not is_extracted_folder else source_path.replace('_extracted', '')) # 获取原始下载文件名
-                downloaded_file_name_items = self.tree.findItems(downloaded_file_name_itself, Qt.MatchContains | Qt.MatchRecursive, 0)
-                if downloaded_file_name_items:
-                    selected_item = downloaded_file_name_items[0]
-
-        if not selected_item:
-            self.logger.error(f'移动文件/目录失败：在下载列表中未找到与 "{original_file_name_for_tree_lookup}" 或 "{os.path.basename(source_path)}"相关的项目。')
-            QMessageBox.critical(self, '错误', f'移动文件/目录失败：未找到下载项目 "{original_file_name_for_tree_lookup}"。')
-            # 如果是解压的文件夹，尝试删除它，因为它没有目标位置
-            if is_extracted_folder and os.path.isdir(source_path):
-                try:
-                    shutil.rmtree(source_path)
-                    self.logger.info(f'已删除未找到对应项目的解压文件夹: {source_path}')
-                except Exception as e_rm:
-                    self.logger.error(f'删除解压文件夹失败: {source_path}, 错误: {e_rm}')
-            return
-
-        category_name = selected_item.parent().text(0)
-        target_base_path = self.category_paths.get(category_name)
-
-        if not target_base_path:
-            self.logger.error(f'未知的分类: {category_name}')
-            QMessageBox.critical(self, '错误', f'未知的分类: {category_name}')
-            return
-
-        # 特殊处理服务端核心、插件和卡池配置文件，它们需要放到特定实例的目录下
-        if category_name in ['服务端核心', '插件', '卡池配置文件']:
-            if not self.current_instance:
-                self.logger.error('在移动服务端核心、插件或卡池配置文件时，当前实例未设置。')
-                QMessageBox.critical(self, '错误', '内部错误：当前实例未设置，无法移动文件。')
-                return
-            target_base_path = os.path.join(target_base_path, self.current_instance)
-            subdir = self.category_subdirs.get(category_name)
-            if subdir:
-                target_base_path = os.path.join(target_base_path, subdir)
-        
-        # 确保目标基础路径存在
-        try:
-            os.makedirs(target_base_path, exist_ok=True)
-        except Exception as e:
-            self.logger.error(f'创建目标目录失败: {target_base_path}, 错误: {e}')
-            QMessageBox.critical(self, '错误', f'创建目标目录失败: {target_base_path}, {e}')
-            return
-
-        final_dest_path = os.path.join(target_base_path, os.path.basename(source_path if not is_extracted_folder else original_file_name_for_tree_lookup))
-        # 如果是解压的文件夹，目标路径应该是其内容要合并到的目录，而不是创建一个同名文件夹
-        # 例如，如果解压后是 a_extracted/file.txt, 目标是 Servers/Instance/plugins/
-        # 那么 file.txt 应该移动到 Servers/Instance/plugins/file.txt
-        # 而不是 Servers/Instance/plugins/a_extracted/file.txt
-        # 因此，如果is_extracted_folder为True，final_dest_path应该是target_base_path
-
-        try:
-            if is_extracted_folder and os.path.isdir(source_path):
-                self.logger.info(f'开始移动解压后的文件夹内容从 {source_path} 到 {target_base_path}')
-                # 移动文件夹中的所有内容
-                for item_name in os.listdir(source_path):
-                    s_item = os.path.join(source_path, item_name)
-                    d_item = os.path.join(target_base_path, item_name)
-                    if os.path.isdir(s_item):
-                        # 如果目标已存在同名文件夹，先删除，或者合并（这里选择替换）
-                        if os.path.exists(d_item) and os.path.isdir(d_item):
-                            shutil.rmtree(d_item)
-                        shutil.move(s_item, d_item)
-                    else:
-                        if os.path.exists(d_item):
-                            os.remove(d_item)
-                        shutil.move(s_item, d_item)
-                self.logger.success(f'解压内容成功移动到: {target_base_path}')
-                self.status_label.setText(f'解压内容已移至: {target_base_path}')
-                # 删除空的源解压文件夹
-                try:
-                    shutil.rmtree(source_path)
-                    self.logger.info(f'已删除空的源解压文件夹: {source_path}')
-                except Exception as e_rm_empty:
-                    self.logger.warning(f'删除源解压文件夹失败 (可能不为空或权限问题): {source_path}, {e_rm_empty}')
-            
-            elif not is_extracted_folder and os.path.isfile(source_path):
-                # 移动单个文件
-                # 目标文件名应该与下载列表中的名称一致，或者就是下载的文件名
-                # selected_item.text(0) 是下载列表中的名字
-                # os.path.basename(source_path) 是实际下载的文件名
-                # 通常情况下，如果下载列表是 grasscutter.jar, 下载的就是 grasscutter.jar
-                # 如果下载列表是 GC (url是 .../grasscutter.jar), 下载的还是 grasscutter.jar
-                # 我们希望最终的文件名是 selected_item.text(0)
-                final_file_dest = os.path.join(target_base_path, selected_item.text(0))
-                if os.path.exists(final_file_dest):
-                    os.remove(final_file_dest) # 如果目标文件已存在，则替换
-                shutil.move(source_path, final_file_dest)
-                self.logger.success(f'文件成功移动到: {final_file_dest}')
-                self.status_label.setText(f'文件已移至: {final_file_dest}')
-            else:
-                self.logger.warning(f'源路径 {source_path} 不是预期的文件或文件夹类型，或者处理逻辑未覆盖。')
-                # QMessageBox.warning(self, '警告', f'无法处理移动请求：{source_path} 类型未知或不适用当前操作。')
-                # 尝试按原样移动，如果它是文件夹但is_extracted_folder为false
-                if os.path.isdir(source_path) and not is_extracted_folder:
-                    if os.path.exists(final_dest_path):
-                        shutil.rmtree(final_dest_path) # 替换目标文件夹
-                    shutil.move(source_path, final_dest_path)
-                    self.logger.success(f'文件夹成功移动到: {final_dest_path}')
-                    self.status_label.setText(f'文件夹已移至: {final_dest_path}')
-                else:
-                    QMessageBox.warning(self, '警告', f'无法处理移动请求：{source_path} 类型未知或不适用当前操作。')
-                    return
-
-            QMessageBox.information(self, '成功', f'{os.path.basename(source_path if not is_extracted_folder else original_file_name_for_tree_lookup)} 已成功处理并移动。')
-
-        except Exception as e:
-            self.logger.error(f'移动文件/目录失败 从 {source_path} 到 {target_base_path if is_extracted_folder else final_dest_path}: {e}')
-            QMessageBox.critical(self, '错误', f'移动文件/目录失败: {e}')
-            # 如果移动失败，尝试清理已解压的文件夹（如果适用）
-            if is_extracted_folder and os.path.isdir(source_path):
-                self.logger.info(f"移动失败，保留解压文件夹供手动处理: {source_path}")
-                # shutil.rmtree(source_path) # 移动失败，可以选择删除解压的文件夹
-                # self.logger.info(f'移动失败，已删除解压文件夹: {source_path}')
-
-        # 清理下载队列中完成的线程
+        # 再次检查并清理下载队列
         active_threads = False
-        for thread, _ in list(self.download_queue.items()):
+        for thread in list(self.download_queue.keys()): # 使用list迭代以允许修改
             if not thread.isRunning():
                 del self.download_queue[thread]
             else:
                 active_threads = True
         if not active_threads:
             self.progress_bar.reset()
-            self.status_label.setText('所有下载已完成')
-            self.current_instance = None # 重置当前实例
+            self.status_label.setText('所有下载已完成或队列已空')
+            self.current_instance = None # 所有操作完成后重置当前实例
