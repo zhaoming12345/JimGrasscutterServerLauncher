@@ -13,10 +13,11 @@ class DownloadThread(QThread):
     progress_signal = pyqtSignal(int)
     finished_signal = pyqtSignal(str)
     
-    def __init__(self, url, save_path):
+    def __init__(self, url, save_path, sn):
         super().__init__()
         self.url = url
         self.save_path = save_path
+        self.save_name = sn
         self.logger = logger
     
     def run(self):
@@ -31,17 +32,25 @@ class DownloadThread(QThread):
                         test_file = os.path.join(os.path.dirname(self.save_path), 'test.tmp')
                         with open(test_file, 'w') as f:
                             f.write('test')
+                        print('成功写入测试文件，测试文件将在1秒后删除')
                         os.remove(test_file)
+                        print('成功删除测试文件')
                     except Exception as e:
                         raise PermissionError(f'目录 {os.path.dirname(self.save_path)} 无写入权限: {e}')
-                    with open(self.save_path, 'wb') as f:
+                    with open(os.path.join(self.save_path, self.save_name), 'wb') as f:
+                        if total_size == 0:
+                            print("服务器未返回有效文件大小")
                         for chunk in r.iter_content(1024):
                             f.write(chunk)
                             downloaded += len(chunk)
-                            progress = int(downloaded / total_size * 100)
+                            if total_size > 0:
+                                progress = int(downloaded / total_size * 100)
+                                self.progress_signal.emit(progress)
+                            else:
+                                progress = 0
                             self.logger.trace(f'下载进度 {progress}%')
                             self.progress_signal.emit(progress)
-                    self.finished_signal.emit(self.save_path)
+                        self.finished_signal.emit(self.save_path)
                 except PermissionError as e:
                     self.logger.error(f'文件写入权限检查失败: {e}')
                     self.finished_signal.emit(f'Error: {str(e)}')
@@ -86,6 +95,7 @@ class DownloadTab(QWidget):
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         self.logger = logger
         self.current_instance = None
+        self.current_mirror = None
         self.category_paths = {
             'MongoDB 数据库社区版': os.path.join(self.root_dir, 'Database'),
             'Java运行时': os.path.join(self.root_dir, 'Java'),
@@ -180,7 +190,8 @@ class DownloadTab(QWidget):
                     for item in category['items']:
                         child = QTreeWidgetItem(root)
                         child.setText(0, item['name'])
-                        child.setData(0, 1, item['url'])
+                        child.setData(0, Qt.UserRole, item['url'])
+                        child.setData(0, Qt.UserRole + 1, item['sn'])
         except Exception as e:
             self.logger.error(f'加载下载列表失败: {e}')
             QMessageBox.critical(self, '错误', '下载列表配置文件损坏或不存在')
@@ -197,6 +208,7 @@ class DownloadTab(QWidget):
         try:
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
+                print(save_path)
             if not os.access(save_path, os.W_OK):
                 raise PermissionError(f'目录 {save_path} 无写入权限')
         except Exception as e:
@@ -232,10 +244,11 @@ class DownloadTab(QWidget):
                 QMessageBox.critical(self, '错误', f'目录创建失败: {e}')
                 return
             # 获取下载URL并应用镜像源
-            url = selected_item.data(0, 1)
-            if self.current_mirror:
+            url = selected_item.data(0, Qt.UserRole)  # 确保正确获取 URL
+            if self.current_mirror and 'github.com' in url:
                 url = url.replace('https://github.com', self.current_mirror)
-            thread = DownloadThread(url, save_path)
+            save_name = selected_item.data(0, Qt.UserRole + 1)
+            thread = DownloadThread(url, save_path, save_name)
             thread.progress_signal.connect(self.update_progress)
             thread.finished_signal.connect(self.download_finished)
             thread.start()
@@ -244,7 +257,9 @@ class DownloadTab(QWidget):
     def update_progress(self, value):
         total = sum(t.isRunning() for t in self.download_queue.values())
         if total > 0:
-            progress = int(sum(t.progress_signal.emit(0) for t in self.download_queue.values()) / total)
+            # 先收集所有线程的进度值再计算平均值
+            progress_values = [t.progress for t in self.download_queue.values() if hasattr(t, 'progress')]
+            progress = int(sum(progress_values) / total) if progress_values else 0
         else:
             progress = 0
         self.progress_bar.setValue(progress)
