@@ -10,23 +10,33 @@ from settings_tab import SettingsTab
 from cluster_tab import ClusterTab
 from database_tab import DatabaseTab
 from about_tab import AboutTab
+from background_effect import BackgroundEffect
 from loguru import logger
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.old_pos = None  # 用于窗口拖动
         self.setWindowTitle('JimGrasscutterServerLauncher')
         self.setGeometry(0, 0, 760, 600)
         self.setMinimumSize(495, 495)  # 设置最小窗口尺寸
         self.setWindowIcon(QIcon('Assets/JGSL-Logo.ico'))
-
+        
+        # 设置窗口属性以支持透明和模糊效果
+        self.setWindowFlags(Qt.FramelessWindowHint)  # 无边框窗口
+        self.setAttribute(Qt.WA_TranslucentBackground, True)  # 启用透明背景
+        
         # 居中窗口
         self._center_window()
 
         # 用于存储运行中的 QProcess 对象，以 PID 为键
         self.running_processes: dict[int, QProcess] = {}
 
+        # 创建自定义标题栏
+        from custom_title_bar import CustomTitleBar
+        self.title_bar = CustomTitleBar(self)
+        
         # 创建选项卡
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.North)
@@ -57,11 +67,27 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.settings_tab, '设置')
         self.tabs.addTab(self.about_tab, '关于')
 
-        # 设置主布局
-        self.setCentralWidget(self.tabs)
+        # 创建主布局
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+        
+        # 添加自定义标题栏和选项卡到主布局
+        main_layout.addWidget(self.title_bar)
+        main_layout.addWidget(self.tabs)
+        
+        # 创建中央部件并设置布局
+        central_widget = QWidget()
+        central_widget.setLayout(main_layout)
+        self.setCentralWidget(central_widget)
 
-        # 应用样式
-        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        # 应用高斯模糊透明样式
+        from blur_style import apply_blur_style
+        apply_blur_style(self)
+        
+        # 应用背景模糊效果
+        self.background_effect = BackgroundEffect(self)
+        logger.info("已应用背景模糊效果和透明样式")
 
     # 新增:注册 QProcess 对象
     def register_process(self, pid: int, process: QProcess):
@@ -111,3 +137,11 @@ class MainWindow(QMainWindow):
             current_tab.scan_running_instances()
         elif isinstance(current_tab, ManageTab):
             current_tab.refresh_server_list()
+            
+    def paintEvent(self, event):
+        """
+        绘制窗口背景，支持高斯模糊透明效果
+        """
+        # 此方法为空是有意的，因为背景绘制由BackgroundEffect和样式表处理
+        # 但必须存在此方法以确保Qt正确处理背景绘制
+        super().paintEvent(event)

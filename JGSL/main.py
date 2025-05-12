@@ -4,6 +4,7 @@ import json
 from loguru import logger
 from PyQt5.QtWidgets import QApplication, QPushButton, QMessageBox # 添加 QMessageBox 
 from PyQt5.QtGui import QFontDatabase, QFont
+from PyQt5.QtCore import Qt
 from main_window import MainWindow
 import signal
 # 导入更新检查器和设置版本号的函数
@@ -33,10 +34,18 @@ def main():
             
     font_path = r"./Assets/HanYiWenHei-85W-Heavy.ttf"
     app = QApplication(sys.argv)
+    
+    # 设置应用程序属性以支持高斯模糊透明效果
+    app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)  # 使用高DPI图像
+    app.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # 启用高DPI缩放
+    
+    # 加载字体
     font_family = load_font_async(font_path)
     font = QFont(font_family)
     font.setPointSize(10)
     app.setFont(font)
+    
+    # 创建并显示主窗口
     window = MainWindow()
     window.show()
 
