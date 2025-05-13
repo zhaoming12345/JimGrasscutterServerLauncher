@@ -64,6 +64,7 @@ class BackgroundEffect:
             self.blur_effect_fallback = QGraphicsBlurEffect()
             self.blur_effect_fallback.setBlurRadius(blur_radius)
             self.widget.setGraphicsEffect(self.blur_effect_fallback)
+            self.widget.setStyleSheet("background-color: rgba(255, 255, 255, 0);")  # 添加半透明背景色
             logger.info(f"已为部件 {widget.objectName() if widget.objectName() else type(widget).__name__} 应用了 QGraphicsBlurEffect (模糊半径: {blur_radius}) 作为备选方案。")
         
     def _try_apply_native_blur(self) -> bool:

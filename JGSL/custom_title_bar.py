@@ -24,7 +24,7 @@ class CustomTitleBar(QWidget):
         初始化UI界面
         """
         self.setFixedHeight(30)  # 设置标题栏高度
-        self.setStyleSheet("background-color: rgba(240, 240, 240, 180);")  # 设置半透明背景颜色
+        self.setStyleSheet("background-color: rgba(255, 255, 255, 0);")  # 设置半透明背景颜色
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(5, 0, 5, 0) # 左，上，右，下

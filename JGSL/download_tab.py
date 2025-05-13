@@ -87,6 +87,7 @@ class DownloadTab(QWidget):
     def __init__(self):
         super().__init__()
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        self.setStyleSheet("background-color: rgba(255, 255, 255, 0);")  # 设置背景透明
         self.logger = logger
         self.current_instance = None
         self.category_paths = {

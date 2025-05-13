@@ -17,6 +17,7 @@ from loguru import logger
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.setStyleSheet("background-color: rgba(255, 255, 255, 0);")  # 设置背景透明
         self.old_pos = None  # 用于窗口拖动
         self.setWindowTitle('JimGrasscutterServerLauncher')
         self.setGeometry(0, 0, 760, 600)

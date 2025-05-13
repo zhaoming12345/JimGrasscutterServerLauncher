@@ -411,6 +411,7 @@ class ClusterTab(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('集群管理')
+        self.setStyleSheet("background-color: rgba(255, 255, 255, 0);")  # 设置背景透明
         
         # 获取根目录路径
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
