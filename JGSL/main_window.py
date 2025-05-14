@@ -171,15 +171,3 @@ class MainWindow(QMainWindow):
         捕获鼠标移动事件，防止事件穿透
         """
         event.accept()  # 显式接受事件，防止传递到下层窗口
-        
-    def eventFilter(self, obj, event):
-        """
-        事件过滤器，用于捕获所有鼠标事件
-        """
-        if obj is self and event.type() in [QEvent.MouseButtonPress, QEvent.MouseButtonRelease, QEvent.MouseMove, QEvent.MouseButtonDblClick]:
-            # 捕获所有鼠标事件并阻止它们传递到下层窗口
-            # 但不处理事件，让它继续传递给窗口的其他部分（如标题栏的拖动功能）
-            event.accept()
-            return False  # 返回False表示事件未被完全处理，允许Qt继续处理
-        # 对于其他事件，交由默认处理
-        return super().eventFilter(obj, event)
