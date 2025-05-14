@@ -1,6 +1,6 @@
-# Jim Grasscutter Server Launcher
-
 # Jim割草机服务器启动器
+
+[English](README-en_US.md)
 
 ![JGSL Logo](Assets/JGSL-Logo.ico)
 
@@ -60,7 +60,7 @@ pip install -r requirements.txt
 
 - QQ群:985349267
   
-- [狐狐技术社区 | H.H.T.C.](https://t.me/Jimmy32767255_Community_recover)
+- [H.H.T.C.](https://t.me/Jimmy32767255_Community_recover)
 
 ## 已知问题
 
