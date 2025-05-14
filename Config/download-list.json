@@ -75,6 +75,70 @@
             "manual_download_only": false
         },
         {
+          "title": "实体数据查看器",
+          "target_filename": "RevealSurroundings.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/snoobi-seggs/RevealSurroundingsPllllugin/releases/download/snoo/RevealSurroundingsPllugin.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "更好的圣遗物获取-V1.3",
+          "target_filename": "GiveArtifact.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/snoobi-seggs/GiveArtifactPlugin/releases/download/snoo1.3/GiveArtifactPlugMyAss.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "魔物波挑战-V1.3.3",
+          "target_filename": "MobWave.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/NotThorny/MobWave/releases/download/1.3.3/MobWave.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "强制装备武器-V1.0.1",
+          "target_filename": "GcEquip-1.0.1.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/ffauzan/gc-equip/releases/download/v1.0.1/GcEquip-1.0.1.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "定时公告-V1.0.3",
+          "target_filename": "MeaNotice.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/Coooookies/Grasscutter-MeaNotice/releases/download/v1.0.3/MeaNotice-1.0-SNAPSHOT.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "更好的邮件系统-V1.0.3",
+          "target_filename": "MeaMailPlus.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/Coooookies/Grasscutter-MeaMailPlus/releases/download/v1.0.3/MeaMailPlus-1.0-SNAPSHOT.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "身份验证-V2.5.0",
+          "target_filename": "gcauth.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/exzork/GCAuth/releases/download/v2.5.0/gcauth-2.5.0.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "OAuth(依赖“身份验证”插件)-V1.2.0",
+          "target_filename": "gcauth_oauth.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/Xtao-Labs/GCAuth-OAuth/releases/download/v1.2.0/gcauth_oauth-1.2.0.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
             "title": "快捷设置角色等级-V1.3",
             "target_filename": "setLevel.jar",
             "target_location": "Servers/{instance_name}/plugins",
