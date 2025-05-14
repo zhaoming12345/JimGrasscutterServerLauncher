@@ -12,27 +12,27 @@ from loguru import logger
 BLUR_STYLE = """
 /* 主窗口样式 */
 QMainWindow {
-    background-color: rgba(255, 255, 255, 0); /* 半透明深色背景 */
+    background-color: rgba(255, 255, 255, 0.01); /* 半透明深色背景 */
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0);
+    border: 1px solid rgba(255, 255, 255, 0.01);
 }
 
 /* 列表控件样式 */
 QListWidget, QTreeWidget {
-    background-color: rgba(255, 255, 255, 0);
-    border: 1px solid rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.01);
     border-radius: 4px;
 }
 
 /* 标签页样式 */
 QTabWidget::pane {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
     border: none;
     border-radius: 4px;
 }
 
 QTabBar::tab {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
     color: #cccccc;
     padding: 8px 16px;
     margin: 2px;
@@ -41,17 +41,17 @@ QTabBar::tab {
 }
 
 QTabBar::tab:selected {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
     color: white;
 }
 
 QTabBar::tab:hover:!selected {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
 }
 
 /* 按钮样式 */
 QPushButton {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
     color: white;
     border: none;
     border-radius: 4px;
@@ -59,45 +59,45 @@ QPushButton {
 }
 
 QPushButton:hover {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
 }
 
 QPushButton:pressed {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
 }
 
 /* 输入框样式 */
 QLineEdit, QTextEdit, QPlainTextEdit {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0);
+    border: 1px solid rgba(255, 255, 255, 0.01);
     border-radius: 4px;
     padding: 4px;
 }
 
 /* 下拉框样式 */
 QComboBox {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0);
+    border: 1px solid rgba(255, 255, 255, 0.01);
     border-radius: 4px;
     padding: 4px;
 }
 
 /* 滚动条样式 */
 QScrollBar:vertical {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
     width: 12px;
     border-radius: 6px;
 }
 
 QScrollBar::handle:vertical {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
     border-radius: 6px;
 }
 
 QScrollBar::handle:vertical:hover {
-    background-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0.01);
 }
 """
 

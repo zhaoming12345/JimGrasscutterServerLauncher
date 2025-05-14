@@ -24,7 +24,7 @@ class CustomTitleBar(QWidget):
         初始化UI界面
         """
         self.setFixedHeight(30)  # 设置标题栏高度
-        self.setStyleSheet("background-color: rgba(255, 255, 255, 0);")  # 设置半透明背景颜色
+        self.setStyleSheet("background-color: rgba(255, 255, 255, 0.01);")  # 设置半透明背景颜色
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(5, 0, 5, 0) # 左，上，右，下
@@ -131,7 +131,9 @@ class CustomTitleBar(QWidget):
         """
         鼠标按下事件，用于实现窗口拖动
         """
-        if event.button() == Qt.LeftButton and self.parent_window:
+        # 只在标题栏区域响应拖动
+        title_bar_rect = self.rect()
+        if event.button() == Qt.LeftButton and self.parent_window and title_bar_rect.contains(event.pos()):
             self.parent_window.old_pos = event.globalPos()
 
     def mouseMoveEvent(self, event):

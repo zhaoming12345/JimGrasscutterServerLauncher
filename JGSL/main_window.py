@@ -17,7 +17,7 @@ from loguru import logger
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setStyleSheet("background-color: rgba(255, 255, 255, 0);")  # 设置背景透明
+        self.setStyleSheet("background-color: rgba(255, 255, 255, 0.01);")  # 设置背景透明
         self.old_pos = None  # 用于窗口拖动
         self.setWindowTitle('JimGrasscutterServerLauncher')
         self.setGeometry(0, 0, 760, 600)
@@ -27,6 +27,8 @@ class MainWindow(QMainWindow):
         # 设置窗口属性以支持透明和模糊效果
         self.setWindowFlags(Qt.FramelessWindowHint)  # 无边框窗口
         self.setAttribute(Qt.WA_TranslucentBackground, True)  # 启用透明背景
+        # 防止鼠标事件穿透
+        self.setAttribute(Qt.WA_NoMousePropagation, True)
         
         # 居中窗口
         self._center_window()
@@ -79,6 +81,8 @@ class MainWindow(QMainWindow):
         
         # 创建中央部件并设置布局
         central_widget = QWidget()
+        # 设置背景面板样式，确保鼠标事件不会穿透
+        central_widget.setStyleSheet("background-color: rgba(255, 255, 255, 0.01); opacity: 0;")  # 完全透明但可捕获鼠标事件
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
@@ -89,6 +93,9 @@ class MainWindow(QMainWindow):
         # 应用背景模糊效果
         self.background_effect = BackgroundEffect(self)
         logger.info("已应用背景模糊效果和透明样式")
+        
+        # 安装事件过滤器，捕获所有鼠标事件
+        self.installEventFilter(self)
 
     # 新增:注册 QProcess 对象
     def register_process(self, pid: int, process: QProcess):
@@ -146,3 +153,33 @@ class MainWindow(QMainWindow):
         # 此方法为空是有意的，因为背景绘制由BackgroundEffect和样式表处理
         # 但必须存在此方法以确保Qt正确处理背景绘制
         super().paintEvent(event)
+        
+    def mousePressEvent(self, event):
+        """
+        捕获鼠标按下事件，防止事件穿透
+        """
+        event.accept()  # 显式接受事件，防止传递到下层窗口
+        
+    def mouseReleaseEvent(self, event):
+        """
+        捕获鼠标释放事件，防止事件穿透
+        """
+        event.accept()  # 显式接受事件，防止传递到下层窗口
+        
+    def mouseMoveEvent(self, event):
+        """
+        捕获鼠标移动事件，防止事件穿透
+        """
+        event.accept()  # 显式接受事件，防止传递到下层窗口
+        
+    def eventFilter(self, obj, event):
+        """
+        事件过滤器，用于捕获所有鼠标事件
+        """
+        if obj is self and event.type() in [QEvent.MouseButtonPress, QEvent.MouseButtonRelease, QEvent.MouseMove, QEvent.MouseButtonDblClick]:
+            # 捕获所有鼠标事件并阻止它们传递到下层窗口
+            # 但不处理事件，让它继续传递给窗口的其他部分（如标题栏的拖动功能）
+            event.accept()
+            return False  # 返回False表示事件未被完全处理，允许Qt继续处理
+        # 对于其他事件，交由默认处理
+        return super().eventFilter(obj, event)
