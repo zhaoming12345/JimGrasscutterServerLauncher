@@ -9,7 +9,7 @@ REPO_NAME = "JimGrasscutterServerLauncher"
 GITHUB_API_URL_LATEST_RELEASE = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/latest"
 
 # 当前版本号
-VERSION = "V0.2.0R"
+VERSION = "V0.2.0R-FESE"
 
 class UpdateCheckThread(QThread):
     # 定义一个信号，用来发送检查结果 (是否可用更新, 最新版本号)

@@ -27,6 +27,8 @@ class MainWindow(QMainWindow):
         # 设置窗口属性以支持透明和模糊效果
         self.setWindowFlags(Qt.FramelessWindowHint)  # 无边框窗口
         self.setAttribute(Qt.WA_TranslucentBackground, True)  # 启用透明背景
+        # 防止鼠标事件穿透
+        self.setAttribute(Qt.WA_NoMousePropagation, True)
         
         # 居中窗口
         self._center_window()
@@ -89,6 +91,9 @@ class MainWindow(QMainWindow):
         # 应用背景模糊效果
         self.background_effect = BackgroundEffect(self)
         logger.info("已应用背景模糊效果和透明样式")
+        
+        # 安装事件过滤器，捕获所有鼠标事件
+        self.installEventFilter(self)
 
     # 新增:注册 QProcess 对象
     def register_process(self, pid: int, process: QProcess):
@@ -146,3 +151,21 @@ class MainWindow(QMainWindow):
         # 此方法为空是有意的，因为背景绘制由BackgroundEffect和样式表处理
         # 但必须存在此方法以确保Qt正确处理背景绘制
         super().paintEvent(event)
+        
+    def mousePressEvent(self, event):
+        """
+        捕获鼠标按下事件，防止事件穿透
+        """
+        event.accept()  # 显式接受事件，防止传递到下层窗口
+        
+    def mouseReleaseEvent(self, event):
+        """
+        捕获鼠标释放事件，防止事件穿透
+        """
+        event.accept()  # 显式接受事件，防止传递到下层窗口
+        
+    def mouseMoveEvent(self, event):
+        """
+        捕获鼠标移动事件，防止事件穿透
+        """
+        event.accept()  # 显式接受事件，防止传递到下层窗口

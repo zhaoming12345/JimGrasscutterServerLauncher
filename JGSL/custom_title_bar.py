@@ -131,7 +131,9 @@ class CustomTitleBar(QWidget):
         """
         鼠标按下事件，用于实现窗口拖动
         """
-        if event.button() == Qt.LeftButton and self.parent_window:
+        # 只在标题栏区域响应拖动
+        title_bar_rect = self.rect()
+        if event.button() == Qt.LeftButton and self.parent_window and title_bar_rect.contains(event.pos()):
             self.parent_window.old_pos = event.globalPos()
 
     def mouseMoveEvent(self, event):

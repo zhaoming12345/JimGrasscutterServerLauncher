@@ -4,7 +4,7 @@
       "name": "MongoDB数据库社区版",
       "items": [
         {
-          "title": "Windows-X86_64-8.0.9-Current",
+          "title": "Windows-X86-64位-V8.0.9-Current",
           "target_filename": "mongodb-Windows-X86_64-8.0.9.zip",
           "target_location": "Database",
           "download_url": "https://fastdl.mongodb.org/Windows/mongodb-Windows-X86_64-8.0.9.zip",
@@ -12,7 +12,7 @@
           "manual_download_only": false
         },
         {
-          "title": "Windows-X86_64-7.0.20",
+          "title": "Windows-X86-64位-V7.0.20",
           "target_filename": "mongodb-Windows-X86_64-7.0.20.zip",
           "target_location": "Database",
           "download_url": "https://fastdl.mongodb.org/Windows/mongodb-Windows-X86_64-7.0.20.zip",
@@ -20,7 +20,7 @@
           "manual_download_only": false
         },
         {
-          "title": "Windows-X86_64-6.0.23",
+          "title": "Windows-X86-64位-V6.0.23",
           "target_filename": "mongodb-Windows-X86_64-6.0.23.zip",
           "target_location": "Database",
           "download_url": "https://fastdl.mongodb.org/Windows/mongodb-Windows-X86_64-6.0.23.zip",
@@ -33,7 +33,7 @@
       "name": "Java运行时",
       "items": [
         {
-          "title": "JDK17.0.12-Windows-X86_64",
+          "title": "JDK17.0.12-Windows-X86-64位",
           "target_filename": "jdk-17.0.12_Windows-X64_bin.zip",
           "target_location": "Java",
           "download_url": "https://download.oracle.com/java/17/archive/jdk-17.0.12_Windows-X64_bin.zip",
@@ -59,23 +59,23 @@
       "name": "插件",
       "items": [
         {
-          "title": "Opencommand-命令远程执行-V1.7.0",
-          "target_filename": "opencommand-1.7.0.jar",
+          "title": "命令远程执行-V1.7.0",
+          "target_filename": "opencommand.jar",
           "target_location": "Servers/{instance_name}/plugins",
           "download_url": "https://github.com/jie65535/gc-opencommand-plugin/releases/download/v1.7.0/opencommand-1.7.0.jar",
           "is_zipped": false,
           "manual_download_only": false
         },
         {
-            "title": "Openchat-全服聊天-V0.3.0",
-            "target_filename": "openchat-0.3.0.jar",
+            "title": "全服聊天-V0.3.0",
+            "target_filename": "openchat.jar",
             "target_location": "Servers/{instance_name}/plugins",
             "download_url": "https://github.com/jie65535/gc-openchat-plugin/releases/download/v0.3.0/openchat-0.3.0.jar",
             "is_zipped": false,
             "manual_download_only": false
         },
         {
-            "title": "SetLevel-快捷设置角色等级-V1.3",
+            "title": "快捷设置角色等级-V1.3",
             "target_filename": "setLevel.jar",
             "target_location": "Servers/{instance_name}/plugins",
             "download_url": "https://github.com/NotThorny/setLevel/releases/download/1.3/setLevel.jar",
@@ -83,7 +83,7 @@
             "manual_download_only": false
         },
         {
-          "title": "AttackModifier-攻击生成实体-V2.1",
+          "title": "攻击生成实体-V2.1",
           "target_filename": "AttackModifier.jar",
           "target_location": "Servers/{instance_name}/plugins",
           "download_url": "https://github.com/NotThorny/AttackModifier/releases/download/2.1/AttackModifier.jar",
@@ -91,7 +91,63 @@
           "manual_download_only": false
         },
         {
-          "title": "ToggleConstellation-切换命座-V4",
+          "title": "更好的场景传送-V1.0",
+          "target_filename": "SceneTeleporter.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/ElectroGemGem/SceneTeleporter/releases/download/v1.0.0/SceneTeleporter.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "构建切换器-V2.0",
+          "target_filename": "BuildSwitcher.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/NotThorny/BuildSwitcher/releases/download/2.0/BuildSwitcher.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "宝箱生成器-V1",
+          "target_filename": "BuildSwitcher.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/NotThorny/BuildSwitcher/releases/download/2.0/BuildSwitcher.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "DPS检测器-V1.0.1",
+          "target_filename": "DPS-meter.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/DarlingYoko/DPS-meter/releases/download/v1.0.1/DPS-meter.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "切换旅行者元素-V7",
+          "target_filename": "Switchelement.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/Penelopeep/SwitchElementTraveller/releases/download/v7/Switchelement.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "游戏内GM手册-V1.1.0",
+          "target_filename": "IdLook.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/ffauzan/id-look/releases/download/v1.1.0/IdLook-1.1.0.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "掉落物清除器-V1.0.3",
+          "target_filename": "DroppedItemsKiller.jar",
+          "target_location": "Servers/{instance_name}/plugins",
+          "download_url": "https://github.com/hamusuke0323/DroppedItemsKiller/releases/download/1.0.3/DroppedItemsKiller-1.0.3.jar",
+          "is_zipped": false,
+          "manual_download_only": false
+        },
+        {
+          "title": "切换命座-V4",
           "target_filename": "ToggleConstellation.jar",
           "target_location": "Servers/{instance_name}/plugins",
           "download_url": "https://github.com/Penelopeep/ToggleConstellation/releases/download/v4/ToggleConstellation.jar",
