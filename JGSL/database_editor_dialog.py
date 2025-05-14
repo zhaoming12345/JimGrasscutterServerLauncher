@@ -3,6 +3,34 @@ from PyQt5.QtCore import Qt
 from loguru import logger
 import pymongo
 
+# 辅助函数：应用样式到消息框
+def apply_message_box_style(msg_box):
+    """为消息框应用统一的样式，确保在黑色主题下可见"""
+    msg_box.setStyleSheet("""
+        QMessageBox {
+            background-color: #2D2D30;
+            color: #FFFFFF;
+        }
+        QLabel {
+            color: #FFFFFF;
+        }
+        QPushButton {
+            background-color: #0E639C;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            min-width: 80px;
+        }
+        QPushButton:hover {
+            background-color: #1177BB;
+        }
+        QPushButton:pressed {
+            background-color: #0D5789;
+        }
+    """)
+    return msg_box
+
 class DatabaseEditorDialog(QDialog):
     def __init__(self, client, parent=None):
         super().__init__(parent)
@@ -10,6 +38,57 @@ class DatabaseEditorDialog(QDialog):
         self.setWindowTitle('MongoDB 数据库编辑器')
         self.setGeometry(150, 150, 1000, 700)
         self.setWindowModality(Qt.ApplicationModal)
+        
+        # 设置不透明背景，避免黑屏问题
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #2D2D30;
+                color: #FFFFFF;
+            }
+            QLabel {
+                color: #FFFFFF;
+            }
+            QListWidget, QTreeWidget {
+                background-color: #252526;
+                color: #FFFFFF;
+                border: 1px solid #3F3F46;
+                border-radius: 4px;
+            }
+            QPushButton {
+                background-color: #0E639C;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+            }
+            QPushButton:hover {
+                background-color: #1177BB;
+            }
+            QPushButton:pressed {
+                background-color: #0D5789;
+            }
+            QLineEdit {
+                background-color: #3C3C3C;
+                color: white;
+                border: 1px solid #3F3F46;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QSplitter::handle {
+                background-color: #3F3F46;
+            }
+            QTreeWidget::item {
+                color: #FFFFFF;
+            }
+            QMenu {
+                background-color: #252526;
+                color: #FFFFFF;
+                border: 1px solid #3F3F46;
+            }
+            QMenu::item:selected {
+                background-color: #0E639C;
+            }
+        """)
 
         self.current_db = None
         self.current_collection = None
@@ -85,7 +164,12 @@ class DatabaseEditorDialog(QDialog):
             self.db_list_widget.addItems(user_dbs)
         except Exception as e:
             logger.error(f"加载数据库列表失败: {e}")
-            QMessageBox.critical(self, "错误", f"加载数据库列表失败\n{e}")
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("错误")
+            msg_box.setText(f"加载数据库列表失败\n{e}")
+            msg_box.setIcon(QMessageBox.Critical)
+            apply_message_box_style(msg_box)
+            msg_box.exec_()
 
     def on_db_selected(self, current_item, previous_item):
         if current_item:
@@ -105,7 +189,12 @@ class DatabaseEditorDialog(QDialog):
             self.collection_list_widget.addItems(collection_names)
         except Exception as e:
             logger.error(f"加载集合列表失败 (数据库: {db_name}): {e}")
-            QMessageBox.critical(self, "错误", f"加载集合列表失败 (数据库: {db_name})\n{e}")
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("错误")
+            msg_box.setText(f"加载集合列表失败 (数据库: {db_name})\n{e}")
+            msg_box.setIcon(QMessageBox.Critical)
+            apply_message_box_style(msg_box)
+            msg_box.exec_()
 
     def on_collection_selected(self, current_item, previous_item):
         if current_item:
@@ -132,7 +221,12 @@ class DatabaseEditorDialog(QDialog):
                     import json
                     query_filter = json.loads(query_str)
                 except json.JSONDecodeError:
-                    QMessageBox.warning(self, "查询错误", "查询语句格式不正确，请输入有效的JSON。")
+                    msg_box = QMessageBox(self)
+                    msg_box.setWindowTitle("查询错误")
+                    msg_box.setText("查询语句格式不正确，请输入有效的JSON。")
+                    msg_box.setIcon(QMessageBox.Warning)
+                    apply_message_box_style(msg_box)
+                    msg_box.exec_()
                     return
             
             # 限制日志数量，避免加载过多数据卡死UI
@@ -145,7 +239,12 @@ class DatabaseEditorDialog(QDialog):
             self.document_tree_widget.expandAll()
         except Exception as e:
             logger.error(f"加载文档失败 (数据库: {self.current_db_name}, 集合: {self.current_collection_name}): {e}")
-            QMessageBox.critical(self, "错误", f"加载文档失败 (数据库: {self.current_db_name}, 集合: {self.current_collection_name})\n{e}")
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("错误")
+            msg_box.setText(f"加载文档失败 (数据库: {self.current_db_name}, 集合: {self.current_collection_name})\n{e}")
+            msg_box.setIcon(QMessageBox.Critical)
+            apply_message_box_style(msg_box)
+            msg_box.exec_()
 
     def populate_tree_item(self, parent_item, data):
         if isinstance(data, dict):
@@ -173,6 +272,18 @@ class DatabaseEditorDialog(QDialog):
             return
 
         menu = QMenu()
+        # 设置菜单样式，确保在黑色背景下可见
+        menu.setStyleSheet("""
+            QMenu {
+                background-color: #252526;
+                color: #FFFFFF;
+                border: 1px solid #3F3F46;
+            }
+            QMenu::item:selected {
+                background-color: #0E639C;
+            }
+        """)
+        
         # 仅当选中了字段值（第二列有文本）或者该项代表一个可直接复制的父级项（如_id）时，才显示复制值
         # 并且确保不是顶层的文档ID项（它没有父项，或者父项是根）
         is_value_node = bool(item.text(1)) 
@@ -183,7 +294,7 @@ class DatabaseEditorDialog(QDialog):
             copy_value_action.triggered.connect(lambda: self.copy_item_value(item))
             menu.addAction(copy_value_action)
 
-        # 添加“修改值”选项，仅当它是叶子节点（有值）且不是_id字段时
+        # 添加"修改值"选项，仅当它是叶子节点（有值）且不是_id字段时
         if is_value_node and not item.text(0).lower() == '_id' and not item.text(0).startswith("_id:") :
             # 确保不是数组/对象节点本身，而是其下的具体值节点
             # 通常，有值的节点其第一列是字段名，第二列是值
@@ -326,24 +437,65 @@ class DatabaseEditorDialog(QDialog):
 
         # 根据原始值的类型，决定使用 QInputDialog.getText, getInt, getDouble, getItem
         new_value_str, ok = "", False
-        if isinstance(original_value, bool):
-            items = ["True", "False"]
-            current_selection = "True" if original_value else "False"
-            text, ok = QInputDialog.getItem(self, "修改值", f"字段 '{field_path}':", items, items.index(current_selection), False)
-            if ok and text:
-                new_value_str = text == "True"
-        elif isinstance(original_value, int):
-            num, ok = QInputDialog.getInt(self, "修改值", f"字段 '{field_path}':", value=original_value)
-            if ok:
-                new_value_str = num
-        elif isinstance(original_value, float):
-            num, ok = QInputDialog.getDouble(self, "修改值", f"字段 '{field_path}':", value=original_value)
-            if ok:
-                new_value_str = num
-        else: # 默认为字符串
-            text, ok = QInputDialog.getText(self, "修改值", f"字段 '{field_path}':", text=current_value_str)
-            if ok and text is not None:
-                new_value_str = text
+        
+        # 创建一个样式表，确保对话框在黑色主题下可见
+        input_dialog_style = """
+            QInputDialog {
+                background-color: #2D2D30;
+                color: #FFFFFF;
+            }
+            QLabel {
+                color: #FFFFFF;
+            }
+            QLineEdit, QComboBox {
+                background-color: #3C3C3C;
+                color: #FFFFFF;
+                border: 1px solid #3F3F46;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QPushButton {
+                background-color: #0E639C;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #1177BB;
+            }
+            QPushButton:pressed {
+                background-color: #0D5789;
+            }
+        """
+        
+        # 应用样式到QApplication，确保对话框继承样式
+        QApplication.instance().setStyleSheet(input_dialog_style)
+        
+        try:
+            if isinstance(original_value, bool):
+                items = ["True", "False"]
+                current_selection = "True" if original_value else "False"
+                text, ok = QInputDialog.getItem(self, "修改值", f"字段 '{field_path}':", items, items.index(current_selection), False)
+                if ok and text:
+                    new_value_str = text == "True"
+            elif isinstance(original_value, int):
+                num, ok = QInputDialog.getInt(self, "修改值", f"字段 '{field_path}':", value=original_value)
+                if ok:
+                    new_value_str = num
+            elif isinstance(original_value, float):
+                num, ok = QInputDialog.getDouble(self, "修改值", f"字段 '{field_path}':", value=original_value)
+                if ok:
+                    new_value_str = num
+            else: # 默认为字符串
+                text, ok = QInputDialog.getText(self, "修改值", f"字段 '{field_path}':", text=current_value_str)
+                if ok and text is not None:
+                    new_value_str = text
+        finally:
+            # 恢复应用程序原来的样式表
+            QApplication.instance().setStyleSheet("")
+
 
         if ok:
             try:
@@ -387,13 +539,51 @@ class DatabaseEditorDialog(QDialog):
                 QMessageBox.critical(self, "错误", f"更新数据库失败\n{e}")
 
     def add_document(self):
+        # 实现添加文档的功能
         if not self.current_db_name or not self.current_collection_name:
-            QMessageBox.warning(self, "提示", "请先选择一个数据库和集合")
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("提示")
+            msg_box.setText("请先选择一个数据库和集合")
+            msg_box.setIcon(QMessageBox.Warning)
+            apply_message_box_style(msg_box)
+            msg_box.exec_()
             return
 
-        doc_content, ok = QInputDialog.getMultiLineText(self, '添加新文档', 
-                                                        '请输入文档内容 (JSON格式):',
-                                                        '{}\n')
+        # 设置QInputDialog的样式
+        input_dialog_style = """
+            QInputDialog {
+                background-color: #2D2D30;
+                color: #FFFFFF;
+            }
+            QLabel {
+                color: #FFFFFF;
+            }
+            QTextEdit, QLineEdit {
+                background-color: #3C3C3C;
+                color: #FFFFFF;
+                border: 1px solid #3F3F46;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QPushButton {
+                background-color: #0E639C;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                min-width: 80px;
+            }
+        """
+        QApplication.instance().setStyleSheet(input_dialog_style)
+        
+        try:
+            doc_content, ok = QInputDialog.getMultiLineText(self, '添加新文档', 
+                                                         '请输入文档内容 (JSON格式):',
+                                                         '{}')
+        finally:
+            # 恢复应用程序原来的样式表
+            QApplication.instance().setStyleSheet("")
+            
         if ok and doc_content:
             try:
                 import json
@@ -402,13 +592,28 @@ class DatabaseEditorDialog(QDialog):
                 collection = db[self.current_collection_name]
                 result = collection.insert_one(new_doc)
                 logger.info(f"文档已添加, ID: {result.inserted_id}")
-                QMessageBox.information(self, "成功", f"文档已成功添加\nID: {result.inserted_id}")
+                success_box = QMessageBox(self)
+                success_box.setWindowTitle("成功")
+                success_box.setText(f"文档已成功添加\nID: {result.inserted_id}")
+                success_box.setIcon(QMessageBox.Information)
+                apply_message_box_style(success_box)
+                success_box.exec_()
                 self.load_documents() # 刷新文档列表
             except json.JSONDecodeError:
-                QMessageBox.critical(self, "错误", "输入的文档内容不是有效的JSON格式")
+                error_box = QMessageBox(self)
+                error_box.setWindowTitle("错误")
+                error_box.setText("输入的文档内容不是有效的JSON格式")
+                error_box.setIcon(QMessageBox.Critical)
+                apply_message_box_style(error_box)
+                error_box.exec_()
             except Exception as e:
                 logger.error(f"添加文档失败: {e}")
-                QMessageBox.critical(self, "错误", f"添加文档失败\n{e}")
+                error_box = QMessageBox(self)
+                error_box.setWindowTitle("错误")
+                error_box.setText(f"添加文档失败\n{e}")
+                error_box.setIcon(QMessageBox.Critical)
+                apply_message_box_style(error_box)
+                error_box.exec_()
 
     def edit_document_content(self, item):
         if not item or not self.current_db_name or not self.current_collection_name:
@@ -501,17 +706,96 @@ class DatabaseEditorDialog(QDialog):
                 QMessageBox.critical(self, "错误", f"删除文档 {doc_id} 失败\n{e}")
 
     def delete_document(self):
+        # 实现删除文档的功能
+        if not self.current_db_name or not self.current_collection_name:
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("错误")
+            msg_box.setText("未选择数据库或集合")
+            msg_box.setIcon(QMessageBox.Warning)
+            apply_message_box_style(msg_box)
+            msg_box.exec_()
+            return
+
         selected_items = self.document_tree_widget.selectedItems()
         if not selected_items:
-            QMessageBox.warning(self, "提示", "请先选择一个要删除的文档")
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("提示")
+            msg_box.setText("请先选择一个文档")
+            msg_box.setIcon(QMessageBox.Warning)
+            apply_message_box_style(msg_box)
+            msg_box.exec_()
             return
-        # 通常QTreeWidget只允许单选，但以防万一取第一个
-        item_to_delete = selected_items[0]
-        # 确保是顶层文档项
-        if not item_to_delete.parent():
-            self.delete_document_content(item_to_delete)
-        else:
-            QMessageBox.warning(self, "提示", "请选择文档的根节点进行删除操作。")
+
+        # 获取顶层项（文档项）
+        doc_item = selected_items[0]
+        while doc_item.parent():
+            doc_item = doc_item.parent()
+
+        # 从文档项中获取文档ID
+        doc_id_text = doc_item.text(0)
+        if not doc_id_text.startswith("_id:"):
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("错误")
+            msg_box.setText("无法确定文档ID")
+            msg_box.setIcon(QMessageBox.Warning)
+            apply_message_box_style(msg_box)
+            msg_box.exec_()
+            return
+
+        doc_id_str = doc_id_text.split(":", 1)[1].strip()
+        try:
+            # 尝试将ID字符串转换为ObjectId（如果是）
+            from bson.objectid import ObjectId
+            try:
+                doc_id = ObjectId(doc_id_str)
+            except:
+                # 如果不是ObjectId，则使用原始字符串
+                doc_id = doc_id_str
+
+            # 确认删除
+            confirm_box = QMessageBox(self)
+            confirm_box.setWindowTitle("确认删除")
+            confirm_box.setText(f"确定要删除ID为 {doc_id_str} 的文档吗？")
+            confirm_box.setIcon(QMessageBox.Question)
+            confirm_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            confirm_box.setDefaultButton(QMessageBox.No)
+            apply_message_box_style(confirm_box)
+            reply = confirm_box.exec_()
+            
+            if reply == QMessageBox.No:
+                return
+
+            # 执行删除操作
+            db = self.client[self.current_db_name]
+            collection = db[self.current_collection_name]
+            result = collection.delete_one({"_id": doc_id})
+
+            if result.deleted_count > 0:
+                logger.info(f"文档 {doc_id_str} 已成功删除")
+                success_box = QMessageBox(self)
+                success_box.setWindowTitle("成功")
+                success_box.setText(f"文档 {doc_id_str} 已成功删除")
+                success_box.setIcon(QMessageBox.Information)
+                apply_message_box_style(success_box)
+                success_box.exec_()
+                self.load_documents()  # 重新加载文档列表
+            else:
+                logger.warning(f"未找到ID为 {doc_id_str} 的文档")
+                warning_box = QMessageBox(self)
+                warning_box.setWindowTitle("警告")
+                warning_box.setText(f"未找到ID为 {doc_id_str} 的文档")
+                warning_box.setIcon(QMessageBox.Warning)
+                apply_message_box_style(warning_box)
+                warning_box.exec_()
+
+        except Exception as e:
+            logger.error(f"删除文档时出错: {e}")
+            error_box = QMessageBox(self)
+            error_box.setWindowTitle("错误")
+            error_box.setText(f"删除文档时出错\n{e}")
+            error_box.setIcon(QMessageBox.Critical)
+            apply_message_box_style(error_box)
+            error_box.exec_()
 
 # 为了方便测试，添加一个简单的启动入口
 if __name__ == '__main__':
