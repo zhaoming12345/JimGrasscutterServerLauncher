@@ -1,8 +1,8 @@
 # Jim Grasscutter Server Launcher
 
-[中文](README.md)
+[中文](.\README.md)
 
-![JGSL Logo](Assets/JGSL-Logo.ico)
+![JGSL Logo](.\Assets\JGSL-Logo.ico)
 
 [Introduction Video](https://www.bilibili.com/video/BV1C2EkzoEqd)
 
@@ -24,15 +24,13 @@
 
 ## Documentation
 
-- [Directory Structure](DirInfo.md)
+- [Directory Structure](.\DirInfo.md)
   
-- [Open Source License](LICENSE)
+- [Open Source License](.\LICENSE)
   
-- [ToDo List](todolist.md)
+- [ToDo List](.\todolist.md)
   
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-  
-- [Ignore List](.gitignore)
+- [Code of Conduct](.\CODE_OF_CONDUCT.md)
 
 ## How to use it?
 
@@ -53,7 +51,7 @@ pip install -r requirements.txt
 Run in the project root directory:
 
 ```bash
-./Start.bat
+.\Start.bat
 ```
 
 ## Build/Compile
@@ -63,7 +61,7 @@ Run in the project root directory:
 Run in the project root directory:
 
 ```bash
-./build.bat
+.\build.bat
 ```
 
 After completion, find the output in the .\dist folder

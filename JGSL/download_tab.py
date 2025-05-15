@@ -6,9 +6,9 @@ import os
 import json
 from loguru import logger
 import re
-import patoolib
-import patoolib.util
 import webbrowser
+import zipfile
+import tempfile
 
 class DownloadThread(QThread):
     progress_signal = pyqtSignal(int)
@@ -298,9 +298,32 @@ class DownloadTab(QWidget):
             if is_zipped:
                 extract_destination = final_target_dir
                 self.logger.info(f"开始解压 '{downloaded_file_path}' 到 '{extract_destination}'")
-                # Patoolib 会自动处理常见的压缩格式
-                patoolib.extract_archive(str(downloaded_file_path), outdir=str(extract_destination), verbosity=-1)
-                self.logger.info(f"解压完成: '{item_title}' 已解压到 '{extract_destination}'")
+                
+                # 使用zipfile库进行解压，替代patoolib
+                if downloaded_file_path.lower().endswith('.zip'):
+                    try:
+                        with zipfile.ZipFile(downloaded_file_path, 'r') as zip_ref:
+                            # 检查是否有权限写入目标目录
+                            temp_test_file = os.path.join(extract_destination, '.write_test')
+                            try:
+                                with open(temp_test_file, 'w') as f:
+                                    f.write('test')
+                                os.remove(temp_test_file)
+                            except Exception as e:
+                                raise PermissionError(f"目录 {extract_destination} 无写入权限: {e}")
+                                
+                            # 解压所有文件
+                            zip_ref.extractall(extract_destination)
+                            self.logger.info(f"解压完成: '{item_title}' 已解压到 '{extract_destination}'")
+                    except zipfile.BadZipFile:
+                        raise Exception(f"文件 '{downloaded_file_path}' 不是有效的ZIP文件")
+                else:
+                    # 尝试使用patoolib处理其他格式的压缩文件
+                    try:
+                        patoolib.extract_archive(str(downloaded_file_path), outdir=str(extract_destination), verbosity=-1)
+                    except patoolib.util.PatoolError as e:
+                        raise Exception(f"不支持的压缩格式或解压失败: {e}")
+                        
                 self.status_label.setText(f'{item_title} 解压完成')
                 try:
                     os.remove(downloaded_file_path) # 删除临时下载的压缩文件
@@ -319,16 +342,13 @@ class DownloadTab(QWidget):
             
             QMessageBox.information(self, '成功', f'{item_title} 处理完成！')
 
-        except patoolib.util.PatoolError as e:
-            self.logger.error(f"解压文件 '{downloaded_file_path}' 失败: {e}")
-            QMessageBox.critical(self, '解压错误', f"解压 '{item_title}' 失败: {e}\n请确保已安装相应解压工具 (如 7-Zip, WinRAR) 并将其添加到系统 PATH。")
-            # 保留下载的压缩文件以便用户手动处理
         except PermissionError as e:
             self.logger.error(f"移动/解压文件 '{item_title}' 权限错误: {e}")
             QMessageBox.critical(self, '权限错误', f"处理 '{item_title}' 时发生权限错误: {e}")
         except Exception as e:
             self.logger.error(f"移动/解压文件 '{item_title}' 失败: {e}", exc_info=True)
             QMessageBox.critical(self, '错误', f"处理 '{item_title}' 时发生未知错误: {e}")
+            # 保留下载的压缩文件以便用户手动处理
 
     def start_download(self):
         selected_items = self.tree.selectedItems()
@@ -511,9 +531,34 @@ class DownloadTab(QWidget):
                 extract_to_full_path = os.path.join(os.path.dirname(downloaded_file_path), extract_to_dir_name)
                 os.makedirs(extract_to_full_path, exist_ok=True)
                 self.logger.info(f'开始解压 {downloaded_file_path} 到 {extract_to_full_path}')
-                self.status_label.setText(f'正在解压 {item_data.get("name")}...') 
-                patoolib.extract_archive(downloaded_file_path, outdir=extract_to_full_path, verbosity=-1)
-                self.logger.success(f'文件解压完成: {extract_to_full_path}')
+                self.status_label.setText(f'正在解压 {item_data.get("title")}...') 
+                
+                # 使用zipfile库进行解压，替代patoolib
+                if downloaded_file_path.lower().endswith('.zip'):
+                    try:
+                        with zipfile.ZipFile(downloaded_file_path, 'r') as zip_ref:
+                            # 检查是否有权限写入目标目录
+                            temp_test_file = os.path.join(extract_to_full_path, '.write_test')
+                            try:
+                                with open(temp_test_file, 'w') as f:
+                                    f.write('test')
+                                os.remove(temp_test_file)
+                            except Exception as e:
+                                raise PermissionError(f"目录 {extract_to_full_path} 无写入权限: {e}")
+                                
+                            # 解压所有文件
+                            zip_ref.extractall(extract_to_full_path)
+                            self.logger.success(f'文件解压完成: {extract_to_full_path}')
+                    except zipfile.BadZipFile:
+                        raise Exception(f"文件 '{downloaded_file_path}' 不是有效的ZIP文件")
+                else:
+                    # 尝试使用patoolib处理其他格式的压缩文件
+                    try:
+                        patoolib.extract_archive(downloaded_file_path, outdir=extract_to_full_path, verbosity=-1)
+                        self.logger.success(f'文件解压完成: {extract_to_full_path}')
+                    except patoolib.util.PatoolError as e:
+                        raise Exception(f"不支持的压缩格式或解压失败: {e}")
+                
                 extracted_path = extract_to_full_path
                 # 传递 item_data 给 move_file
                 self.move_file(extracted_path, item_data)
@@ -523,14 +568,10 @@ class DownloadTab(QWidget):
                 except Exception as e:
                     self.logger.error(f'删除原始压缩包失败: {downloaded_file_path},错误: {e}')
 
-            except patoolib.util.PatoolError as e:
-                self.logger.error(f'解压失败 ({item_data.get("name")}): {e}，将尝试直接移动原始文件。')
-                QMessageBox.warning(self, '解压失败', f'解压 {item_data.get("name")} 失败: {e}\n将尝试移动原始压缩包。')
-                self.move_file(downloaded_file_path, item_data)
             except Exception as e:
-                self.logger.error(f'解压过程中发生未知错误 ({item_data.get("name")}): {e}')
-                QMessageBox.critical(self, '错误', f'解压 {item_data.get("name")} 时发生未知错误: {e}')
-                self.move_file(downloaded_file_path, item_data) # 更新调用以匹配新的 move_file 签名
+                self.logger.error(f'解压过程中发生错误 ({item_data.get("title")}): {e}')
+                QMessageBox.warning(self, '解压失败', f'解压 {item_data.get("title")} 失败: {e}\n将尝试直接移动原始文件。')
+                self.move_file(downloaded_file_path, item_data) # 直接移动原始文件
         else:
             # 非压缩文件，直接移动，传递 item_data
             self.move_file(downloaded_file_path, item_data)

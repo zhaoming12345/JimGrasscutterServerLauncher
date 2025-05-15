@@ -38,8 +38,8 @@
 !/Config/.gitkeep
 
 # 保留文件
-/Config/download-list.json
-/Config/mirror-list.json
+!/Config/download-list.json
+!/Config/mirror-list.json
 
 # 保留以下目录
 !/JGSL/

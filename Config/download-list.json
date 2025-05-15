@@ -47,7 +47,7 @@
       "items": [
         {
           "title": "Grasscutter1.7.4(游戏版本4.0.1)",
-          "target_filename": "grasscutter-1.7.4.jar",
+          "target_filename": "grasscutter.jar",
           "target_location": "Servers/{instance_name}",
           "download_url": "https://github.com/Grasscutters/Grasscutter/releases/download/v1.7.4/grasscutter-1.7.4.jar",
           "is_zipped": false,

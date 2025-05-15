@@ -2,7 +2,7 @@
 
 [English](README-en_US.md)
 
-![JGSL Logo](Assets/JGSL-Logo.ico)
+![JGSL Logo](.\Assets\JGSL-Logo.ico)
 
 [介绍视频](https://www.bilibili.com/video/BV1C2EkzoEqd)
 
@@ -24,15 +24,13 @@
 
 ## 文档导航
 
-- [目录说明](DirInfo.md)
+- [目录说明](.\DirInfo.md)
   
-- [开源协议](LICENSE)
+- [开源协议](.\LICENSE)
   
-- [待办清单](todolist.md)
+- [待办清单](.\todolist.md)
   
-- [行为准则](CODE_OF_CONDUCT.md)
-  
-- [忽略列表](.gitignore)
+- [行为准则](.\CODE_OF_CONDUCT.md)
 
 ## 如何使用？
 
@@ -53,7 +51,7 @@ pip install -r requirements.txt
 在项目根目录执行：
 
 ```bash
-./Start.bat
+.\Start.bat
 ```
 
 ## 构建/编译
@@ -63,7 +61,7 @@ pip install -r requirements.txt
 在项目根目录执行：
 
 ```bash
-./build.bat
+.\build.bat
 ```
 
 完成后，在.\dist文件夹中找到产物
