@@ -4,7 +4,7 @@
 
 ![JGSL Logo](Assets/JGSL-Logo.ico)
 
-[Introduction Video](https://www.bilibili.com/video/BV1B1VqzWEY7)
+[Introduction Video](https://www.bilibili.com/video/BV1C2EkzoEqd)
 
 ## Features
 
