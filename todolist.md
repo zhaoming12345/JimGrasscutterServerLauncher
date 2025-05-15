@@ -12,13 +12,13 @@
 - [x] monitor_tab.py:实例进程消失后自动关闭监控面板
 - [x] plugin_manager.py:插件生命周期管理
 - [x] download_tab.py:自动解压压缩包
+- [x] download_tab.py:添加不可自动下载的资源的支持
 - [ ] download_tab.py:分卷压缩包支持(计划)
 - [ ] cluster_tab.py:启动/停止集群(一般)
 - [ ] Language\*:添加中英文翻译文件(一般 | 暂时忽略)
 - [ ] building_tab:构建标签页(可能 | 用于构建割草机，非常简单而且不太实用所以优先级低)
 - [ ] data_manager:可视化json编辑，如Banners、Shop、ActivityConfig、Announcement等等(一般)
 - [ ] resources_manager:可视化编辑TextMap中的游戏文本(一般)
-- [ ] download_tab.py&download-list.json:添加不可自动下载的资源的支持(一般)
 
 ## 修复
 

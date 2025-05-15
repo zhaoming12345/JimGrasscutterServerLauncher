@@ -8,6 +8,7 @@ from loguru import logger
 import re
 import patoolib
 import patoolib.util
+import webbrowser
 
 class DownloadThread(QThread):
     progress_signal = pyqtSignal(int)
@@ -347,6 +348,12 @@ class DownloadTab(QWidget):
 
         if not url or not target_filename or not target_location:
             QMessageBox.warning(self, '错误', f'项目 "{item_title}" 的下载信息不完整 (需要 download_url, target_filename, target_location)。')
+            return
+            
+        # 检查是否需要手动下载
+        if selected_item_data.get('manual_download_only', False):
+            webbrowser.open(url)
+            QMessageBox.information(self, '提示', f'已为您打开浏览器下载链接: {url}')
             return
 
         # 根据 target_location 判断是否需要选择实例
