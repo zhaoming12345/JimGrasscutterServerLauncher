@@ -34,13 +34,13 @@
   
 - [忽略列表](.gitignore)
 
-## 快速开始
+## 如何使用？
 
-#### 我们建议普通用户直接下载[Releases](https://github.com/Jimmy32767255/JimGrasscutterServerLauncher/releases)中的打包版本，无需安装依赖，解压缩后即可直接运行。
+我们建议普通用户直接下载[Releases](https://github.com/Jimmy32767255/JimGrasscutterServerLauncher/releases)中的打包版本，无需安装依赖，解压缩后即可直接运行。
 
 ###### 但是注意：Releases中的打包版本可能不是最新的！
 
-### 或者，克隆仓库后使用代码:
+或者，克隆仓库后使用代码:
 
 #### 安装依赖:
 
@@ -50,9 +50,23 @@ pip install -r requirements.txt
 
 #### 运行JGSL:
 
+在项目根目录执行：
+
 ```bash
 ./Start.bat
 ```
+
+## 构建/编译
+
+###### 不建议，除非需要在没有python的环境中使用，spec文件目前有问题，而且会产生更大的空间占用
+
+在项目根目录执行：
+
+```bash
+./build.bat
+```
+
+完成后，在.\dist文件夹中找到产物
 
 ## 社交媒体
 

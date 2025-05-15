@@ -34,13 +34,13 @@
   
 - [Ignore List](.gitignore)
 
-## Quick Start
+## How to use it?
 
 #### We recommend regular users download the packaged version from [Releases](https://github.com/Jimmy32767255/JimGrasscutterServerLauncher/releases) which requires no dependency installation - just unzip and run.
 
 ###### Note: Packaged versions in Releases may not be the latest!
 
-### Alternatively, clone the repository and use the code:
+Alternatively, clone the repository and use the code:
 
 #### Install dependencies:
 
@@ -50,9 +50,23 @@ pip install -r requirements.txt
 
 #### Run JGSL:
 
+Run in the project root directory:
+
 ```bash
 ./Start.bat
 ```
+
+## Build/Compile
+
+###### Not recommended unless you need to use it in a Python-free environment. The spec file currently has issues and will result in larger file sizes.
+
+Run in the project root directory:
+
+```bash
+./build.bat
+```
+
+After completion, find the output in the .\dist folder
 
 ## Social Media
 
