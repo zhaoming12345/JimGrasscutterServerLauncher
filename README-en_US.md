@@ -32,8 +32,6 @@
   
 - [Code of Conduct](CODE_OF_CONDUCT.md)
   
-- [Edit Lock List](edit-lock.md)
-  
 - [Ignore List](.gitignore)
 
 ## Quick Start

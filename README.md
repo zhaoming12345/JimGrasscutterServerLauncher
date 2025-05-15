@@ -32,8 +32,6 @@
   
 - [行为准则](CODE_OF_CONDUCT.md)
   
-- [锁定列表](edit-lock.md)
-  
 - [忽略列表](.gitignore)
 
 ## 快速开始
