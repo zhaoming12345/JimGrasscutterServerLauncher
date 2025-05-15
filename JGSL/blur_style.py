@@ -13,15 +13,27 @@ BLUR_STYLE = """
 /* 主窗口样式 */
 QMainWindow {
     background-color: rgba(255, 255, 255, 0.01); /* 半透明深色背景 */
+    color: #FFFFFF; /* 白色字体 */
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.01);
+}
+
+/* 标签控件样式 */
+QLabel {
+    color: #FFFFFF; /* 白色字体 */
+    background-color: transparent; /* 确保背景透明 */
 }
 
 /* 列表控件样式 */
 QListWidget, QTreeWidget {
     background-color: rgba(255, 255, 255, 0.01);
+    color: #FFFFFF; /* 白色字体 */
     border: 1px solid rgba(255, 255, 255, 0.01);
     border-radius: 4px;
+}
+
+QListWidget::item, QTreeWidget::item {
+    color: #FFFFFF; /* 确保列表项也是白色 */
 }
 
 /* 标签页样式 */
@@ -33,7 +45,7 @@ QTabWidget::pane {
 
 QTabBar::tab {
     background-color: rgba(255, 255, 255, 0.01);
-    color: #cccccc;
+    color: #FFFFFF;
     padding: 8px 16px;
     margin: 2px;
     border-top-left-radius: 4px;
@@ -42,7 +54,7 @@ QTabBar::tab {
 
 QTabBar::tab:selected {
     background-color: rgba(255, 255, 255, 0.01);
-    color: white;
+    color: #FFFFFF;
 }
 
 QTabBar::tab:hover:!selected {
@@ -52,7 +64,7 @@ QTabBar::tab:hover:!selected {
 /* 按钮样式 */
 QPushButton {
     background-color: rgba(255, 255, 255, 0.01);
-    color: white;
+    color: #FFFFFF;
     border: none;
     border-radius: 4px;
     padding: 6px 12px;
@@ -69,7 +81,7 @@ QPushButton:pressed {
 /* 输入框样式 */
 QLineEdit, QTextEdit, QPlainTextEdit {
     background-color: rgba(255, 255, 255, 0.01);
-    color: white;
+    color: #FFFFFF;
     border: 1px solid rgba(255, 255, 255, 0.01);
     border-radius: 4px;
     padding: 4px;
@@ -78,7 +90,7 @@ QLineEdit, QTextEdit, QPlainTextEdit {
 /* 下拉框样式 */
 QComboBox {
     background-color: rgba(255, 255, 255, 0.01);
-    color: white;
+    color: #FFFFFF;
     border: 1px solid rgba(255, 255, 255, 0.01);
     border-radius: 4px;
     padding: 4px;

@@ -97,7 +97,7 @@ class MainWindow(QMainWindow):
         # 安装事件过滤器，捕获所有鼠标事件
         self.installEventFilter(self)
 
-    # 新增:注册 QProcess 对象
+    # 注册 QProcess 对象
     def register_process(self, pid: int, process: QProcess):
         if pid in self.running_processes:
             logger.warning(f"尝试注册已存在的 PID: {pid}")
@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
             logger.info(f"注册进程 PID: {pid}")
             self.running_processes[pid] = process
 
-    # 新增:注销 QProcess 对象
+    # 注销 QProcess 对象
     def unregister_process(self, pid: int):
         if pid in self.running_processes:
             logger.info(f"注销进程 PID: {pid}")
@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
         else:
             logger.warning(f"尝试注销不存在的 PID: {pid}")
 
-    # 新增:获取 QProcess 对象
+    # 获取 QProcess 对象
     def get_process(self, pid: int) -> QProcess | None:
         process = self.running_processes.get(pid)
         if not process:

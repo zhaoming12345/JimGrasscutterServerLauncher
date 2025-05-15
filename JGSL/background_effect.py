@@ -15,7 +15,7 @@ from loguru import logger
 ACCENT_DISABLED = 0
 ACCENT_ENABLE_GRADIENT = 1
 ACCENT_ENABLE_TRANSPARENTGRADIENT = 2
-ACCENT_ENABLE_BLURBEHIND = 3  # 使用这个状态
+ACCENT_ENABLE_BLURBEHIND = 3
 ACCENT_ENABLE_ACRYLICBLURBEHIND = 4 # Windows 10 1803+
 ACCENT_INVALID_STATE = 5
 
@@ -60,11 +60,11 @@ class BackgroundEffect:
 
         if not self._try_apply_native_blur():
             logger.warning("无法应用原生 Windows 模糊，将回退到 QGraphicsBlurEffect。这可能无法在透明背景下正常工作或导致错误。")
-            from PyQt5.QtWidgets import QGraphicsBlurEffect # Local import
+            from PyQt5.QtWidgets import QGraphicsBlurEffect
             self.blur_effect_fallback = QGraphicsBlurEffect()
             self.blur_effect_fallback.setBlurRadius(blur_radius)
             self.widget.setGraphicsEffect(self.blur_effect_fallback)
-            self.widget.setStyleSheet("background-color: rgba(255, 255, 255, 0.01);")  # 添加半透明背景色
+            self.widget.setStyleSheet("background-color: rgba(255, 255, 255, 0.01);")
             logger.info(f"已为部件 {widget.objectName() if widget.objectName() else type(widget).__name__} 应用了 QGraphicsBlurEffect (模糊半径: {blur_radius}) 作为备选方案。")
         
     def _try_apply_native_blur(self) -> bool:
@@ -94,7 +94,7 @@ class BackgroundEffect:
             logger.error(f"应用原生 Windows BLURBEHIND 模糊时发生异常: {e}")
             return False
 
-    def set_blur_radius(self, radius: int): # Only relevant for QGraphicsBlurEffect fallback
+    def set_blur_radius(self, radius: int):
         """
         设置 QGraphicsBlurEffect 的模糊半径 (仅当原生模糊失败时使用)。
         """
@@ -104,7 +104,7 @@ class BackgroundEffect:
         else:
             logger.info("原生模糊已应用或尝试应用，set_blur_radius 对其无效或仅用于备选方案。")
 
-    def enable(self, enable: bool = True): # Primarily for QGraphicsBlurEffect fallback
+    def enable(self, enable: bool = True):
         """
         启用或禁用模糊效果。
         """
@@ -115,7 +115,7 @@ class BackgroundEffect:
         elif enable:
             logger.info("尝试启用/重新应用原生模糊效果 (BLURBEHIND)。")
             self._try_apply_native_blur()
-        elif not enable: # Attempt to disable native blur
+        elif not enable:
             try:
                 accent_policy = ACCENTPOLICY()
                 accent_policy.AccentState = ACCENT_DISABLED

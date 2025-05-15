@@ -39,7 +39,7 @@ class CustomTitleBar(QWidget):
 
         # 窗口标题
         self.title_label = QLabel("JimGrasscutterServerLauncher", self)
-        self.title_label.setStyleSheet("color: #333333; font-size: 10pt; font-weight: bold;")
+        self.title_label.setStyleSheet("color: #FFFFFF; font-size: 10pt; font-weight: bold;")
         layout.addWidget(self.title_label)
 
         layout.addStretch()
@@ -55,7 +55,7 @@ class CustomTitleBar(QWidget):
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: rgba(224, 224, 224, 180);
+                background-color: rgba(255, 255, 255, 0.01);
             }
         """)
         self.minimize_button.clicked.connect(self.minimize_window)
@@ -71,7 +71,7 @@ class CustomTitleBar(QWidget):
                 font-size: 10pt;
             }
             QPushButton:hover {
-                background-color: rgba(224, 224, 224, 180);
+                background-color: rgba(255, 255, 255, 0.01);
             }
         """)
         self.maximize_button.clicked.connect(self.maximize_restore_window)
@@ -88,7 +88,7 @@ class CustomTitleBar(QWidget):
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: rgba(231, 76, 60, 200);
+                background-color: rgba(255, 255, 255, 0.01);
                 color: white;
             }
         """)

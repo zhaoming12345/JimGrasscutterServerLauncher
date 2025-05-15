@@ -83,7 +83,7 @@ class ClusterConfigDialog(QDialog):
         game_bottom_layout.setContentsMargins(0, 10, 0, 0)
         self.config_title_btn = QPushButton('配置标题')
         self.config_title_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        game_bottom_layout.addWidget(self.config_title_btn) # 配置标题按钮现在会填满宽度
+        game_bottom_layout.addWidget(self.config_title_btn) # 配置标题按钮填满宽度
         game_server_area_layout.addWidget(game_bottom_widget)
 
         game_main_layout.addLayout(game_server_area_layout, 1)

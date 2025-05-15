@@ -18,6 +18,6 @@ logger.add(
 
 logger.add(
     sys.stderr, # 输出到标准错误流
-    level="IDGHJALS;DGJADG JKL;AHBNFBLRQWEH NUJIGABSDF6JTGJNKQ34RB IKTGJLUYQH3RBNHUILTGYUQ3 WEDGJKUHY,3RT4GQY2346", # 设置控制台日志级别为 INFO
+    level="INFO", # 设置控制台日志级别为 INFO
     format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
 )

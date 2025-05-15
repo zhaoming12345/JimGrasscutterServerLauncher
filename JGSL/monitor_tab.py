@@ -79,7 +79,7 @@ class CircleProgress(QWidget):
             painter.drawArc(rect, start_angle, span_angle)
 
             # 绘制中心文本
-            painter.setPen(QColor(0, 0, 0)) # 黑色文字
+            painter.setPen(QColor(255, 255, 255)) # 白色文字
             font = QFont()
             font.setPointSize(10)
             painter.setFont(font)

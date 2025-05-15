@@ -15,15 +15,15 @@ def check_port(port: int, protocol: str = 'tcp') -> tuple:
         for conn in connections:
             if conn.status == 'LISTEN' and conn.laddr.port == port:
                 process = psutil.Process(conn.pid) if conn.pid else None
+                process_name = process.name() if process else '未知进程'
+                process_path = process.exe() if process and hasattr(process, 'exe') else '未知路径'
+                info = {
+                    'pid': conn.pid,
+                    'process_name': process_name,
+                    'exe_path': process_path
+                }
                 logger.warning(f'端口{port}被进程{info["process_name"]}占用 PID:{info["pid"]}')
-                return (
-                    True,
-                    {
-                        'pid': conn.pid,
-                        'process_name': process.name() if process else '未知进程',
-                        'exe_path': process.exe() if process and process.exe() else '未知路径'
-                    }
-                )
+                return (True, info)
         return False, {}
     except Exception as e:
         logger.error(f'端口{port}检查异常: {e}')

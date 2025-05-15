@@ -121,6 +121,14 @@ class LaunchTab(QWidget):
         self.instance_counter += 1
         self.current_instance = instance_dir
         self.start_btn.setEnabled(False)
+        # 检查Java路径和Grasscutter路径是否有效
+        if not java_path or not grasscutter_path:
+            logger.error(f'Java路径或Grasscutter路径无效: java_path={java_path}, grasscutter_path={grasscutter_path}')
+            QMessageBox.critical(self, '启动失败', f'Java路径或Grasscutter路径无效\nJava路径: {java_path}\nGrasscutter路径: {grasscutter_path}', QMessageBox.Ok)
+            self.start_btn.setEnabled(True)
+            self.instance_counter -= 1
+            return
+            
         self.current_process = QProcess(self)
         self.current_process.setWorkingDirectory(str(instance_dir))
         self.current_process.setProgram(java_path)
@@ -130,31 +138,49 @@ class LaunchTab(QWidget):
         self.current_process.readyReadStandardOutput.connect(self.handle_stdout)
         self.current_process.readyReadStandardError.connect(self.handle_stderr)
         logger.debug(f'执行命令: {java_path} {" ".join([*jvm_pre_args, "-jar", grasscutter_path, *jvm_post_args])}')
-        self.current_process.start()
-        self.current_process.waitForStarted()
-        if self.current_process.state() == QProcess.Running:
-            pid = self.current_process.processId()
-            # 发射 process_created 信号
-            self.process_created.emit(pid, self.current_process)
-            lock_file = instance_dir / 'Running.lock'
-            logger.debug(f'创建锁文件: {lock_file} PID={pid}')
-            try:
-                with open(lock_file, 'w') as f:
-                    json.dump({
-                        'pid': pid,
-                        'start_time': time.time(),
-                        'program': __file__,
-                        'process_path': os.path.abspath(__file__)
-                    }, f, indent=2)
-                logger.info(f'成功写入锁文件 PID={pid}')
-                if psutil.pid_exists(pid) and psutil.Process(pid).name() == 'java.exe':
-                    logger.debug(f'进程验证成功: PID={pid}')
-                else:
-                    logger.warning(f'进程验证失败: PID={pid}')
-            except Exception as e:
-                logger.error(f'写入锁文件失败: {e}')
-            self.instance_started.emit(instance_name, pid)
-            self.create_lock_file(instance_dir)
+        try:
+            self.current_process.start()
+            if not self.current_process.waitForStarted(3000):  # 等待最多3秒
+                logger.error(f'进程启动超时: {self.current_process.errorString()}')
+                QMessageBox.critical(self, '启动失败', f'进程启动超时\n错误信息: {self.current_process.errorString()}', QMessageBox.Ok)
+                self.current_process = None
+                self.start_btn.setEnabled(True)
+                self.instance_counter -= 1
+                return
+                
+            # 进程成功启动后的处理
+            if self.current_process and self.current_process.state() == QProcess.Running:
+                pid = self.current_process.processId()
+                # 发射 process_created 信号
+                self.process_created.emit(pid, self.current_process)
+                lock_file = instance_dir / 'Running.lock'
+                logger.debug(f'创建锁文件: {lock_file} PID={pid}')
+                try:
+                    with open(lock_file, 'w') as f:
+                        json.dump({
+                            'pid': pid,
+                            'start_time': time.time(),
+                            'program': __file__,
+                            'process_path': os.path.abspath(__file__)
+                        }, f, indent=2)
+                    logger.info(f'成功写入锁文件 PID={pid}')
+                    if psutil.pid_exists(pid) and psutil.Process(pid).name() == 'java.exe':
+                        logger.debug(f'进程验证成功: PID={pid}')
+                    else:
+                        logger.warning(f'进程验证失败: PID={pid}')
+                except Exception as e:
+                    logger.error(f'写入锁文件失败: {e}')
+                self.instance_started.emit(instance_name, pid)
+                # 不需要重复创建锁文件
+                # self.create_lock_file(instance_dir)
+        except Exception as e:
+            logger.error(f'启动进程时发生错误: {e}')
+            if self.current_process:
+                logger.error(f'进程启动错误: {self.current_process.errorString()}')
+            self.current_process = None
+            self.start_btn.setEnabled(True)
+            self.instance_counter -= 1
+            return
         logger.info(f'启动实例 {instance_name}')
 
     def start_database_service(self):

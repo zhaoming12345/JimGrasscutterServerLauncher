@@ -8,14 +8,15 @@ def apply_message_box_style(msg_box):
     """为消息框应用统一的样式，确保在黑色主题下可见"""
     msg_box.setStyleSheet("""
         QMessageBox {
-            background-color: #2D2D30;
+            background-color: rgba(50, 50, 50, 0.8); /* 深色半透明背景 */
             color: #FFFFFF;
         }
         QLabel {
             color: #FFFFFF;
+            background-color: transparent; /* 确保标签背景透明 */
         }
         QPushButton {
-            background-color: #0E639C;
+            background-color: rgba(70, 70, 70, 0.8); /* 按钮深色半透明背景 */
             color: white;
             border: none;
             border-radius: 4px;
@@ -23,10 +24,10 @@ def apply_message_box_style(msg_box):
             min-width: 80px;
         }
         QPushButton:hover {
-            background-color: #1177BB;
+            background-color: rgba(90, 90, 90, 0.8);
         }
         QPushButton:pressed {
-            background-color: #0D5789;
+            background-color: rgba(40, 40, 40, 0.8);
         }
     """)
     return msg_box
@@ -42,51 +43,52 @@ class DatabaseEditorDialog(QDialog):
         # 设置不透明背景，避免黑屏问题
         self.setStyleSheet("""
             QDialog {
-                background-color: #2D2D30;
+                background-color: rgba(30, 30, 30, 0.9); /* 深色背景 */
                 color: #FFFFFF;
             }
             QLabel {
                 color: #FFFFFF;
+                background-color: transparent;
             }
             QListWidget, QTreeWidget {
-                background-color: #252526;
+                background-color: rgba(40, 40, 40, 0.8);
                 color: #FFFFFF;
-                border: 1px solid #3F3F46;
+                border: 1px solid #505050;
                 border-radius: 4px;
             }
+            QListWidget::item, QTreeWidget::item {
+                color: #FFFFFF; /* 确保列表项和树形控件项也是白色 */
+            }
             QPushButton {
-                background-color: #0E639C;
+                background-color: rgba(70, 70, 70, 0.8);
                 color: white;
                 border: none;
                 border-radius: 4px;
                 padding: 6px 12px;
             }
             QPushButton:hover {
-                background-color: #1177BB;
+                background-color: rgba(90, 90, 90, 0.8);
             }
             QPushButton:pressed {
-                background-color: #0D5789;
+                background-color: rgba(40, 40, 40, 0.8);
             }
             QLineEdit {
-                background-color: #3C3C3C;
+                background-color: rgba(50, 50, 50, 0.8);
                 color: white;
-                border: 1px solid #3F3F46;
+                border: 1px solid #505050;
                 border-radius: 4px;
                 padding: 4px;
             }
             QSplitter::handle {
-                background-color: #3F3F46;
-            }
-            QTreeWidget::item {
-                color: #FFFFFF;
+                background-color: rgba(60, 60, 60, 0.8);
             }
             QMenu {
-                background-color: #252526;
+                background-color: rgba(50, 50, 50, 0.95);
                 color: #FFFFFF;
-                border: 1px solid #3F3F46;
+                border: 1px solid #606060;
             }
             QMenu::item:selected {
-                background-color: #0E639C;
+                background-color: rgba(80, 80, 80, 0.9);
             }
         """)
 
@@ -275,12 +277,12 @@ class DatabaseEditorDialog(QDialog):
         # 设置菜单样式，确保在黑色背景下可见
         menu.setStyleSheet("""
             QMenu {
-                background-color: #252526;
+                background-color: #FFFFFF;
                 color: #FFFFFF;
                 border: 1px solid #3F3F46;
             }
             QMenu::item:selected {
-                background-color: #0E639C;
+                background-color: #FFFFFF;
             }
         """)
         
@@ -294,7 +296,7 @@ class DatabaseEditorDialog(QDialog):
             copy_value_action.triggered.connect(lambda: self.copy_item_value(item))
             menu.addAction(copy_value_action)
 
-        # 添加"修改值"选项，仅当它是叶子节点（有值）且不是_id字段时
+        # "修改值"选项，仅当它是叶子节点（有值）且不是_id字段时
         if is_value_node and not item.text(0).lower() == '_id' and not item.text(0).startswith("_id:") :
             # 确保不是数组/对象节点本身，而是其下的具体值节点
             # 通常，有值的节点其第一列是字段名，第二列是值
@@ -441,32 +443,33 @@ class DatabaseEditorDialog(QDialog):
         # 创建一个样式表，确保对话框在黑色主题下可见
         input_dialog_style = """
             QInputDialog {
-                background-color: #2D2D30;
+                background-color: rgba(50, 50, 50, 0.9); /* 深色半透明背景 */
                 color: #FFFFFF;
             }
-            QLabel {
+            QInputDialog QLabel {
                 color: #FFFFFF;
+                background-color: transparent;
             }
-            QLineEdit, QComboBox {
-                background-color: #3C3C3C;
+            QInputDialog QLineEdit, QInputDialog QComboBox {
+                background-color: rgba(60, 60, 60, 0.8);
                 color: #FFFFFF;
-                border: 1px solid #3F3F46;
+                border: 1px solid #707070;
                 border-radius: 4px;
                 padding: 4px;
             }
-            QPushButton {
-                background-color: #0E639C;
+            QInputDialog QPushButton {
+                background-color: rgba(80, 80, 80, 0.8);
                 color: white;
                 border: none;
                 border-radius: 4px;
                 padding: 6px 12px;
                 min-width: 80px;
             }
-            QPushButton:hover {
-                background-color: #1177BB;
+            QInputDialog QPushButton:hover {
+                background-color: rgba(100, 100, 100, 0.8);
             }
-            QPushButton:pressed {
-                background-color: #0D5789;
+            QInputDialog QPushButton:pressed {
+                background-color: rgba(50, 50, 50, 0.8);
             }
         """
         
@@ -539,7 +542,7 @@ class DatabaseEditorDialog(QDialog):
                 QMessageBox.critical(self, "错误", f"更新数据库失败\n{e}")
 
     def add_document(self):
-        # 实现添加文档的功能
+        # 添加文档
         if not self.current_db_name or not self.current_collection_name:
             msg_box = QMessageBox(self)
             msg_box.setWindowTitle("提示")
@@ -552,21 +555,21 @@ class DatabaseEditorDialog(QDialog):
         # 设置QInputDialog的样式
         input_dialog_style = """
             QInputDialog {
-                background-color: #2D2D30;
+                background-color: #FFFFFF;
                 color: #FFFFFF;
             }
             QLabel {
                 color: #FFFFFF;
             }
             QTextEdit, QLineEdit {
-                background-color: #3C3C3C;
+                background-color: #FFFFFF;
                 color: #FFFFFF;
                 border: 1px solid #3F3F46;
                 border-radius: 4px;
                 padding: 4px;
             }
             QPushButton {
-                background-color: #0E639C;
+                background-color: #FFFFFF;
                 color: white;
                 border: none;
                 border-radius: 4px;

@@ -55,7 +55,7 @@ def main():
     signal.signal(signal.SIGINT, lambda s, f: window.cleanup_and_exit())
     sys.exit(app.exec_())
 
-# 添加一个函数来处理启动时的更新检查
+# 更新检查
 def check_for_updates_on_startup():
     # 读取配置文件检查是否启用自动更新
     config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Config', 'config.json')

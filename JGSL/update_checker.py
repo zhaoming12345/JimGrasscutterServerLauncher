@@ -65,11 +65,3 @@ class UpdateCheckThread(QThread):
         except Exception as e:
             logger.error(f"检查最新发行版时发生未知错误: {e}")
             return False, VERSION
-
-checker = UpdateCheckThread()
-    
-def handle_result(available, version):
-    print(f"Update Available: {available}, Latest Version: {version}")
-    checker.update_check_result.connect(handle_result)
-    checker.start()
-    checker.wait() # 等待线程结束

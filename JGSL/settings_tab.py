@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QComboBox, QLabel, 
 from PyQt5.QtCore import QTimer, QThread, pyqtSignal
 import qdarkstyle
 from loguru import logger
+from blur_style import BLUR_STYLE # 导入自定义样式
 import json
 import os
 # 导入更新检查器和设置当前版本号的函数
@@ -145,14 +146,14 @@ class SettingsTab(QWidget):
         """Helper function to apply theme."""
         try:
             if theme == 'dark':
-                self.window().setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+                self.window().setStyleSheet(BLUR_STYLE) # 应用自定义的粉紫渐变主题
             else:
                 self.window().setStyleSheet('')
             logger.debug(f'应用主题: {theme} ')
         except Exception as e:
             logger.error(f'应用主题时出错: {e}')
 
-    # 添加一个方法来启动更新检查线程
+    # 启动更新检查线程
     def run_update_check(self):
         logger.info("开始后台检查更新...")
         # 检查是否已有线程在运行，避免重复启动
@@ -163,7 +164,7 @@ class SettingsTab(QWidget):
         self.update_thread.update_check_result.connect(self.handle_update_result)
         self.update_thread.start()
 
-    # 添加一个方法来处理更新检查结果
+    # 处理更新检查结果
     def handle_update_result(self, update_available, latest_version):
         if update_available:
             self.update_status_label.setText(f"发现新版本: {latest_version}！请前往 GitHub 下载")
@@ -174,7 +175,7 @@ class SettingsTab(QWidget):
             self.update_status_label.setText(f"当前版本: {VERSION} (已是最新)")
             logger.info("未发现新版本或检查更新失败")
 
-    # 添加一个方法来处理复选框状态变化
+    # 处理复选框状态变化
     def toggle_auto_update(self, state):
         if state == 2: 
             self.run_update_check()
