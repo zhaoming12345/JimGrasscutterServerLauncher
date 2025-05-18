@@ -5,7 +5,7 @@ import shutil
 import os
 import json
 from loguru import logger
-import re
+import patoolib
 import webbrowser
 import zipfile
 import tempfile
