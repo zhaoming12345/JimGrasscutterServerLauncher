@@ -225,7 +225,7 @@
       "items": [
         {
           "title": "4.0.1版本",
-          "target_filename": "Banners4.0.1.json",
+          "target_filename": "Banners.json",
           "target_location": "Servers/{instance_name}/data",
           "download_url": "https://raw.githubusercontent.com/Zhaokugua/Grasscutter_Banners/main/Banners4.0.1.json",
           "is_zipped": false,
@@ -233,7 +233,7 @@
         },
         {
           "title": "全卡池",
-          "target_filename": "BannersFull.json",
+          "target_filename": "Banners.json",
           "target_location": "Servers/{instance_name}/data",
           "download_url": "https://raw.githubusercontent.com/Zhaokugua/Grasscutter_Banners/main/BannersFull.json",
           "is_zipped": false,
