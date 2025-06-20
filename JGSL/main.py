@@ -7,6 +7,7 @@ from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtCore import Qt
 from main_window import MainWindow
 import signal
+import webbrowser
 # 导入更新检查器和设置版本号的函数
 from update_checker import UpdateCheckThread, VERSION
 
@@ -86,7 +87,6 @@ def check_for_updates_on_startup():
         msg_box.setDefaultButton(QMessageBox.Yes)
         ret = msg_box.exec_()
         if ret == QMessageBox.Yes:
-            import webbrowser
             webbrowser.open(f"https://github.com/{update_thread.REPO_OWNER}/{update_thread.REPO_NAME}/releases/latest")
     else:
         logger.info("启动时未发现新版本或检查失败")

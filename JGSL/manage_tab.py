@@ -120,8 +120,8 @@ class ManageTab(QWidget):
         self.edit_config_btn = QPushButton('编辑Grasscutter配置文件')
         self.edit_btn = QPushButton('修改实例配置')
         self.delete_btn = QPushButton('删除实例')
-        self.clone_btn = QPushButton('克隆实例') # 新增克隆按钮
-        self.plugin_btn = QPushButton('插件管理') # 新增插件管理按钮
+        self.clone_btn = QPushButton('克隆实例')
+        self.plugin_btn = QPushButton('插件管理')
 
         # 用于在进度对话框中显示状态和当前文件
         self.current_operation_status = ""
@@ -340,11 +340,11 @@ class ManageTab(QWidget):
                 logger.error(f'删除实例 {instance_name} 失败: {e}')
                 self.finished_signal.emit(False, f'删除实例失败: {e}')
 
-    def run(self):
-        if self.operation_type == "clone":
-            self._clone_instance()
-        elif self.operation_type == "delete":
-            self._delete_instance()
+        def run(self):
+            if self.operation_type == "clone":
+                self._clone_instance()
+            elif self.operation_type == "delete":
+                self._delete_instance()
 
     def open_plugin_manager(self):
         logger.info("打开插件管理器")
