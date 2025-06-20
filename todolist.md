@@ -23,10 +23,15 @@
 ## 修复
 
 - [x] monitor_tab.py:解决监控面板打开崩溃
-- [x] dispatch.py:修复在集群界面中选中其复选框时崩溃的问题(一般)
+- [x] dispatch.py:修复在集群界面中选中其复选框时崩溃的问题
 - [x] download_tab.py:修复下载过程中提示权限不足的问题
 - [x] download_tab.py:修复解压功能依赖外部工具的问题
 - [ ] monitor_tab.py:修复打开监控面板会导致服务端日志中多出几百万行的EOF的问题(紧急 | 偶发性问题且原因不明，暂时忽略)
+- [ ] database_editor_dialog.py:执行某些操作时字体会变回默认字体(一般)
+- [ ] database_editor_dialog.py:右键键值对时右键菜单空白但仍可正常点击(一般)
+- [ ] settings_tab.py:“启用自动更新”字体颜色为黑色而非预期的白色(一般)
+- [ ] settings_tab.py:最大日志行数的输入框的字体颜色为黑色而非预期的白色(一般)
+- [ ] monitor_tab.py:某些情况下会错误的触发日志轮转检测(一般)
 
 ## 修改
 
