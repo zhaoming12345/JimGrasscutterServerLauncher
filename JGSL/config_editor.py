@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QTabWidget, QWidget, QVBoxLayout, QFormLayout, QLineEdit, QCheckBox, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QHBoxLayout, QComboBox, QSpinBox, QGroupBox, QTextEdit, QFileDialog, QScrollArea
+from PyQt5.QtWidgets import QDialog, QTabWidget, QWidget, QVBoxLayout, QFormLayout, QLineEdit, QCheckBox, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QHBoxLayout, QComboBox, QSpinBox, QGroupBox, QTextEdit, QFileDialog, QScrollArea, QHeaderView
 from PyQt5.QtCore import Qt
 import json
 from pathlib import Path
@@ -13,33 +13,33 @@ class ConfigEditorDialog(QDialog):
         self.setWindowModality(Qt.ApplicationModal)
         self.config_path = config_path
 
-        # 创建滚动区域和主容器
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidgetResizable(True)
-        
-        # 创建内容容器
-        self.content_widget = QWidget()
-        self.main_layout = QVBoxLayout(self.content_widget)
+        # 创建主布局
+        main_layout = QVBoxLayout(self)
         
         # 创建标签页容器
         self.tab_widget = QTabWidget()
+        main_layout.addWidget(self.tab_widget)
         
-        # 设置滚动区域
-        self.scroll_area.setWidget(self.content_widget)
-        self.setLayout(QVBoxLayout())
-        self.layout().addWidget(self.scroll_area)
         # 初始化各配置模块
         self.init_ui()
         self.load_config()
+        
         # 保存按钮
         self.save_btn = QPushButton('保存配置')
         self.save_btn.clicked.connect(self.save_config)
-        self.main_layout.addWidget(self.save_btn)
+        main_layout.addWidget(self.save_btn)
+
+    def create_scrollable_tab(self, content_widget):
+        """创建带有滚动区域的选项卡"""
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(content_widget)
+        return scroll_area
 
     def init_ui(self):
         # 文件结构标签页
         self.structure_tab = QWidget()
-        structure_layout = QFormLayout()
+        structure_layout = QFormLayout(self.structure_tab)
         self.resources_path = QLineEdit()
         # 初始化所有路径输入框
         self.resources_path = QLineEdit()
@@ -57,6 +57,7 @@ class ConfigEditorDialog(QDialog):
         structure_layout.addRow('插件目录:', self.plugins_path)
         structure_layout.addRow('缓存目录:', self.cache_path) # 缓存目录行
         self.structure_tab.setLayout(structure_layout)
+        self.tab_widget.addTab(self.create_scrollable_tab(self.structure_tab), "文件结构")
 
         # 数据库标签页
         self.database_tab = QWidget()
@@ -73,6 +74,7 @@ class ConfigEditorDialog(QDialog):
         database_layout.addRow('游戏集合名称:', self.game_db_collection)
 
         self.database_tab.setLayout(database_layout)
+        self.tab_widget.addTab(self.create_scrollable_tab(self.database_tab), "数据库")
 
         # 服务器设置标签页
         self.server_tab = QWidget()
@@ -98,6 +100,23 @@ class ConfigEditorDialog(QDialog):
         self.enable_console = QCheckBox('启用控制台')
         server_layout.addRow(self.enable_console)
         self.fast_require = QCheckBox('快速加载Lua脚本')
+
+        # 调度服务器地区配置
+        self.regions_group = QGroupBox('调度服务器地区配置')
+        self.regions_layout = QVBoxLayout()
+        self.regions_table = QTableWidget(0, 6)
+        self.regions_table.setMinimumHeight(200) # 最小高度
+        self.regions_table.setMaximumHeight(400) # 最大高度
+        self.regions_table.setHorizontalHeaderLabels([
+            '地区名', '标题', '调度URL', '加密密钥', '地区密钥', '操作'
+        ])
+        self.regions_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.add_region_btn = QPushButton('添加地区')
+        self.add_region_btn.clicked.connect(self.add_region_row)
+        self.regions_layout.addWidget(self.regions_table)
+        self.regions_layout.addWidget(self.add_region_btn)
+        self.regions_group.setLayout(self.regions_layout)
+        server_layout.addRow(self.regions_group)
         server_layout.addRow(self.fast_require)
         self.start_immediately = QCheckBox('立即启动HTTP服务器')
         server_layout.addRow(self.start_immediately)
@@ -226,6 +245,7 @@ class ConfigEditorDialog(QDialog):
         self.view_settings_layout.addRow(view_button_layout)
         self.view_settings_group.setLayout(self.view_settings_layout)
         server_layout.addRow(self.view_settings_group)
+
         # 调试模式配置
         self.debug_mode_group = QGroupBox('调试模式')
         self.debug_mode_layout = QFormLayout()
@@ -288,38 +308,7 @@ class ConfigEditorDialog(QDialog):
         server_layout.addRow(self.http_files_group)
 
         self.server_tab.setLayout(server_layout)
-
-        # 调度服务器标签页
-        self.dispatch_tab = QWidget()
-        dispatch_layout = QFormLayout()
-        self.dispatch_url = QLineEdit()
-        dispatch_layout.addRow('调度服务器URL:', self.dispatch_url)
-        self.automatic_register_key = QLineEdit()
-        dispatch_layout.addRow('自动注册密钥:', self.automatic_register_key)
-        self.default_area_name = QLineEdit()
-        dispatch_layout.addRow('默认区域名:', self.default_area_name)
-        self.encryption_key = QLineEdit()
-        dispatch_layout.addRow('加密密钥:', self.encryption_key)
-        self.region_key = QLineEdit()
-        dispatch_layout.addRow('区域密钥:', self.region_key)
-        self.handbook_url = QLineEdit()
-        dispatch_layout.addRow('手册服务器URL:', self.handbook_url)
-        self.area_servers_table = QTableWidget(0, 4)
-        self.area_servers_table.setHorizontalHeaderLabels(['区域名称', '显示名', 'IP', '端口'])
-        self.area_servers_table.setColumnWidth(0, 100)
-        self.area_servers_table.setColumnWidth(1, 100)
-        self.area_servers_table.setColumnWidth(2, 100)
-        self.area_servers_table.setColumnWidth(3, 100)
-        button_layout = QHBoxLayout()
-        add_button = QPushButton('添加服务器') # 统一按钮文本
-        add_button.clicked.connect(self.add_area_server)
-        delete_button = QPushButton('删除选中服务器') # 统一按钮文本
-        delete_button.clicked.connect(self.delete_area_server)
-        button_layout.addWidget(add_button)
-        button_layout.addWidget(delete_button)
-        dispatch_layout.addRow(self.area_servers_table)
-        dispatch_layout.addRow(button_layout)
-        self.dispatch_tab.setLayout(dispatch_layout)
+        self.tab_widget.addTab(self.create_scrollable_tab(self.server_tab), "服务器设置")
 
         # 语言设置标签页
         self.language_tab = QWidget()
@@ -334,6 +323,7 @@ class ConfigEditorDialog(QDialog):
         self.document_language.addItems(['CHS', 'CHT', 'DE', 'EN', 'ES', 'FR', 'ID', 'IT', 'JP', 'KR', 'PT', 'RU', 'TH', 'TR', 'VI'])
         language_layout.addRow('文档语言:', self.document_language)
         self.language_tab.setLayout(language_layout)
+        self.tab_widget.addTab(self.create_scrollable_tab(self.language_tab), "语言设置")
 
         # 账户系统标签页
         self.account_tab = QWidget()
@@ -353,8 +343,8 @@ class ConfigEditorDialog(QDialog):
         self.world_level = QSpinBox()
         self.world_level.setRange(0, 9)
         account_layout.addRow('世界等级:', self.world_level)
-        self.permission_table = QTableWidget(0, 2)
-        self.permission_table.setHorizontalHeaderLabels(['权限', '描述'])
+        self.permission_table = QTableWidget(0, 1)
+        self.permission_table.setHorizontalHeaderLabels(['权限'])
         account_layout.addRow(self.permission_table)
         # 权限添加/删除按钮
         permission_button_layout = QHBoxLayout()
@@ -366,6 +356,7 @@ class ConfigEditorDialog(QDialog):
         permission_button_layout.addWidget(delete_perm_button)
         account_layout.addRow(permission_button_layout)
         self.account_tab.setLayout(account_layout)
+        self.tab_widget.addTab(self.create_scrollable_tab(self.account_tab), "账户系统")
 
         # 欢迎邮件标签页
         self.welcome_mail_tab = QWidget()
@@ -376,8 +367,8 @@ class ConfigEditorDialog(QDialog):
         welcome_mail_layout.addRow('发件人:', self.welcome_mail_sender)
         self.welcome_mail_content = QLineEdit()
         welcome_mail_layout.addRow('内容:', self.welcome_mail_content)
-        self.welcome_mail_attachments = QTableWidget(0, 2)
-        self.welcome_mail_attachments.setHorizontalHeaderLabels(['物品ID', '数量'])
+        self.welcome_mail_attachments = QTableWidget(0, 3)
+        self.welcome_mail_attachments.setHorizontalHeaderLabels(['物品ID', '数量', '等级'])
         welcome_mail_layout.addRow(self.welcome_mail_attachments)
         # 附件添加/删除按钮
         attachment_button_layout = QHBoxLayout()
@@ -389,16 +380,25 @@ class ConfigEditorDialog(QDialog):
         attachment_button_layout.addWidget(delete_attach_button)
         welcome_mail_layout.addRow(attachment_button_layout)
         self.welcome_mail_tab.setLayout(welcome_mail_layout)
+        self.tab_widget.addTab(self.create_scrollable_tab(self.welcome_mail_tab), "欢迎邮件")
 
-        # 标签页
-        self.tab_widget.addTab(self.structure_tab, "文件结构")
-        self.tab_widget.addTab(self.database_tab, "数据库")
-        self.tab_widget.addTab(self.server_tab, "服务器设置")
-        self.tab_widget.addTab(self.dispatch_tab, "调度服务器")
-        self.tab_widget.addTab(self.language_tab, "语言设置")
-        self.tab_widget.addTab(self.account_tab, "账户系统")
-        self.tab_widget.addTab(self.welcome_mail_tab, "欢迎邮件")
-        self.main_layout.addWidget(self.tab_widget)
+    def add_region_row(self):
+        row_count = self.regions_table.rowCount()
+        self.regions_table.insertRow(row_count)
+        # 默认值
+        self.regions_table.setItem(row_count, 0, QTableWidgetItem('New Region'))
+        self.regions_table.setItem(row_count, 1, QTableWidgetItem('New Title'))
+        self.regions_table.setItem(row_count, 2, QTableWidgetItem('http://localhost:22333'))
+        self.regions_table.setItem(row_count, 3, QTableWidgetItem('')) # dispatchKey
+        self.regions_table.setItem(row_count, 4, QTableWidgetItem('')) # regionKey
+
+        # 添加删除按钮
+        delete_btn = QPushButton('删除')
+        delete_btn.clicked.connect(lambda checked, row=row_count: self.delete_region_row(row))
+        self.regions_table.setCellWidget(row_count, 5, delete_btn)
+
+    def delete_region_row(self, row):
+        self.regions_table.removeRow(row)
 
     def load_config(self):
         try:
@@ -486,7 +486,17 @@ class ConfigEditorDialog(QDialog):
             # 加载手册选项配置
             handbook_options = game_options.get('handbook', {}) # 新增
             self.allow_handbook.setChecked(handbook_options.get('allowHandbook', True))
-            self.handbook_server.setText(handbook_options.get('server', ''))
+            server_info = handbook_options.get('server', {})
+            if isinstance(server_info, dict):
+                # 从字典中提取地址和端口
+                address = server_info.get('address', '')
+                port = server_info.get('port', '')
+                # 组合成 address:port 格式
+                server_str = f"{address}:{port}" if address and port else ''
+                self.handbook_server.setText(server_str)
+            else:
+                # 如果已经是字符串，直接使用
+                self.handbook_server.setText(server_info)
             handbook_limits = handbook_options.get('limits', {})
             self.handbook_max_requests.setValue(handbook_limits.get('maxRequests', 5))
             self.handbook_time_frame.setValue(handbook_limits.get('timeFrame', 60))
@@ -505,7 +515,8 @@ class ConfigEditorDialog(QDialog):
                     logger.error(f'加载视觉设置时出错: {e}')
                     QMessageBox.warning(self, '加载错误', f'加载视觉设置时出错: {e}')
             # 加载调试模式配置
-            self.log_level.setCurrentText(debug_config.get('serverLogLevel', 'INFO')) # 修正键名
+            server_logger = debug_config.get('serverLoggerLevel', {})
+            self.log_level.setCurrentText(server_logger.get('levelStr', 'INFO'))
             self.show_packet_content.setChecked(debug_config.get('showPacketContent', False))
 
             # 加载调试白名单/黑名单
@@ -514,27 +525,24 @@ class ConfigEditorDialog(QDialog):
             blacklist_ids = [str(uid) for uid in server_config.get('debugBlacklist', [])]
             self.debug_blacklist.setText('\n'.join(blacklist_ids))
 
-            # 加载调度服务器配置
-            # dispatch_config = server_config.get('dispatch', {}) # 修正路径 - 已在上方加载
-            # Assuming single region structure based on save logic
-            region_config = dispatch_config.get('regions', [{}])[0]
-            self.dispatch_url.setText(region_config.get('dispatchUrl', ''))
-            self.automatic_register_key.setText(region_config.get('secretKey', '')) # Key name mismatch between load/save
-            self.default_area_name.setText(region_config.get('title', '')) # Key name mismatch between load/save
-            self.encryption_key.setText(region_config.get('encryptionKey', ''))
-            area_servers = region_config.get('servers', []) # Key name mismatch between load/save
-            self.area_servers_table.setRowCount(0) # 清空表格
-            for server in area_servers:
+            # 加载调度服务器配置 (多地区)
+            self.regions_table.setRowCount(0) # 清空表格
+            for region in dispatch_config.get('regions', []):
                 try:
-                    row_position = self.area_servers_table.rowCount()
-                    self.area_servers_table.insertRow(row_position)
-                    self.area_servers_table.setItem(row_position, 0, QTableWidgetItem(server.get('name', '')))
-                    self.area_servers_table.setItem(row_position, 1, QTableWidgetItem(server.get('displayName', '')))
-                    self.area_servers_table.setItem(row_position, 2, QTableWidgetItem(server.get('ip', '')))
-                    self.area_servers_table.setItem(row_position, 3, QTableWidgetItem(str(server.get('port', 0))))
+                    row_position = self.regions_table.rowCount()
+                    self.regions_table.insertRow(row_position)
+                    self.regions_table.setItem(row_position, 0, QTableWidgetItem(region.get('name', '')))
+                    self.regions_table.setItem(row_position, 1, QTableWidgetItem(region.get('title', '')))
+                    self.regions_table.setItem(row_position, 2, QTableWidgetItem(region.get('dispatchUrl', '')))
+                    self.regions_table.setItem(row_position, 3, QTableWidgetItem(region.get('secretKey', '')))
+                    self.regions_table.setItem(row_position, 4, QTableWidgetItem(region.get('encryptionKey', '')))
+                    # 添加删除按钮
+                    delete_btn = QPushButton('删除')
+                    delete_btn.clicked.connect(lambda checked, row=row_position: self.delete_region_row(row))
+                    self.regions_table.setCellWidget(row_position, 5, delete_btn)
                 except Exception as e:
-                    logger.error(f'加载区域服务器时出错: {e}')
-                    QMessageBox.warning(self, '加载错误', f'加载区域服务器时出错: {e}')
+                    logger.error(f'加载地区配置时出错: {e}')
+                    QMessageBox.warning(self, '加载错误', f'加载地区配置时出错: {e}')
 
             # 加载语言设置配置
             self.primary_language.setCurrentText(config.get('language', {}).get('primary', 'zh_CN'))
@@ -542,24 +550,24 @@ class ConfigEditorDialog(QDialog):
             self.document_language.setCurrentText(config.get('language', {}).get('documentLanguage', 'CHS'))
 
             # 加载账户系统配置
-            account_config = config.get('account', {}) # 修正:先获取 account 字典
+            account_config = config.get('account', {})
             self.auto_create_account.setChecked(account_config.get('autoCreate', False))
-            logger.debug('成功加载所有配置项')
 
-            default_account_config = account_config.get('default', {}) # 修正:从 account_config 获取 default
+            default_account_config = account_config.get('default', {})
             self.avatar_id.setValue(default_account_config.get('avatarId', 10000000))
             self.name_card_id.setValue(default_account_config.get('nameCardId', 0))
             self.nickname.setText(default_account_config.get('nickname', ''))
             self.signature.setText(default_account_config.get('signature', ''))
             self.world_level.setValue(default_account_config.get('worldLevel', 0))
-            permissions = account_config.get('permissions', []) # 修正:从 account_config 获取 permissions
-            self.permission_table.setRowCount(0) # 清空表格
+
+            # 修改权限加载逻辑
+            permissions = account_config.get('defaultPermissions', [])
+            self.permission_table.setRowCount(0)
             for perm in permissions:
                 try:
                     row_position = self.permission_table.rowCount()
                     self.permission_table.insertRow(row_position)
-                    self.permission_table.setItem(row_position, 0, QTableWidgetItem(perm.get('name', '')))
-                    self.permission_table.setItem(row_position, 1, QTableWidgetItem(perm.get('description', '')))
+                    self.permission_table.setItem(row_position, 0, QTableWidgetItem(perm))
                 except Exception as e:
                     logger.error(f'加载权限时出错: {e}')
                     QMessageBox.warning(self, '加载错误', f'加载权限时出错: {e}')
@@ -573,15 +581,11 @@ class ConfigEditorDialog(QDialog):
             items = welcome_mail_config.get('items', []) # 修正:从 welcome_mail_config 获取 items
             self.welcome_mail_attachments.setRowCount(0) # 清空表格
             for item in items:
-                try:
-                    row_position = self.welcome_mail_attachments.rowCount()
-                    self.welcome_mail_attachments.insertRow(row_position)
-                    self.welcome_mail_attachments.setItem(row_position, 0, QTableWidgetItem(str(item.get('itemId', 0))))
-                    self.welcome_mail_attachments.setItem(row_position, 1, QTableWidgetItem(str(item.get('itemCount', 0))))
-                    # 假设 level 总是 1，不在表格中显示
-                except Exception as e:
-                    logger.error(f'加载欢迎邮件附件时出错: {e}')
-                    QMessageBox.warning(self, '加载错误', f'加载欢迎邮件附件时出错: {e}')
+                row_position = self.welcome_mail_attachments.rowCount()
+                self.welcome_mail_attachments.insertRow(row_position)
+                self.welcome_mail_attachments.setItem(row_position, 0, QTableWidgetItem(str(item.get('itemId', 0))))
+                self.welcome_mail_attachments.setItem(row_position, 1, QTableWidgetItem(str(item.get('itemCount', 0))))
+                self.welcome_mail_attachments.setItem(row_position, 2, QTableWidgetItem(str(item.get('itemLevel', 1))))
 
         except FileNotFoundError:
             logger.warning(f'配置文件 {self.config_path} 未找到，将使用默认值或留空。')
@@ -685,9 +689,28 @@ class ConfigEditorDialog(QDialog):
             }
 
             # 更新手册选项配置
-            config['server']['game']['gameOptions']['handbook'] = { # 新增
+            # 解析handbook服务器配置
+            server_text = self.handbook_server.text()
+            server_dict = {}
+            if ':' in server_text:
+                address, port = server_text.split(':', 1)
+                server_dict = {"address": address, "port": int(port)}
+            else:
+                server_dict = {"address": server_text, "port": 443}  # 默认端口
+
+            # 保留原始配置中的额外字段
+            original_server = config['server']['game']['gameOptions'].get('handbook', {}).get('server', {})
+
+            if isinstance(original_server, dict):
+                server_dict.update({
+                    "enforced": original_server.get('enforced', False),
+                    "canChange": original_server.get('canChange', False)
+                })
+
+            # 更新handbook配置
+            config['server']['game']['gameOptions']['handbook'] = {
                 "allowHandbook": self.allow_handbook.isChecked(),
-                "server": self.handbook_server.text(),
+                "server": server_dict,  # 使用解析后的字典
                 "limits": {
                     "maxRequests": self.handbook_max_requests.value(),
                     "timeFrame": self.handbook_time_frame.value()
@@ -716,9 +739,9 @@ class ConfigEditorDialog(QDialog):
                     QMessageBox.critical(self, '保存错误', f'处理视觉设置表格第 {row+1} 行时出错: {e}')
                     return # 出现意外错误则停止保存
             # 更新调试模式配置
-            config['server']['debugMode'] = { # 修正键名
-                "serverLogLevel": self.log_level.currentText(), # 修正键名
-                "showPacketContent": self.show_packet_content.isChecked()
+            config['server']['debugMode'] = {
+            "serverLoggerLevel": {"levelStr": self.log_level.currentText()},
+            "showPacketContent": self.show_packet_content.isChecked()
             }
             # 更新调试白名单/黑名单
             try:
@@ -734,40 +757,24 @@ class ConfigEditorDialog(QDialog):
                 return
             config['server']['debugBlacklist'] = blacklist_ids
 
-            # 更新调度服务器配置
-            # Aligning save structure with load structure (assuming single region)
-            config['server']['dispatch'] = config['server'].get('dispatch', {}) # Preserve other dispatch keys if any
-            config['server']['dispatch']['regions'] = config['server']['dispatch'].get('regions', [{}])
-            if not config['server']['dispatch']['regions']: # Ensure there's at least one region dict
-                config['server']['dispatch']['regions'].append({})
-            region_config = config['dispatch']['regions'][0]
-            region_config['name'] = region_config.get('name', 'os_usa') # Preserve or set default name
-            region_config['title'] = self.default_area_name.text()
-            region_config['dispatchUrl'] = self.dispatch_url.text()
-            region_config['secretKey'] = self.automatic_register_key.text()
-            region_config['encryptionKey'] = self.encryption_key.text()
-            region_config['servers'] = []
-            for row in range(self.area_servers_table.rowCount()):
-                try:
-                    name_item = self.area_servers_table.item(row, 0)
-                    display_item = self.area_servers_table.item(row, 1)
-                    ip_item = self.area_servers_table.item(row, 2)
-                    port_item = self.area_servers_table.item(row, 3)
-                    # 检查单元格是否存在且内容不为空
-                    if name_item and name_item.text() and display_item and display_item.text() and ip_item and ip_item.text() and port_item and port_item.text():
-                        name = name_item.text()
-                        display_name = display_item.text()
-                        ip = ip_item.text()
-                        port = int(port_item.text())
-                        region_config['servers'].append({"name": name, "displayName": display_name, "ip": ip, "port": port})
-                    else:
-                        logger.warning(f'区域服务器表格第 {row+1} 行数据不完整或为空，已跳过')
-                except ValueError:
-                    QMessageBox.warning(self, '保存警告', f'区域服务器表格第 {row+1} 行端口号无效，该行未保存')
-                    continue # 跳过此行
-                except Exception as e:
-                    QMessageBox.critical(self, '保存错误', f'处理区域服务器表格第 {row+1} 行时出错: {e}')
-                    return # 停止保存
+            # 更新调度服务器地区配置
+            regions_data = []
+            for row in range(self.regions_table.rowCount()):
+                name = self.regions_table.item(row, 0).text() if self.regions_table.item(row, 0) else ''
+                title = self.regions_table.item(row, 1).text() if self.regions_table.item(row, 1) else ''
+                dispatch_url = self.regions_table.item(row, 2).text() if self.regions_table.item(row, 2) else ''
+                secret_key = self.regions_table.item(row, 3).text() if self.regions_table.item(row, 3) else ''
+                encryption_key = self.regions_table.item(row, 4).text() if self.regions_table.item(row, 4) else ''
+                regions_data.append({
+                    'name': name,
+                    'title': title,
+                    'dispatchUrl': dispatch_url,
+                    'secretKey': secret_key,
+                    'encryptionKey': encryption_key,
+                    'dispatchKey': 'HK4E_Dispatch_Key',
+                    'logRequests': False
+                })
+            config['server']['dispatch']['regions'] = regions_data
 
             # 更新语言设置配置
             config['language'] = {
@@ -776,34 +783,33 @@ class ConfigEditorDialog(QDialog):
                 "documentLanguage": self.document_language.currentText()
             }
 
-            # 更新账户系统配置
-            config['account'] = {
-                "autoCreate": self.auto_create_account.isChecked(),
-                # "initialUid": self.initial_uid.value(), # Removed as UI element doesn't exist
-                "default": {
-                    "avatarId": self.avatar_id.value(),
-                    "nameCardId": self.name_card_id.value(),
-                    "nickname": self.nickname.text(),
-                    "signature": self.signature.text(),
-                    "worldLevel": self.world_level.value()
-                },
-                "permissions": []
-            }
+            # 更新账户系统配置，保留其他字段
+            if 'account' not in config:
+                config['account'] = {}
+            account_config = config['account']
+            account_config['autoCreate'] = self.auto_create_account.isChecked()
+
+            # 更新default字段
+            if 'default' not in account_config:
+                account_config['default'] = {}
+            default_account = account_config['default']
+            default_account['avatarId'] = self.avatar_id.value()
+            default_account['nameCardId'] = self.name_card_id.value()
+            default_account['nickname'] = self.nickname.text()
+            default_account['signature'] = self.signature.text()
+            default_account['worldLevel'] = self.world_level.value()
+
+            # 修改权限保存逻辑
+            permissions_list = []
             for row in range(self.permission_table.rowCount()):
                 try:
                     name_item = self.permission_table.item(row, 0)
-                    desc_item = self.permission_table.item(row, 1)
-                    # 检查权限名称单元格是否存在且不为空
                     if name_item and name_item.text():
-                        name = name_item.text()
-                        # 描述可以为空
-                        description = desc_item.text() if desc_item else ''
-                        config['account']['permissions'].append({"name": name, "description": description})
-                    else:
-                        logger.warning(f'权限表格第 {row+1} 行名称为空，已跳过')
+                        permissions_list.append(name_item.text())
                 except Exception as e:
                     QMessageBox.critical(self, '保存错误', f'处理权限表格第 {row+1} 行时出错: {e}')
-                    return # 停止保存
+                    return
+            account_config['defaultPermissions'] = permissions_list
 
             # 更新欢迎邮件配置
             config['welcomeMail'] = {
@@ -814,25 +820,20 @@ class ConfigEditorDialog(QDialog):
             }
             # 更新欢迎邮件附件
             for row in range(self.welcome_mail_attachments.rowCount()):
-                try:
-                    id_item = self.welcome_mail_attachments.item(row, 0)
-                    count_item = self.welcome_mail_attachments.item(row, 1)
-                    # 检查单元格是否存在且内容不为空
-                    if id_item and id_item.text() and count_item and count_item.text():
-                        item_id = int(id_item.text())
-                        count = int(count_item.text())
-                        if count > 0: # 数量必须大于0
-                            config['welcomeMail']['items'].append({"itemId": item_id, "itemCount": count, "itemLevel": 1})
-                        else:
-                            logger.warning(f'欢迎邮件附件表格第 {row+1} 行数量无效 ({count})，已跳过')
-                    else:
-                        logger.warning(f'欢迎邮件附件表格第 {row+1} 行数据不完整或为空，已跳过')
-                except ValueError:
-                    QMessageBox.warning(self, '保存警告', f'欢迎邮件附件表格第 {row+1} 行包含无效数字，该行未保存')
-                    continue # 跳过此行
-                except Exception as e:
-                    QMessageBox.critical(self, '保存错误', f'处理欢迎邮件附件表格第 {row+1} 行时出错: {e}')
-                    return # 停止保存
+                id_item = self.welcome_mail_attachments.item(row, 0)
+                count_item = self.welcome_mail_attachments.item(row, 1)
+                level_item = self.welcome_mail_attachments.item(row, 2)  # 新增
+                
+                if id_item and id_item.text() and count_item and count_item.text():
+                    item_id = int(id_item.text())
+                    count = int(count_item.text())
+                    level = int(level_item.text()) if level_item and level_item.text() else 1
+                    if count > 0:
+                        config['welcomeMail']['items'].append({
+                            "itemId": item_id, 
+                            "itemCount": count, 
+                            "itemLevel": level
+                        })
 
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=4, ensure_ascii=False)
