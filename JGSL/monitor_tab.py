@@ -478,7 +478,6 @@ class MonitorPanel(QDialog):
                     self.command_input.clear()
                 else:
                     logger.success(f'命令成功发送到进程 {self.pid} (通过 QProcess)')
-                    QMessageBox.information(self, "提示", f"命令 '{command}' 已成功发送")
                     self.command_history.append(command) # 仅在成功或部分写入时添加到历史记录
                     self.command_input.clear()
 
@@ -847,7 +846,6 @@ class MonitorPanel(QDialog):
                     self.command_input.clear()
                 else:
                     logger.success(f'命令成功发送到进程 {self.pid} (通过 QProcess)')
-                    QMessageBox.information(self, "提示", f"命令 '{command}' 已成功发送")
                     self.command_history.append(command) # 仅在成功或部分写入时添加到历史记录
                     self.command_input.clear()
 
@@ -1043,15 +1041,6 @@ class LogReaderThread(QThread):
                 # 使用互斥锁保护共享数据访问
                 with self.mutex:
                     last_size = self.last_log_size
-                
-                # 文件变小了，可能是日志轮转或被清空
-                if current_size < last_size:
-                    logger.info(f"日志文件 {self.log_path} 大小减小，可能已轮转或清空，重置读取位置")
-                    with self.mutex:
-                        self.last_log_size = 0
-                    self.log_error.emit("日志文件已重置")
-                    time.sleep(0.5)
-                    continue
                 
                 # 文件没有变化，跳过本次读取
                 if current_size == last_size:
