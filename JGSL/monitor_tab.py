@@ -348,19 +348,19 @@ class MonitorPanel(QDialog):
     def append_log(self, log_content):
         try:
             # 使用QTimer.singleShot将UI更新操作放到主线程事件循环中执行
-            # 这样可以避免在非主线程中直接操作UI元素导致的问题
-            if not hasattr(self, '_log_buffer'):
-                self._log_buffer = ""
-                self._log_buffer_timer = QTimer()
-                self._log_buffer_timer.timeout.connect(self._flush_log_buffer)
-                self._log_buffer_timer.start(100)  # 每100ms刷新一次日志缓冲区
-            
-            # 将日志内容添加到缓冲区
-            self._log_buffer += log_content
-            
-            # 如果缓冲区过大，立即刷新
-            if len(self._log_buffer) > 5000:
-                QTimer.singleShot(0, self._flush_log_buffer)
+                # 这样可以避免在非主线程中直接操作UI元素导致的问题
+                if not hasattr(self, '_log_buffer'):
+                    self._log_buffer = ""
+                    self._log_buffer_timer = QTimer()
+                    self._log_buffer_timer.timeout.connect(self._flush_log_buffer)
+                    self._log_buffer_timer.start(100)  # 每100ms刷新一次日志缓冲区
+                
+                # 将日志内容添加到缓冲区
+                self._log_buffer += log_content
+                
+                # 如果缓冲区过大，立即刷新
+                if len(self._log_buffer) > 5000:
+                    QTimer.singleShot(0, self._flush_log_buffer)
         except Exception as e:
             logger.error(f"添加日志内容时发生错误: {e}")
     
@@ -383,7 +383,18 @@ class MonitorPanel(QDialog):
                     scrollbar.setValue(scrollbar.maximum())
                 
                 # 检查是否需要裁剪日志
-                if self.log_text.document().lineCount() > 1000:
+                # 从配置文件中读取最大日志行数，如果读取失败则使用默认值1000
+                max_log_lines = 1000  # 默认值
+                config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Config', 'config.json')
+                try:
+                    if os.path.exists(config_file):
+                        with open(config_file, 'r', encoding='utf-8') as f:
+                            config_data = json.load(f)
+                        max_log_lines = config_data.get('MaxLogLines', 1000)
+                except Exception as e:
+                    logger.error(f'读取配置文件中的MaxLogLines失败: {e}，将使用默认值1000')
+
+                if self.log_text.document().lineCount() > max_log_lines:
                     QTimer.singleShot(0, self.trim_log_text)
         except Exception as e:
             logger.error(f"刷新日志缓冲区时发生错误: {e}")
@@ -882,14 +893,17 @@ class MonitorPanel(QDialog):
                                 break
                             time.sleep(1)
                         else:
-                            raise psutil.TimeoutExpired("等待安全关闭超时")
+                            raise psutil.TimeoutExpired(30, "等待安全关闭超时")
                         
                         logger.success(f'实例 {self.instance_name} (PID: {self.pid}) 已安全关闭')
                         self.instance_closed_signal.emit(self.instance_name)
                         self.close()
                         return
                     except Exception as e:
-                        logger.warning(f'安全关闭失败，将尝试终止进程: {e}')
+                        if isinstance(e, psutil.TimeoutExpired):
+                            logger.warning(f'安全关闭失败，等待超时 {e.timeout} 秒，将尝试终止进程。')
+                        else:
+                            logger.warning(f'安全关闭失败，将尝试终止进程: {e}')
                         
                     # 安全关闭失败后回退到原终止逻辑
                     proc = psutil.Process(self.pid)

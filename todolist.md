@@ -13,12 +13,12 @@
 - [x] plugin_manager.py:插件生命周期管理
 - [x] download_tab.py:自动解压压缩包
 - [x] download_tab.py:添加不可自动下载的资源的支持
-- [ ] download_tab.py:分卷压缩包支持(计划)
-- [ ] cluster_tab.py:启动/停止集群(一般)
-- [ ] Language\*:添加中英文翻译文件(一般 | 暂时忽略)
-- [ ] building_tab:构建标签页(可能 | 用于构建割草机，非常简单而且不太实用所以优先级低)
 - [ ] data_manager:可视化json编辑，如Banners、Shop、ActivityConfig、Announcement等等(一般)
 - [ ] resources_manager:可视化编辑TextMap中的游戏文本(一般)
+- [ ] cluster_tab.py:启动/停止集群(一般)
+- [ ] Language\*:添加中英文翻译文件(一般 | 暂时忽略)
+- [ ] download_tab.py:分卷压缩包支持(计划)
+- [ ] building_tab:构建标签页(可能 | 用于构建割草机，非常简单而且不太实用所以优先级低)
 
 ## 修复
 
@@ -27,9 +27,9 @@
 - [x] download_tab.py:修复下载过程中提示权限不足的问题
 - [x] download_tab.py:修复解压功能依赖外部工具的问题
 - [x] monitor_tab.py:某些情况下会错误的触发日志轮转检测
-- [ ] monitor_tab.py:修复打开监控面板会导致服务端日志中多出几百万行的EOF的问题(紧急 | 偶发性问题且原因不明，暂时忽略)
+- [x] database_editor_dialog.py:右键键值对时右键菜单空白
+- [x] monitor_tab.py:修复打开监控面板会导致服务端日志中多出几百万行的EOF的问题(不再遇到，可能已经修复)
 - [ ] database_editor_dialog.py:执行某些操作时字体会变回默认字体(一般)
-- [ ] database_editor_dialog.py:右键键值对时右键菜单空白但仍可正常点击(一般)
 - [ ] settings_tab.py:“启用自动更新”字体颜色为黑色而非预期的白色(一般)
 - [ ] settings_tab.py:最大日志行数的输入框的字体颜色为黑色而非预期的白色(一般)
 

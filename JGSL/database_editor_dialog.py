@@ -45,6 +45,8 @@ class DatabaseEditorDialog(QDialog):
             QDialog {
                 background-color: rgba(30, 30, 30, 0.9); /* 深色背景 */
                 color: #FFFFFF;
+                font-family: "HanYiWenHei-85W-Heavy"; /* 设置字体为 HanYiWenHei-85W-Heavy */
+                font-size: 10pt; /* 设置字体大小 */
             }
             QLabel {
                 color: #FFFFFF;
@@ -277,12 +279,12 @@ class DatabaseEditorDialog(QDialog):
         # 设置菜单样式，确保在黑色背景下可见
         menu.setStyleSheet("""
             QMenu {
-                background-color: #FFFFFF;
+                background-color: rgba(50, 50, 50, 0.95);
                 color: #FFFFFF;
-                border: 1px solid #3F3F46;
+                border: 1px solid #606060;
             }
             QMenu::item:selected {
-                background-color: #FFFFFF;
+                background-color: rgba(80, 80, 80, 0.9);
             }
         """)
         
