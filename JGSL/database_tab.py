@@ -55,9 +55,28 @@ class DatabaseTab(QWidget):
         logger.info("数据库管理标签页初始化完成")
 
     def clear_database(self):
-        # 实现清空数据库的逻辑
-        logger.info("清空数据库功能待实现")
-        QMessageBox.information(self, "提示", "清空数据库功能正在快马加鞭地开发中，敬请期待")
+        # 警告用户
+        reply = QMessageBox.warning(self, "警告", "此操作将停止数据库服务并删除所有数据，是否继续？", 
+                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.No:
+            logger.info("用户取消了清空数据库操作")
+            return
+            
+        try:
+            # 停止数据库服务
+            self.stop_database_service()
+            
+            # 删除 Database/Data 目录
+            data_path = os.path.join(os.getcwd(), "Database", "Data")
+            if os.path.exists(data_path):
+                shutil.rmtree(data_path)
+                os.makedirs(data_path)
+                logger.info(f"已清空数据库目录: {data_path}")
+                
+            QMessageBox.information(self, "成功", "数据库已清空")
+        except Exception as e:
+            logger.error(f"清空数据库失败: {e}")
+            QMessageBox.critical(self, "错误", f"清空数据库失败\n错误信息: {e}")
 
     def export_database(self):
         # 实现导出数据库的逻辑
