@@ -37,10 +37,9 @@
 
 - [x] monitor_tab.py:关闭实例应优先通过对服务器发送"STOP"命令来进行安全的关闭
 - [x] download_tab.py&download-list.json:在json中指定文件名、目标位置、是否可自动下载等
-- [ ] dispatch.py:地区列表应该从配置文件中读取(一般)
 - [ ] cluster_tab.py:应该遵循[多服务器配置教程](https://www.bilibili.com/video/BV1L5CXY4Eaj)，适当复用资源，减少空间浪费(一般)
+- [ ] dispatch.py:地区列表应该从配置文件中读取(一般)
 
 ## 删除
 
 暂无
-

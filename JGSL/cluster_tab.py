@@ -93,7 +93,7 @@ class ClusterConfigDialog(QDialog):
         other_layout = QVBoxLayout()
         self.cluster_name_input = QLineEdit()
         self.cluster_name_input.setPlaceholderText('请输入集群名称')
-        self.game_server_count_label = QLabel('游戏服务器总数: N/A')
+        self.game_server_count_label = QLabel('游戏服务器总数: 0')
         other_bottom_widget = QWidget()
         other_bottom_layout = QHBoxLayout(other_bottom_widget)
         other_bottom_layout.setContentsMargins(0, 10, 0, 0)
@@ -303,7 +303,22 @@ class ClusterConfigDialog(QDialog):
         
     def open_title_config(self):
         """打开标题配置对话框"""
-        from JGSL.config_editor import ConfigEditorDialog
+        from .title_editor_dialog import TitleEditorDialog
+        # 获取当前选中的实例路径和标题
+        selected_rows = self.instance_table.selectionModel().selectedRows()
+        if not selected_rows:
+            QMessageBox.warning(self, '警告', '请先选择一个实例！')
+            return
+        row = selected_rows[0].row()
+        instance_name = self.instance_table.item(row, 0).text()
+        instance_path = os.path.join(self.server_path, instance_name)
+        current_title = self.instance_table.item(row, 1).text() # 假设标题在第二列
+
+        dialog = TitleEditorDialog(self, instance_path=instance_path, current_title=current_title)
+        if dialog.exec_() == QDialog.Accepted:
+            logger.info(f"实例 {instance_name} 的标题已更新。")
+            # 刷新表格数据以显示最新标题
+            self.load_instances()
         
         # 获取当前选中的游戏服务器
         selected_items = self.game_server_list.selectedItems()
@@ -339,7 +354,7 @@ class ClusterConfigDialog(QDialog):
         # 2. 获取调度服务器配置
         dispatch_servers = [self.dispatch_server_list.item(i).text() for i in range(self.dispatch_server_list.count())]
         use_internal = self.use_internal_dispatch_checkbox.isChecked()
-        # 验证调度配置 (例如:必须至少有一个调度服务器，除非使用内置)
+        # 验证调度配置，至少有一个调度服务器，除非使用内置
         if not use_internal and not dispatch_servers:
             QMessageBox.warning(self, "错误", "请指定一个调度服务器，或勾选\"使用内置调度\"")
             self.config_tabs.setCurrentIndex(0) # 切换到"调度"标签页
