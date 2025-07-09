@@ -2,7 +2,7 @@
 
 [English](README-en_US.md)
 
-![JGSL Logo](.\Assets\JGSL-Logo.ico)
+![JGSL Logo](/Assets/JGSL-Logo.ico)
 
 [介绍视频](https://www.bilibili.com/video/BV1C2EkzoEqd)
 
@@ -24,13 +24,13 @@
 
 ## 文档导航
 
-- [目录说明](.\DirInfo.md)
+- [目录说明](DirInfo.md)
   
-- [开源协议](.\LICENSE)
+- [开源协议](LICENSE)
   
-- [待办清单](.\todolist.md)
+- [待办清单](todolist.md)
   
-- [行为准则](.\CODE_OF_CONDUCT.md)
+- [行为准则](CODE_OF_CONDUCT.md)
 
 ## 如何使用？
 
