@@ -38,7 +38,7 @@ class JSONEditor(QMainWindow):
         self.path_input = QComboBox()
         self.path_input.setEditable(True)
         self.path_input.setInsertPolicy(QComboBox.NoInsert)
-        self.path_input.lineEdit().setPlaceholderText("请输入")
+        self.path_input.lineEdit().setPlaceholderText("键入路径或在下拉框中选择")
         self.path_input.lineEdit().installEventFilter(self)
         self.load_combo_box_items()
 
@@ -113,7 +113,7 @@ class JSONEditor(QMainWindow):
 
     def load_combo_box_items(self):
         try:
-            with open("./jsonfileinfo.json", "r", encoding="utf-8") as f:
+            with open("../Config/jsonfileinfo.json", "r", encoding="utf-8") as f:
                 items = json.load(f)
                 for item in items:
                     self.path_input.addItem(item['name'], item['path'])
@@ -198,17 +198,17 @@ class JSONEditor(QMainWindow):
     def eventFilter(self, source, event):
         if source == self.path_input.lineEdit():
             if event.type() == event.FocusIn:
-                if source.placeholderText() == "请输入":
+                if source.placeholderText() == "键入路径或在下拉框中选择":
                     source.setPlaceholderText("")
             elif event.type() == event.FocusOut:
                 if not source.text():
-                    source.setPlaceholderText("请输入")
+                    source.setPlaceholderText("键入路径或在下拉框中选择")
         return super().eventFilter(source, event)
 
 
 
 
-def edit_it(file_path=None):
+def edit_itjson(file_path=None):
     app = QApplication(sys.argv)
     editor = JSONEditor(file_path)
     editor.show()
@@ -216,4 +216,4 @@ def edit_it(file_path=None):
 
 
 if __name__ == '__main__':
-    edit_it()
+    edit_itjson()

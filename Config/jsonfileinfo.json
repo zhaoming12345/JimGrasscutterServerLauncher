@@ -1,0 +1,10 @@
+[
+  {
+    "name": "卡池配置",
+    "path": "../config/111.json"
+  },
+  {
+    "name": "活动配置",
+    "path": "../config/2222.json"
+  }
+]
