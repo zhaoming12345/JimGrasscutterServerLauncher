@@ -5,12 +5,11 @@ import sys
 import os
 import json
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                             QHBoxLayout, QPushButton, QLabel, QFileDialog,
-                             QLineEdit, QTreeWidget, QTreeWidgetItem, QScrollArea,
-                             QFrame, QMessageBox, QHeaderView, QComboBox, QAbstractItemView,
+                             QHBoxLayout, QPushButton, QFileDialog,
+                             QTreeWidget, QTreeWidgetItem,
+                             QMessageBox, QComboBox, QAbstractItemView,
                              QMenu, QAction, QTextEdit)
-from PyQt5.QtCore import Qt, QPoint
-from PyQt5.QtGui import QFont, QTextCursor
+from PyQt5.QtCore import Qt
 
 
 class JSONEditor(QMainWindow):
