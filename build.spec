@@ -2,17 +2,11 @@
 
 block_cipher = None
 
-
-
 a = Analysis(
     [r'JGSL\main.py'],
     pathex=[],
     binaries=[],
-    datas=[
-        (r'Assets\*', 'Assets'),
-        (r'Config\download-list.json', 'Config'),
-        (r'Config\mirror-list.json', 'Config')
-    ],
+    datas=[],
     hiddenimports=[
         'PyQt5',
         'loguru',
@@ -61,7 +55,7 @@ coll = COLLECT(
     a.binaries,
     a.zipfiles,
     a.datas,
-    name='dist',
+    name='JimGrasscutterServerLauncher',
     strip=False,
     upx=True
 )
