@@ -2,10 +2,12 @@ import sys
 import os
 import json
 from loguru import logger
-from PyQt5.QtWidgets import QApplication, QMessageBox, QMessageBox 
+from PyQt5.QtWidgets import QApplication, QMessageBox 
 from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtCore import Qt
 from main_window import MainWindow
+import fe_core
+import sys
 import signal
 import webbrowser
 # 导入更新检查器和设置版本号的函数
@@ -48,6 +50,8 @@ def main():
     
     # 创建并显示主窗口
     window = MainWindow()
+    window.set_window_title("JimGrasscutterServerLauncher")
+    window.set_window_icon(".\\Assets\\JGSL-Logo.ico")
     window.show()
 
     # 在显示主窗口后检查更新

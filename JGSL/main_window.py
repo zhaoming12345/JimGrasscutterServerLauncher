@@ -9,11 +9,10 @@ from settings_tab import SettingsTab
 from cluster_tab import ClusterTab
 from database_tab import DatabaseTab
 from about_tab import AboutTab
-from background_effect import BackgroundEffect
+from fe_core.background_effect import BackgroundEffect
 from loguru import logger
-from custom_title_bar import CustomTitleBar
-from blur_style import apply_blur_style
-
+from fe_core.custom_title_bar import CustomTitleBar
+from fe_core.blur_style import apply_blur_style
 
 class MainWindow(QMainWindow):
     def __init__(self):
