@@ -18,7 +18,7 @@
   
 - Convenient database management supporting import/export, one-click clearing, and graphical editing for operations impossible via commands (like renaming, changing UID)
   
-- Multi-language internationalization support (in progress)
+- Multi-language internationalization support (90%, still in progress)
   
 - Automatic update checking mechanism
 

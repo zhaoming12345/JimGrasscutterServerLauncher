@@ -1,19 +1,22 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QPushButton, QInputDialog, QDialog, QFormLayout, QLineEdit, QFileDialog, QMessageBox, QProgressDialog
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-import os, json
-from pathlib import Path
-from loguru import logger
+import os
+import json
 import shutil
 import psutil
+from pathlib import Path
+from loguru import logger
 from config_editor import ConfigEditorDialog
-from plugin_manager import PluginManagerDialog # 导入插件管理器对话框
-
+from plugin_manager import PluginManagerDialog
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QPushButton, QInputDialog,
+    QDialog, QFormLayout, QLineEdit, QFileDialog, QMessageBox, QProgressDialog
+)
 
 class InstanceConfigDialog(QDialog):
     def __init__(self, parent=None, config=None, root_dir=None):
         super().__init__(parent)
         self.root_dir = root_dir or parent.root_dir
-        self.setWindowTitle('实例配置')
+        self.setWindowTitle(self.tr('实例配置'))
         self.setWindowModality(Qt.ApplicationModal)
         layout = QFormLayout()
 
@@ -21,24 +24,24 @@ class InstanceConfigDialog(QDialog):
 
         self.instance_name = QLineEdit()
         self.java_path = QLineEdit()
-        self.java_path.setPlaceholderText('留空使用全局配置')
+        self.java_path.setPlaceholderText(self.tr('留空使用全局配置'))
         self.jvm_pre_args = QLineEdit()
-        self.jvm_pre_args.setPlaceholderText('留空使用全局配置')
+        self.jvm_pre_args.setPlaceholderText(self.tr('留空使用全局配置'))
         self.jvm_post_args = QLineEdit()
-        self.jvm_post_args.setPlaceholderText('留空使用全局配置')
+        self.jvm_post_args.setPlaceholderText(self.tr('留空使用全局配置'))
         self.grasscutter_path = QLineEdit()
-        self.grasscutter_path.setPlaceholderText('Grasscutter.jar路径')
-        self.grasscutter_path_btn = QPushButton('选择Grasscutter.jar')
+        self.grasscutter_path.setPlaceholderText(self.tr('Grasscutter.jar路径'))
+        self.grasscutter_path_btn = QPushButton(self.tr('选择Grasscutter.jar'))
         self.grasscutter_path_btn.clicked.connect(self.select_grasscutter_path)
 
-        layout.addRow('实例名称:', self.instance_name)
-        layout.addRow('Java.exe路径:', self.java_path)
-        layout.addRow('jvm前置参数:', self.jvm_pre_args)
-        layout.addRow('jvm后置参数:', self.jvm_post_args)
-        layout.addRow('Grasscutter.jar路径:', self.grasscutter_path)
+        layout.addRow(self.tr('实例名称:'), self.instance_name)
+        layout.addRow(self.tr('Java.exe路径:'), self.java_path)
+        layout.addRow(self.tr('jvm前置参数:'), self.jvm_pre_args)
+        layout.addRow(self.tr('jvm后置参数:'), self.jvm_post_args)
+        layout.addRow(self.tr('Grasscutter.jar路径:'), self.grasscutter_path)
         layout.addRow(self.grasscutter_path_btn)
 
-        self.accept_btn = QPushButton('保存')
+        self.accept_btn = QPushButton(self.tr('保存'))
         self.accept_btn.clicked.connect(self.accept)
         layout.addRow(self.accept_btn)
 
@@ -57,7 +60,7 @@ class InstanceConfigDialog(QDialog):
             self.grasscutter_path.setText(config.get('grasscutter_path', ''))
 
     def load_global_config(self):
-        logger.info('加载全局配置')
+        logger.info(self.tr('加载全局配置'))
         global_config_path = os.path.join(self.root_dir, 'Config', 'JGSL.json')
         if os.path.exists(global_config_path):
             with open(global_config_path, 'r', encoding='utf-8') as f:
@@ -85,19 +88,20 @@ class InstanceConfigDialog(QDialog):
         return latest_version_path or ''
 
     def select_grasscutter_path(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, '选择Grasscutter.jar文件', '', 'JAR文件 (*.jar)')
+        file_name, _ = QFileDialog.getOpenFileName(self, self.tr('选择Grasscutter.jar文件'), '', self.tr('JAR文件 (*.jar)'))
         if file_name:
             self.grasscutter_path.setText(file_name)
-            logger.debug(f'选择Grasscutter路径: {file_name}')
+            logger.debug(self.tr(f'选择Grasscutter路径: {file_name}'))
 
     def accept(self):
         invalid_chars = ['\\', '/', ':', '*', '?', '"', '<', '>', '|']
+
         instance_name = self.instance_name.text()
         if any(char in instance_name for char in invalid_chars):
-            QMessageBox.warning(self, '错误', '实例名称包含非法字符: \\ / : * ? " < > |')
+            QMessageBox.warning(self, self.tr('错误'), self.tr('实例名称包含非法字符: \\ / : * ? " < > |'))
             return
         if not Path(self.grasscutter_path.text()).exists():
-            QMessageBox.warning(self, '错误', 'Grasscutter.jar路径不存在')
+            QMessageBox.warning(self, self.tr('错误'), self.tr('Grasscutter.jar路径不存在'))
             return
         self.instance_config = {
             'instance_name': instance_name,
@@ -116,12 +120,12 @@ class ManageTab(QWidget):
         self.setStyleSheet("background-color: rgba(255, 255, 255, 0.01);")  # 设置背景透明 
         self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         self.server_list = QListWidget()
-        self.create_btn = QPushButton('新建实例')
-        self.edit_config_btn = QPushButton('编辑Grasscutter配置文件')
-        self.edit_btn = QPushButton('修改实例配置')
-        self.delete_btn = QPushButton('删除实例')
-        self.clone_btn = QPushButton('克隆实例')
-        self.plugin_btn = QPushButton('插件管理')
+        self.create_btn = QPushButton(self.tr('新建实例'))
+        self.edit_config_btn = QPushButton(self.tr('编辑Grasscutter配置文件'))
+        self.edit_btn = QPushButton(self.tr('修改实例配置'))
+        self.delete_btn = QPushButton(self.tr('删除实例'))
+        self.clone_btn = QPushButton(self.tr('克隆实例'))
+        self.plugin_btn = QPushButton(self.tr('插件管理'))
 
         # 用于在进度对话框中显示状态和当前文件
         self.current_operation_status = ""
@@ -171,7 +175,7 @@ class ManageTab(QWidget):
             if self.current_operation_status:
                 text_parts.append(self.current_operation_status)
             if self.current_operation_file:
-                text_parts.append(f"当前文件: {self.current_operation_file}")
+                text_parts.append(self.tr(f"当前文件: {self.current_operation_file}"))
             self.progress_dialog.setLabelText("\n".join(text_parts) + "")
 
     def _handle_progress_update(self, value, status_text):
@@ -202,7 +206,7 @@ class ManageTab(QWidget):
 
         def request_stop(self):
             self._should_stop = True
-            logger.info("请求停止操作线程")
+            logger.info(self.tr("请求停止操作线程"))
 
         def _get_total_files_dirs(self, path):
             total = 0
@@ -218,11 +222,11 @@ class ManageTab(QWidget):
             original_instance_name = self.kwargs['original_instance_name']
 
             try:
-                self.progress_signal.emit(0, f'正在准备克隆 "{original_instance_name}" 到 "{new_instance_name}"...')
-                if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
+                self.progress_signal.emit(0, self.tr(f'正在准备克隆 "{original_instance_name}" 到 "{new_instance_name}"...'))
+                if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
 
                 total_items = self._get_total_files_dirs(original_instance_dir)
-                if total_items == -1: self.finished_signal.emit(False, '操作已取消'); return # 检查是否在计算总数时被取消
+                if total_items == -1: self.finished_signal.emit(False, self.tr('操作已取消')); return # 检查是否在计算总数时被取消
                 
                 # 复制文件阶段占总进度的 0% - 80%
                 # 更新配置文件阶段占总进度的 80% - 100%
@@ -231,35 +235,35 @@ class ManageTab(QWidget):
                 # 创建目标根目录
                 if not os.path.exists(new_instance_dir):
                     os.makedirs(new_instance_dir)
-                    self.current_file_signal.emit(f'创建目录: {new_instance_dir}')
+                    self.current_file_signal.emit(self.tr(f'创建目录: {new_instance_dir}'))
 
                 for src_dir, dirs, files in os.walk(original_instance_dir):
                     if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
                     dst_dir = src_dir.replace(original_instance_dir, new_instance_dir, 1)
 
                     for d in dirs:
-                        if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
+                        if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
                         dst_path = os.path.join(dst_dir, d)
                         if not os.path.exists(dst_path):
                             os.makedirs(dst_path)
-                        self.current_file_signal.emit(f'创建目录: {d}')
+                        self.current_file_signal.emit(self.tr(f'创建目录: {d}'))
                         copied_items += 1
                         progress = int((copied_items / total_items) * 80) if total_items > 0 else 0
-                        self.progress_signal.emit(progress, f'正在复制目录 ({copied_items}/{total_items})...')
+                        self.progress_signal.emit(progress, self.tr(f'正在复制目录 ({copied_items}/{total_items})...'))
 
                     for f_name in files:
-                        if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
+                        if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
                         src_file = os.path.join(src_dir, f_name)
                         dst_file = os.path.join(dst_dir, f_name)
                         shutil.copy2(src_file, dst_file)
-                        self.current_file_signal.emit(f'复制文件: {f_name}')
+                        self.current_file_signal.emit(self.tr(f'复制文件: {f_name}'))
                         copied_items += 1
                         progress = int((copied_items / total_items) * 80) if total_items > 0 else 0
-                        self.progress_signal.emit(progress, f'正在复制文件 ({copied_items}/{total_items})...')
-                
-                if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
-                self.progress_signal.emit(80, f'文件复制完成，正在更新配置文件...')
-                self.current_file_signal.emit('更新 JGSL/Config.json')
+                        self.progress_signal.emit(progress, self.tr(f'正在复制文件 ({copied_items}/{total_items})...'))
+
+                if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
+                self.progress_signal.emit(80, self.tr(f'文件复制完成，正在更新配置文件...'))
+                self.current_file_signal.emit(self.tr('更新 JGSL/Config.json'))
 
                 cloned_config_path = os.path.join(new_instance_dir, 'JGSL', 'Config.json')
                 if os.path.exists(cloned_config_path):
@@ -270,75 +274,75 @@ class ManageTab(QWidget):
                             config_data['instance_name'] = new_instance_name
                             with open(cloned_config_path, 'w', encoding='utf-8') as f:
                                 json.dump(config_data, f, ensure_ascii=False, indent=4)
-                        self.progress_signal.emit(95, f'配置文件更新完毕')
+                        self.progress_signal.emit(95, self.tr(f'配置文件更新完毕'))
                     except Exception as e:
-                        logger.error(f'更新克隆实例 "{new_instance_name}" 配置文件失败: {e}')
-                        self.finished_signal.emit(True, f'实例克隆完成，但更新配置文件失败: {e}')
+                        logger.error(self.tr(f'更新克隆实例 "{new_instance_name}" 配置文件失败: {e}'))
+                        self.finished_signal.emit(True, self.tr(f'实例克隆完成，但更新配置文件失败: {e}'))
                         return
                 else:
-                    self.progress_signal.emit(95, f'克隆实例的 JGSL/Config.json 不存在，跳过更新')
-                
-                if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
-                self.progress_signal.emit(100, f'克隆完成!')
-                self.finished_signal.emit(True, f'实例 "{original_instance_name}" 已成功克隆为 "{new_instance_name}" ')
+                    self.progress_signal.emit(95, self.tr(f'克隆实例的 JGSL/Config.json 不存在，跳过更新'))
+
+                if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
+                self.progress_signal.emit(100, self.tr(f'克隆完成!'))
+                self.finished_signal.emit(True, self.tr(f'实例 "{original_instance_name}" 已成功克隆为 "{new_instance_name}" '))
             except Exception as e:
-                logger.error(f'克隆实例 "{original_instance_name}" 失败: {e}')
-                self.finished_signal.emit(False, f'克隆实例失败: {e}')
+                logger.error(self.tr(f'克隆实例 "{original_instance_name}" 失败: {e}'))
+                self.finished_signal.emit(False, self.tr(f'克隆实例失败: {e}'))
 
         def _delete_instance(self):
             instance_dir = self.kwargs['instance_dir']
             instance_name = self.kwargs['instance_name']
             try:
-                self.progress_signal.emit(0, f'正在准备删除实例 "{instance_name}"...')
-                if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
+                self.progress_signal.emit(0, self.tr(f'正在准备删除实例 "{instance_name}"...'))
+                if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
 
                 total_items = self._get_total_files_dirs(instance_dir)
-                if total_items == -1: self.finished_signal.emit(False, '操作已取消'); return
+                if total_items == -1: self.finished_signal.emit(False, self.tr('操作已取消')); return
                 deleted_items = 0
 
                 # shutil.rmtree 不能很好地报告单个文件进度，所以我们手动删除
                 for root, dirs, files in os.walk(instance_dir, topdown=False): # topdown=False 确保先删除子内容
-                    if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
+                    if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
                     for name in files:
-                        if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
+                        if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
                         file_path = os.path.join(root, name)
                         try:
                             os.remove(file_path)
-                            self.current_file_signal.emit(f'删除文件: {name}')
+                            self.current_file_signal.emit(self.tr(f'删除文件: {name}'))
                             deleted_items += 1
                             progress = int((deleted_items / total_items) * 100) if total_items > 0 else 0
-                            self.progress_signal.emit(progress, f'正在删除文件 ({deleted_items}/{total_items})...')
+                            self.progress_signal.emit(progress, self.tr(f'正在删除文件 ({deleted_items}/{total_items})...'))
                         except OSError as e:
-                            logger.error(f"删除文件 {file_path} 失败: {e}")
+                            logger.error(self.tr(f"删除文件 {file_path} 失败: {e}"))
                             # 可以选择在这里停止或继续
 
-                    if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
+                    if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
                     for name in dirs:
-                        if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
+                        if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
                         dir_path = os.path.join(root, name)
                         try:
                             os.rmdir(dir_path) # rmdir 只能删除空目录
-                            self.current_file_signal.emit(f'删除目录: {name}')
+                            self.current_file_signal.emit(self.tr(f'删除目录: {name}'))
                             deleted_items += 1
                             progress = int((deleted_items / total_items) * 100) if total_items > 0 else 0
-                            self.progress_signal.emit(progress, f'正在删除目录 ({deleted_items}/{total_items})...')
+                            self.progress_signal.emit(progress, self.tr(f'正在删除目录 ({deleted_items}/{total_items})...'))
                         except OSError as e:
-                            logger.error(f"删除目录 {dir_path} 失败: {e}")
+                            logger.error(self.tr(f"删除目录 {dir_path} 失败: {e}"))
                     
-                    if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
+                    if self._should_stop: self.finished_signal.emit(False, self.tr('操作已取消')); return
                     # 最后删除实例根目录本身
                     try:
                         os.rmdir(instance_dir)
-                        self.current_file_signal.emit(f'删除实例根目录: {instance_name}')
+                        self.current_file_signal.emit(self.tr(f'删除实例根目录: {instance_name}'))
                     except OSError as e:
-                        logger.error(f"删除实例根目录 {instance_dir} 失败: {e}")
+                        logger.error(self.tr(f"删除实例根目录 {instance_dir} 失败: {e}"))
 
-                    self.progress_signal.emit(100, f'删除完成!')
-                    self.finished_signal.emit(True, f'实例 {instance_name} 已成功删除')
+                    self.progress_signal.emit(100, self.tr(f'删除完成!'))
+                    self.finished_signal.emit(True, self.tr(f'实例 {instance_name} 已成功删除'))
 
             except Exception as e:
-                logger.error(f'删除实例 {instance_name} 失败: {e}')
-                self.finished_signal.emit(False, f'删除实例失败: {e}')
+                logger.error(self.tr(f'删除实例 {instance_name} 失败: {e}'))
+                self.finished_signal.emit(False, self.tr(f'删除实例失败: {e}'))
 
         def run(self):
             if self.operation_type == "clone":
@@ -347,10 +351,10 @@ class ManageTab(QWidget):
                 self._delete_instance()
 
     def open_plugin_manager(self):
-        logger.info("打开插件管理器")
+        logger.info(self.tr("打开插件管理器"))
         current_item = self.server_list.currentItem()
         if not current_item:
-            QMessageBox.warning(self, '提示', '请先选择一个实例')
+            QMessageBox.warning(self, self.tr('提示'), self.tr('请先选择一个实例'))
             return
         instance_name = current_item.text()
         instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
@@ -365,13 +369,13 @@ class ManageTab(QWidget):
     def open_config_editor(self):
         current_item = self.server_list.currentItem()
         if not current_item:
-            QMessageBox.warning(self, '警告', '请选择一个实例')
+            QMessageBox.warning(self, self.tr('警告'), self.tr('请选择一个实例'))
             return
         instance_name = current_item.text()
         instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
         config_path = os.path.join(instance_dir, 'config.json')
         if not os.path.exists(config_path):
-            QMessageBox.warning(self, '错误', 'config.json不存在')
+            QMessageBox.warning(self, self.tr('错误'), self.tr('config.json不存在'))
             return
         config_editor = ConfigEditorDialog(self, config_path)
         config_editor.exec_()
@@ -379,7 +383,7 @@ class ManageTab(QWidget):
     def edit_instance(self):
         current_item = self.server_list.currentItem()
         if not current_item:
-            QMessageBox.warning(self, '警告', '请选择一个实例')
+            QMessageBox.warning(self, self.tr('警告'), self.tr('请选择一个实例'))
             return
         instance_name = current_item.text()
         instance_dir = os.path.join(self.root_dir, 'Servers', instance_name)
@@ -388,12 +392,12 @@ class ManageTab(QWidget):
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
         except json.JSONDecodeError as e:
-            logger.error(f"实例配置文件 {config_path} 解析失败: {e}")
-            QMessageBox.warning(self, '错误', f"实例配置文件 {config_path} 解析失败")
+            logger.error(self.tr(f"实例配置文件 {config_path} 解析失败: {e}"))
+            QMessageBox.warning(self, self.tr('错误'), self.tr(f"实例配置文件 {config_path} 解析失败"))
             return
         except Exception as e:
-            logger.error(f"读取实例配置文件 {config_path} 时发生未知错误: {e}")
-            QMessageBox.warning(self, '错误', f"读取实例配置文件 {config_path} 时发生未知错误")
+            logger.error(self.tr(f"读取实例配置文件 {config_path} 时发生未知错误: {e}"))
+            QMessageBox.warning(self, self.tr('错误'), self.tr(f"读取实例配置文件 {config_path} 时发生未知错误"))
             return
         config['instance_name'] = instance_name
         original_instance_name = instance_name # 保存原始实例名称
@@ -555,11 +559,11 @@ class ManageTab(QWidget):
         self.current_operation_file = ""
 
         if success:
-            QMessageBox.information(self, '操作完成', message + "")
+            QMessageBox.information(self, self.tr('操作完成'), self.tr(message) + "")
             self.refresh_server_list() # 刷新列表
         else:
-            QMessageBox.warning(self, '操作失败', message + "")
-        logger.info(message)
+            QMessageBox.warning(self, self.tr('操作失败'), self.tr(message) + "")
+        logger.info(self.tr(message))
         self.operation_thread = None # 清理线程引用
 
     def refresh_server_list(self):
@@ -588,5 +592,5 @@ class ManageTab(QWidget):
                                 logger.info(f"检测到实例 {instance_name} 正在运行，PID: {proc.info['pid']}")
                                 return True
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as e:
-            logger.warning(f"检查进程时出错: {e}")
+             logger.warning(self.tr(f"检查进程时出错: {e}"))
         return False

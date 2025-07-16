@@ -1,8 +1,8 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QListWidget, QPushButton, QFileDialog, QMessageBox
-from PyQt5.QtCore import Qt
 import os
 import shutil
 from loguru import logger
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QListWidget, QPushButton, QFileDialog, QMessageBox
 
 class PluginManagerDialog(QDialog):
     def __init__(self, parent, instance_name, instance_dir):

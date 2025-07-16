@@ -1,5 +1,5 @@
 # 排除所有缓存文件
-/JGSL/__pycache__/
+/Src/__pycache__/
 *.pyc
 *.log
 *.bak
@@ -42,6 +42,6 @@
 !/Config/mirror-list.json
 
 # 保留以下目录
-!/JGSL/
+!/Src/
 !/Config/
 !/Assets/

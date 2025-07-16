@@ -1,7 +1,7 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout
-from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QFont
+from PyQt5.QtCore import QUrl, Qt
+from PyQt5.QtGui import QDesktopServices, QIcon
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout
 
 
 class AboutTab(QWidget):
@@ -13,13 +13,13 @@ class AboutTab(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
 
         # 项目标题
-        title = QLabel('JimGrasscutterServerLauncher')
+        title = QLabel(self.tr('JimGrasscutterServerLauncher'))
         title.setFont(QFont('', 24))
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
         # 项目中文名
-        title = QLabel('Jim割草机服务器启动器')
+        title = QLabel(self.tr('Jim割草机服务器启动器'))
         title.setFont(QFont('', 24))
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
@@ -28,19 +28,19 @@ class AboutTab(QWidget):
         layout.addStretch(1)
         self.add_link(layout,
                     QIcon('Assets/JGSL-Logo.ico'),
-                    '本项目GitHub仓库',
+                    self.tr('本项目GitHub仓库'),
                     'https://github.com/Jimmy32767255/JimGrasscutterServerLauncher')
 
         # Grasscutter链接
         self.add_link(layout,
                     QIcon('Assets/Grasscutter-Logo.ico'),
-                    'Grasscutter项目',
+                    self.tr('Grasscutter项目'),
                     'https://github.com/Grasscutters/Grasscutter')
 
         # 官网链接
         self.add_link(layout,
                     QIcon('Assets/Grasscutter-Logo.ico'),
-                    'Grasscutter官网',
+                    self.tr('Grasscutter官网'),
                     'https://grasscutter.io')
         layout.addStretch(1)
 

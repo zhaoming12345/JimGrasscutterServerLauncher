@@ -1,8 +1,12 @@
-from PyQt5.QtWidgets import QDialog, QTabWidget, QWidget, QVBoxLayout, QFormLayout, QLineEdit, QCheckBox, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QHBoxLayout, QComboBox, QSpinBox, QGroupBox, QTextEdit, QFileDialog, QScrollArea, QHeaderView
-from PyQt5.QtCore import Qt
 import json
 from loguru import logger
-
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QDialog, QTabWidget, QWidget, QVBoxLayout, QFormLayout, QLineEdit,
+    QCheckBox, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox,
+    QHBoxLayout, QComboBox, QSpinBox, QGroupBox, QTextEdit, QFileDialog,
+    QScrollArea, QHeaderView
+)
 
 class ConfigEditorDialog(QDialog):
     def __init__(self, parent=None, config_path=None):
@@ -14,15 +18,15 @@ class ConfigEditorDialog(QDialog):
 
         # 创建主布局
         main_layout = QVBoxLayout(self)
-        
+
         # 创建标签页容器
         self.tab_widget = QTabWidget()
         main_layout.addWidget(self.tab_widget)
-        
+
         # 初始化各配置模块
         self.init_ui()
         self.load_config()
-        
+
         # 保存按钮
         self.save_btn = QPushButton('保存配置')
         self.save_btn.clicked.connect(self.save_config)
@@ -47,7 +51,7 @@ class ConfigEditorDialog(QDialog):
         self.scripts_path = QLineEdit()
         self.plugins_path = QLineEdit()
         self.cache_path = QLineEdit() # 缓存目录
-        
+
         # 路径选择行
         structure_layout.addRow('资源目录:', self.resources_path)
         structure_layout.addRow('数据目录:', self.data_path)

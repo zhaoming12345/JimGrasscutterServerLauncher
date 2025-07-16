@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 # json_editor.py - 可视化 JSON 编辑器 (增强版)
 
-import sys
 import os
+import sys
 import json
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                             QHBoxLayout, QPushButton, QFileDialog,
-                             QTreeWidget, QTreeWidgetItem,
-                             QMessageBox, QComboBox, QAbstractItemView,
-                             QMenu, QAction, QTextEdit)
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout,
+    QHBoxLayout, QPushButton, QFileDialog,
+    QTreeWidget, QTreeWidgetItem,
+    QMessageBox, QComboBox, QAbstractItemView,
+    QMenu, QAction, QTextEdit)
 
 
 class JSONEditor(QMainWindow):
