@@ -13,7 +13,7 @@
 - [x] plugin_manager.py:插件生命周期管理
 - [x] download_tab.py:自动解压压缩包
 - [x] download_tab.py:添加不可自动下载的资源的支持
-- [ ] data_manager:可视化json编辑，如Banners、Shop、ActivityConfig、Announcement等等(一般)
+- [ ] data_manager:可视化json编辑，需后续适配文件地址以及主程序的调用
 - [ ] resources_manager:可视化编辑TextMap中的游戏文本(一般)
 - [ ] cluster_tab.py:启动/停止集群(一般)
 - [ ] Language\*:添加中英文翻译文件(一般 | 暂时忽略)
@@ -37,10 +37,9 @@
 
 - [x] monitor_tab.py:关闭实例应优先通过对服务器发送"STOP"命令来进行安全的关闭
 - [x] download_tab.py&download-list.json:在json中指定文件名、目标位置、是否可自动下载等
-- [ ] dispatch.py:地区列表应该从配置文件中读取(一般)
 - [ ] cluster_tab.py:应该遵循[多服务器配置教程](https://www.bilibili.com/video/BV1L5CXY4Eaj)，适当复用资源，减少空间浪费(一般)
+- [ ] dispatch.py:地区列表应该从配置文件中读取(一般)
 
 ## 删除
 
 暂无
-

@@ -303,7 +303,7 @@ class ClusterConfigDialog(QDialog):
         
     def open_title_config(self):
         """打开标题配置对话框"""
-        from JGSL.config_editor import ConfigEditorDialog
+        from config_editor import ConfigEditorDialog
         
         # 获取当前选中的游戏服务器
         selected_items = self.game_server_list.selectedItems()

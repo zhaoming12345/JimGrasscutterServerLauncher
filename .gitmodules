@@ -1,0 +1,5 @@
+[submodule "JGSL/fe_core"]
+	path = JGSL/fe_core
+	url = https://github.com/Jimmy32767255/FE-Core
+	active = true
+	shallow = true

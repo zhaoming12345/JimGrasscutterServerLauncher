@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QComboBox, QLabel, QPushButton, QSpinBox, QHBoxLayout,QSpacerItem,QSizePolicy
 from loguru import logger
-from blur_style import BLUR_STYLE
+from fe_core.blur_style import BLUR_STYLE
 import json
 import os
 from update_checker import UpdateCheckThread, VERSION
