@@ -48,8 +48,7 @@ def main():
 
     # 创建并显示主窗口
     window = MainWindow()
-    window.setWindowTitle("JimGrasscutterServerLauncher")
-    window.setWindowIcon(QIcon(".\\Assets\\JGSL-Logo.ico"))
+    # 窗口标题和图标现在由 CustomTitleBar 管理
     window.show()
 
     # 在显示主窗口后检查更新

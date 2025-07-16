@@ -19,10 +19,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setStyleSheet("background-color: rgba(255, 255, 255, 0.01);")  # 设置背景透明
         self.old_pos = None  # 用于窗口拖动
-        self.setWindowTitle('JimGrasscutterServerLauncher')
+        # 窗口标题和图标将由 CustomTitleBar 管理
         self.setGeometry(0, 0, 760, 600)
         self.setMinimumSize(495, 495)  # 设置最小窗口尺寸
-        self.setWindowIcon(QIcon('Assets/JGSL-Logo.ico'))
 
         # 设置窗口属性以支持透明和模糊效果
         self.setWindowFlags(Qt.FramelessWindowHint)  # 无边框窗口
@@ -37,7 +36,7 @@ class MainWindow(QMainWindow):
         self.running_processes: dict[int, QProcess] = {}
 
         # 创建自定义标题栏
-        self.title_bar = CustomTitleBar(self)
+        self.title_bar = CustomTitleBar(self, window_title='JimGrasscutterServerLauncher', window_icon_path='Assets/JGSL-Logo.ico')
 
         # 创建选项卡
         self.tabs = QTabWidget()
