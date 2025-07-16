@@ -12,7 +12,7 @@ DownloadTemp:JGSL的下载缓存目录(JGSL下载文件时会先下载到这个�
 
 Java:公共Java环境(Java\版本号\*)
 
-JGSL:JGSL的代码文件
+Src:JGSL的代码文件
 
 Language:JGSL的语言包文件(Language\语言代码.json)
 

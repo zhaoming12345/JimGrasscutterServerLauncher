@@ -1,6 +1,6 @@
 from enum import IntEnum
-from dataclasses import dataclass
 from typing import Optional
+from dataclasses import dataclass
 
 @dataclass
 class ServerConfig:

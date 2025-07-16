@@ -3,7 +3,7 @@
 block_cipher = None
 
 a = Analysis(
-    [r'JGSL\main.py'],
+    [r'Src\main.py'],
     pathex=[],
     binaries=[],
     datas=[],

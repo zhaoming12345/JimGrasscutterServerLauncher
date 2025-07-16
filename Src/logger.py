@@ -1,6 +1,6 @@
-from loguru import logger
 import os
 import sys
+from loguru import logger
 
 # 移除默认的控制台输出
 logger.remove()

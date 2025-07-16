@@ -1,16 +1,21 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QLabel, QPushButton, QMessageBox, QTextEdit, QLineEdit, QHBoxLayout, QDialog
-from PyQt5.QtCore import Qt, QTimer, QRect, QPropertyAnimation, pyqtProperty, QEasingCurve, QThread, pyqtSignal, QProcess
-from PyQt5.QtGui import QPainter, QColor, QFont, QPen, QTextCursor
-import psutil
 import os
 import json
 import time
+import random
+import psutil
 import datetime
 import threading
+import qdarkstyle
 from loguru import logger
-import random # 导入 random 用于生成模拟数据
-import qdarkstyle # 导入主题库
-
+from PyQt5.QtGui import QPainter, QColor, QFont, QPen, QTextCursor
+from PyQt5.QtCore import (
+    Qt, QTimer, QRect, QPropertyAnimation,
+    pyqtProperty, QEasingCurve, QThread, pyqtSignal, QProcess
+)
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QListWidget, QLabel, QPushButton,
+    QMessageBox, QTextEdit, QLineEdit, QHBoxLayout, QDialog
+)
 
 class CircleProgress(QWidget):
     def __init__(self, parent=None):
@@ -101,7 +106,7 @@ class MonitorPanel(QDialog):
             self.log_path = log_path
             self.process = process # 存储 QProcess 对象
             self.debug_mode = debug_mode # 保存调试模式状态
-            
+
             # 应用主题设置
             config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Config', 'config.json')
             try:
@@ -116,7 +121,7 @@ class MonitorPanel(QDialog):
             except Exception as e:
                 logger.error(f'加载主题设置失败: {e}')
                 self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-            
+
             # 设置窗口大小和标题
             self.resize(800, 600)  # 设置一个合适的初始大小
             
@@ -132,7 +137,7 @@ class MonitorPanel(QDialog):
             self.clear_button = QPushButton('清屏')
             self.stop_button = QPushButton('关闭实例')
             self.stop_button.setStyleSheet("QPushButton { background-color: red; color: white; }")
-            
+
             # --- 设置控件属性 ---
             self.cpu_label.setAlignment(Qt.AlignCenter)
             self.mem_label.setAlignment(Qt.AlignCenter)
@@ -141,7 +146,7 @@ class MonitorPanel(QDialog):
             self.log_text.setLineWrapMode(QTextEdit.WidgetWidth) # 自动换行
             self.log_text.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
             self.command_input.setPlaceholderText("在这里输入指令...")
-            
+
             # 根据调试模式设置控件和连接信号
             if self.debug_mode:
                 self.setWindowTitle(f"监控面板: {self.instance_name} (调试模式)")
@@ -186,7 +191,7 @@ class MonitorPanel(QDialog):
                     logger.error(f"获取进程创建时间失败: {e}")
                 except Exception as e:
                     logger.error(f"计算进程启动时间时发生未知错误: {e}")
-                
+
                 # 创建日志读取线程，但延迟启动
                 self.log_reader_thread = LogReaderThread(self.log_path)
                 self.log_reader_thread.log_data_ready.connect(self.append_log)
@@ -211,32 +216,32 @@ class MonitorPanel(QDialog):
             right_panel.addStretch(1)
             right_panel.addWidget(self.stop_button)
             right_panel.addWidget(self.clear_button)
-            
+
             # 右侧面板容器
             right_widget = QWidget()
             right_widget.setLayout(right_panel)
             right_widget.setFixedWidth(100)  # 固定右侧面板宽度
-            
+
             # 底部命令输入区域布局
             command_layout = QHBoxLayout()
             command_layout.addWidget(self.command_input)
             command_layout.addWidget(self.command_button)
-            
+
             # 主布局
             main_layout = QHBoxLayout()
             main_layout.addWidget(self.log_text, 1)  # 日志区域占据更多空间
             main_layout.addWidget(right_widget)
-            
+
             # 整体布局
             layout = QVBoxLayout(self)
             layout.addLayout(main_layout, 1)  # 主布局占据更多空间
             layout.addLayout(command_layout)
             self.setLayout(layout)
-            
+
             # 首次更新资源和运行时间
             self.update_resource_usage()
             self.update_uptime()
-            
+
             logger.info('监控面板初始化成功完成 实例:{} PID:{} 调试模式:{}', instance_name, pid, debug_mode)
         except Exception as e:
             logger.exception('监控面板初始化失败')
@@ -282,21 +287,21 @@ class MonitorPanel(QDialog):
                     self.cpu_usage.set_value(0)
                     self.mem_usage.set_value(0)
                     return
-                
+
                 # 进程存在，获取资源使用情况
                 try:
                     proc = psutil.Process(self.pid)
                     # 使用非阻塞方式获取CPU使用率
                     cpu_percent = int(proc.cpu_percent(interval=None))
                     self.cpu_usage.set_value(cpu_percent)
-                    
+
                     # 获取内存使用率
                     mem_percent = int(proc.memory_percent())
                     self.mem_usage.set_value(mem_percent)
-                    
+
                     # 重置警告标志
                     self._pid_warning_shown = False
-                    
+
                     # 更新运行时间
                     self.update_uptime()
                 except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
@@ -352,10 +357,10 @@ class MonitorPanel(QDialog):
                     self._log_buffer_timer = QTimer()
                     self._log_buffer_timer.timeout.connect(self._flush_log_buffer)
                     self._log_buffer_timer.start(100)  # 每100ms刷新一次日志缓冲区
-                
+
                 # 将日志内容添加到缓冲区
                 self._log_buffer += log_content
-                
+
                 # 如果缓冲区过大，立即刷新
                 if len(self._log_buffer) > 5000:
                     QTimer.singleShot(0, self._flush_log_buffer)
@@ -369,17 +374,17 @@ class MonitorPanel(QDialog):
                 # 获取当前滚动条位置
                 scrollbar = self.log_text.verticalScrollBar()
                 at_bottom = scrollbar.value() >= scrollbar.maximum() - 10
-                
+
                 # 更新文本
                 cursor = self.log_text.textCursor()
                 cursor.movePosition(QTextCursor.MoveOperation.End)
                 cursor.insertText(self._log_buffer)
                 self._log_buffer = ""
-                
+
                 # 如果之前在底部，则保持在底部
                 if at_bottom:
                     scrollbar.setValue(scrollbar.maximum())
-                
+
                 # 检查是否需要裁剪日志
                 # 从配置文件中读取最大日志行数，如果读取失败则使用默认值1000
                 max_log_lines = 1000  # 默认值
@@ -405,7 +410,7 @@ class MonitorPanel(QDialog):
             QTimer.singleShot(0, lambda: self.log_text.append(f"<font color='red'>日志读取错误: {error_message}</font>"))
         except Exception as e:
             logger.error(f"处理日志错误时发生异常: {e}")
-            
+
     def clear_log(self):
         """清空日志显示区域"""
         try:
@@ -433,7 +438,7 @@ class MonitorPanel(QDialog):
                 logger.debug(f"日志定时器已为实例 {self.instance_name} 停止")
         except Exception as e:
             logger.error(f"停止日志定时器时出错 ({self.instance_name}): {e}")
-        
+
         try:
             if hasattr(self, 'resource_timer') and self.resource_timer.isActive():
                 self.resource_timer.stop()
@@ -472,7 +477,7 @@ class MonitorPanel(QDialog):
                 # 确保命令以换行符结束
                 full_command = (command + '\n').encode('utf-8')
                 bytes_written = self.process.write(full_command)
-                
+
                 # 检查写入是否成功
                 if bytes_written == -1:
                     error_string = self.process.errorString()
@@ -585,21 +590,21 @@ class MonitorPanel(QDialog):
                         self.cpu_usage.set_value(0)
                         self.mem_usage.set_value(0)
                         return
-                    
+
                     # 进程存在，获取资源使用情况
                     try:
                         proc = psutil.Process(self.pid)
                         # 使用非阻塞方式获取CPU使用率
                         cpu_percent = int(proc.cpu_percent(interval=None))
                         self.cpu_usage.set_value(cpu_percent)
-                        
+
                         # 获取内存使用率
                         mem_percent = int(proc.memory_percent())
                         self.mem_usage.set_value(mem_percent)
-                        
+
                         # 重置警告标志
                         self._pid_warning_shown = False
-                        
+
                         # 更新运行时间
                         self.update_uptime()
                     except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
@@ -670,21 +675,21 @@ class MonitorPanel(QDialog):
                     self.cpu_usage.set_value(0)
                     self.mem_usage.set_value(0)
                     return
-                
+
                 # 进程存在，获取资源使用情况
                 try:
                     proc = psutil.Process(self.pid)
                     # 使用非阻塞方式获取CPU使用率
                     cpu_percent = int(proc.cpu_percent(interval=None))
                     self.cpu_usage.set_value(cpu_percent)
-                    
+
                     # 获取内存使用率
                     mem_percent = int(proc.memory_percent())
                     self.mem_usage.set_value(mem_percent)
-                    
+
                     # 重置警告标志
                     self._pid_warning_shown = False
-                    
+
                     # 更新运行时间
                     self.update_uptime()
                 except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
@@ -731,16 +736,16 @@ class MonitorPanel(QDialog):
                 self._log_buffer_timer = QTimer()
                 self._log_buffer_timer.timeout.connect(self._flush_log_buffer)
                 self._log_buffer_timer.start(100)  # 每100ms刷新一次日志缓冲区
-            
+
             # 将日志内容添加到缓冲区
             self._log_buffer += log_content
-            
+
             # 如果缓冲区过大，立即刷新
             if len(self._log_buffer) > 5000:
                 QTimer.singleShot(0, self._flush_log_buffer)
         except Exception as e:
             logger.error(f"添加日志内容时发生错误: {e}")
-    
+
     # 添加一个方法来刷新日志缓冲区
     def _flush_log_buffer(self):
         try:
@@ -748,17 +753,17 @@ class MonitorPanel(QDialog):
                 # 获取当前滚动条位置
                 scrollbar = self.log_text.verticalScrollBar()
                 at_bottom = scrollbar.value() >= scrollbar.maximum() - 10
-                
+
                 # 更新文本
                 cursor = self.log_text.textCursor()
                 cursor.movePosition(QTextCursor.MoveOperation.End)
                 cursor.insertText(self._log_buffer)
                 self._log_buffer = ""
-                
+
                 # 如果之前在底部，则保持在底部
                 if at_bottom:
                     scrollbar.setValue(scrollbar.maximum())
-                
+
                 # 检查是否需要裁剪日志
                 if self.log_text.document().lineCount() > 1000:
                     QTimer.singleShot(0, self.trim_log_text)
@@ -773,7 +778,7 @@ class MonitorPanel(QDialog):
             QTimer.singleShot(0, lambda: self.log_text.append(f"<font color='red'>日志读取错误: {error_message}</font>"))
         except Exception as e:
             logger.error(f"处理日志错误时发生异常: {e}")
-            
+
     def clear_log(self):
         """清空日志显示区域"""
         try:
@@ -840,7 +845,7 @@ class MonitorPanel(QDialog):
                 # 确保命令以换行符结束
                 full_command = (command + '\n').encode('utf-8')
                 bytes_written = self.process.write(full_command)
-                
+
                 # 检查写入是否成功
                 if bytes_written == -1:
                     error_string = self.process.errorString()
@@ -883,7 +888,7 @@ class MonitorPanel(QDialog):
                         self.command_input.setText("STOP")
                         self.send_command()
                         logger.info(f'已向实例 {self.instance_name} 发送STOP命令，等待安全关闭...')
-                        
+
                         # 等待最多30秒让进程自行退出
                         proc = psutil.Process(self.pid)
                         for _ in range(30):
@@ -892,7 +897,7 @@ class MonitorPanel(QDialog):
                             time.sleep(1)
                         else:
                             raise psutil.TimeoutExpired(30, "等待安全关闭超时")
-                        
+
                         logger.success(f'实例 {self.instance_name} (PID: {self.pid}) 已安全关闭')
                         self.instance_closed_signal.emit(self.instance_name)
                         self.close()
@@ -902,7 +907,7 @@ class MonitorPanel(QDialog):
                             logger.warning(f'安全关闭失败，等待超时 {e.timeout} 秒，将尝试终止进程。')
                         else:
                             logger.warning(f'安全关闭失败，将尝试终止进程: {e}')
-                        
+
                     # 安全关闭失败后回退到原终止逻辑
                     proc = psutil.Process(self.pid)
                     proc.terminate() # 尝试友好终止
@@ -942,7 +947,7 @@ class MonitorPanel(QDialog):
             # 停止日志缓冲区定时器
             if hasattr(self, '_log_buffer_timer') and self._log_buffer_timer.isActive():
                 self._log_buffer_timer.stop()
-            
+
             # 只有非调试模式才有日志读取线程
             if not self.debug_mode and hasattr(self, 'log_reader_thread'):
                 if self.log_reader_thread.isRunning():
@@ -950,15 +955,15 @@ class MonitorPanel(QDialog):
                     # 使用QTimer延迟停止线程，避免阻塞UI
                     self.log_reader_thread.stop()
                     # 不等待线程结束，避免阻塞UI
-            
+
             # 清空日志缓冲区
             if hasattr(self, '_log_buffer'):
                 self._log_buffer = ""
-            
+
             logger.debug(f'监控面板已关闭: {self.instance_name}')
         except Exception as e:
             logger.error(f'关闭监控面板时发生错误: {e}')
-        
+
         # 调用父类方法完成关闭
         super().closeEvent(event)
 
@@ -973,7 +978,7 @@ class MonitorPanel(QDialog):
                 log_type = random.choice(log_types)
                 cpu_val = getattr(self.cpu_usage, 'current_value', 0)
                 mem_val = getattr(self.mem_usage, 'current_value', 0)
-                
+
                 # 随机生成一些模拟日志内容
                 log_contents = [
                     f"模拟日志条目 CPU: {cpu_val}%, Mem: {mem_val}MB",
@@ -982,10 +987,10 @@ class MonitorPanel(QDialog):
                     "等待连接..."
                 ]
                 log_content = random.choice(log_contents)
-                
+
                 # 格式化日志行
                 log_line = f"[{current_time}] [{log_type}] {log_content}\n"
-                
+
                 # 使用QTimer延迟执行UI更新，避免阻塞
                 QTimer.singleShot(0, lambda: self.append_log(log_line))
                 
@@ -994,13 +999,13 @@ class MonitorPanel(QDialog):
                 if self.log_text.document().lineCount() > 100:
                     QTimer.singleShot(0, self.trim_log_text)
                 return
-            
+
             # 非调试模式下，日志更新由LogReaderThread处理
             # 这个方法仅作为定时器回调存在，实际上不需要做任何事情
             pass
         except Exception as e:
             logger.error(f"更新日志时发生错误: {e}")
-    
+
     # 添加一个方法来裁剪日志文本，保持在合理的行数范围内
     def trim_log_text(self):
         try:
@@ -1017,14 +1022,14 @@ class MonitorPanel(QDialog):
 class LogReaderThread(QThread):
     log_data_ready = pyqtSignal(str)
     log_error = pyqtSignal(str)
-    
+
     def __init__(self, log_path):
         super().__init__()
         self.log_path = log_path
         self.last_log_size = 0
         self.running = True
         self.mutex = threading.Lock()  # 添加互斥锁保护共享数据
-        
+
     def run(self):
         logger.info(f"启动日志读取线程: {self.log_path}")
         while self.running:
@@ -1034,7 +1039,7 @@ class LogReaderThread(QThread):
                     # 日志文件不存在是正常情况(例如实例刚启动还没生成日志)，不需要报错
                     time.sleep(1)  # 等待一下再检查
                     continue
-                
+
                 # 获取文件大小
                 try:
                     current_size = os.path.getsize(self.log_path)
@@ -1049,23 +1054,23 @@ class LogReaderThread(QThread):
                     self.log_error.emit(f'检查日志文件大小时发生错误: {str(e)}')
                     time.sleep(1)
                     continue
-                
+
                 # 使用互斥锁保护共享数据访问
                 with self.mutex:
                     last_size = self.last_log_size
-                
+
                 # 文件没有变化，跳过本次读取
                 if current_size == last_size:
                     time.sleep(0.2)  # 短暂休眠，降低CPU使用率
                     continue
-                
+
                 # 文件变大了，读取新增内容
                 try:
                     new_content = ""
                     with open(self.log_path, 'r', encoding='utf-8', errors='replace') as f:
                         f.seek(last_size)  # 定位到上次读取的位置
                         new_content = f.read(min(current_size - last_size, 1024*1024))  # 限制单次读取大小，防止内存溢出
-                    
+
                     # 更新最后读取位置
                     if new_content:
                         with self.mutex:
@@ -1083,18 +1088,18 @@ class LogReaderThread(QThread):
                     logger.error(f'读取日志文件时发生未知错误: {e}')
                     self.log_error.emit(f'读取日志文件时发生错误: {str(e)}')
                     time.sleep(1)
-            
+
             except Exception as e:
                 # 捕获所有未处理的异常
                 logger.exception(f"日志读取线程发生严重错误: {e}")
                 self.log_error.emit(f'日志读取线程发生严重错误: {str(e)}')
                 time.sleep(2)  # 发生严重错误时，暂停一段时间再继续
-            
+
             # 每次循环后短暂休眠
             time.sleep(0.1)
         
         logger.info(f"日志读取线程停止: {self.log_path}")
-    
+
     def stop(self):
         logger.debug(f"请求停止日志读取线程: {self.log_path}")
         self.running = False
@@ -1136,7 +1141,7 @@ class MonitorTab(QWidget):
             if not self.instance_list.currentItem():
                 QMessageBox.warning(self, '警告', '请先选择一个运行实例')
                 return
-            
+
             instance_name = self.instance_list.currentItem().text()
             logger.debug(f'尝试打开实例监控面板: {instance_name}')
             
@@ -1146,7 +1151,7 @@ class MonitorTab(QWidget):
                 if os.path.basename(path) == instance_name:
                     selected_instance_info = (pid, path)
                     break
-            
+
             if not selected_instance_info:
                 logger.warning(f'找不到实例信息: {instance_name}')
                 QMessageBox.warning(self, '错误', '选择的实例信息丢失或已停止运行，请刷新列表')
@@ -1154,7 +1159,7 @@ class MonitorTab(QWidget):
 
             pid, instance_path = selected_instance_info
             log_file_path = os.path.join(instance_path, "logs", "latest.log")
-            
+
             # 使用非阻塞方式检查进程是否存在
             if not pid or not psutil.pid_exists(pid):
                 logger.warning(f'进程不存在: PID={pid}')
@@ -1162,10 +1167,10 @@ class MonitorTab(QWidget):
                 # 使用QTimer延迟执行刷新，避免阻塞UI
                 QTimer.singleShot(0, self.scan_running_instances)
                 return
-            
+
             # 获取 MainWindow 实例
             main_window = self.window()
-            
+
             # 检查 main_window 是否有 running_processes 属性
             if not hasattr(main_window, 'running_processes'):
                 logger.error("无法获取 MainWindow 实例或其不包含 running_processes 字典")
@@ -1177,7 +1182,7 @@ class MonitorTab(QWidget):
             if not process_obj:
                 logger.warning(f"无法找到 PID {pid} 对应的 QProcess 对象，监控面板将以只读模式打开")
                 QMessageBox.warning(self, '警告', f'无法找到与实例关联的进程对象。\n监控面板将以只读模式打开，无法发送命令。')
-            
+
             # 使用QTimer延迟创建监控面板，避免在当前函数中进行耗时操作
             def create_monitor_panel():
                 try:
@@ -1187,7 +1192,7 @@ class MonitorTab(QWidget):
                         QMessageBox.warning(self, '错误', '选择的实例未运行或进程已消失')
                         QTimer.singleShot(0, self.scan_running_instances)
                         return
-                    
+
                     # 检查进程类型
                     try:
                         proc_psutil = psutil.Process(pid)
@@ -1201,7 +1206,7 @@ class MonitorTab(QWidget):
                         QMessageBox.critical(self, '错误', f'无法访问进程信息: {e}')
                         QTimer.singleShot(0, self.scan_running_instances)
                         return
-                    
+
                     # 创建并显示监控面板
                     self.monitor_panel = MonitorPanel(instance_name, pid, log_file_path, process=process_obj)
                     self.monitor_panel.show()
@@ -1209,10 +1214,10 @@ class MonitorTab(QWidget):
                 except Exception as e:
                     logger.error(f"创建监控面板时发生错误: {e}")
                     QMessageBox.critical(self, '错误', f'打开监控面板失败: {e}')
-            
+
             # 使用短延迟启动监控面板创建，避免阻塞UI
             QTimer.singleShot(50, create_monitor_panel)
-            
+
         except Exception as e:
             logger.exception(f"打开监控面板过程中发生未捕获的错误: {e}")
             QMessageBox.critical(self, '错误', f'打开监控面板时发生未知错误: {e}')
@@ -1273,7 +1278,7 @@ class MonitorTab(QWidget):
                         # 可以考虑删除或重命名损坏的 lock 文件
                     except Exception as e:
                         logger.error(f"处理实例 {instance_name} 时发生错误: {e}")
-        
+
         # 比较新旧列表，只在有变化时更新显示
         if set(new_running_instances) != set(self.running_instances):
             logger.info(f"运行实例列表已更新，当前数量: {len(new_running_instances)}")
@@ -1281,12 +1286,12 @@ class MonitorTab(QWidget):
             self.update_instance_display()
         current_item = self.instance_list.currentItem()
         current_selected = current_item.text() if current_item else None
-        
+
         self.instance_list.clear()
         instance_names = sorted([os.path.basename(path) for pid, path in self.running_instances])
         self.instance_list.addItems(instance_names)
         self.instance_status.setText(f"运行实例数:{len(self.running_instances)}")
-        
+
         # 尝试恢复之前的选中项
         if current_selected:
             items = self.instance_list.findItems(current_selected, Qt.MatchExactly)
@@ -1297,18 +1302,18 @@ class MonitorTab(QWidget):
         """更新实例列表显示"""
         current_item = self.instance_list.currentItem()
         current_selected = current_item.text() if current_item else None
-        
+
         self.instance_list.clear()
         instance_names = sorted([os.path.basename(path) for pid, path in self.running_instances])
         self.instance_list.addItems(instance_names)
         self.instance_status.setText(f"运行实例数:{len(self.running_instances)}")
-        
+
         # 尝试恢复之前的选中项
         if current_selected:
             items = self.instance_list.findItems(current_selected, Qt.MatchExactly)
             if items:
                 self.instance_list.setCurrentItem(items[0])
-                
+
     def on_manual_refresh(self):
         logger.info("手动刷新实例列表")
         self.scan_running_instances() # 手动刷新直接调用扫描函数

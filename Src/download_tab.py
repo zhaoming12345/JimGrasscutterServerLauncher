@@ -1,13 +1,17 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QProgressBar, QLabel, QSlider, QHBoxLayout, QDialog, QDialogButtonBox, QMessageBox, QTreeWidget, QTreeWidgetItem,QSpacerItem,QSizePolicy,QComboBox
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
-import requests
-import shutil
 import os
 import json
-from loguru import logger
+import shutil
+import zipfile
+import requests
 import patoolib
 import webbrowser
-import zipfile
+from loguru import logger
+from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QListWidget, QPushButton, QProgressBar, QLabel,
+    QSlider, QHBoxLayout, QDialog, QDialogButtonBox, QMessageBox, QTreeWidget,
+    QTreeWidgetItem,QSpacerItem,QSizePolicy,QComboBox
+)
 
 class DownloadThread(QThread):
     progress_signal = pyqtSignal(int)

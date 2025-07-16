@@ -1,18 +1,18 @@
-from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QApplication
-from PyQt5.QtCore import Qt, QProcess
+from loguru import logger
 from PyQt5.QtGui import QIcon
+from about_tab import AboutTab
+from manage_tab import ManageTab
 from launch_tab import LaunchTab
 from monitor_tab import MonitorTab
-from manage_tab import ManageTab
-from download_tab import DownloadTab
-from settings_tab import SettingsTab
 from cluster_tab import ClusterTab
 from database_tab import DatabaseTab
-from about_tab import AboutTab
-from fe_core.background_effect import BackgroundEffect
-from loguru import logger
-from fe_core.custom_title_bar import CustomTitleBar
+from download_tab import DownloadTab
+from settings_tab import SettingsTab
+from PyQt5.QtCore import Qt, QProcess
 from fe_core.blur_style import apply_blur_style
+from fe_core.custom_title_bar import CustomTitleBar
+from fe_core.background_effect import BackgroundEffect
+from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QApplication
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -23,13 +23,13 @@ class MainWindow(QMainWindow):
         self.setGeometry(0, 0, 760, 600)
         self.setMinimumSize(495, 495)  # 设置最小窗口尺寸
         self.setWindowIcon(QIcon('Assets/JGSL-Logo.ico'))
-        
+
         # 设置窗口属性以支持透明和模糊效果
         self.setWindowFlags(Qt.FramelessWindowHint)  # 无边框窗口
         self.setAttribute(Qt.WA_TranslucentBackground, True)  # 启用透明背景
         # 防止鼠标事件穿透
         self.setAttribute(Qt.WA_NoMousePropagation, True)
-        
+
         # 居中窗口
         self._center_window()
 
@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
 
         # 创建自定义标题栏
         self.title_bar = CustomTitleBar(self)
-        
+
         # 创建选项卡
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.North)
@@ -73,11 +73,11 @@ class MainWindow(QMainWindow):
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
-        
+
         # 添加自定义标题栏和选项卡到主布局
         main_layout.addWidget(self.title_bar)
         main_layout.addWidget(self.tabs)
-        
+
         # 创建中央部件并设置布局
         central_widget = QWidget()
         # 设置背景面板样式，确保鼠标事件不会穿透
@@ -87,11 +87,11 @@ class MainWindow(QMainWindow):
 
         # 应用高斯模糊透明样式
         apply_blur_style(self)
-        
+
         # 应用背景模糊效果
         self.background_effect = BackgroundEffect(self)
         logger.info("已应用背景模糊效果和透明样式")
-        
+
         # 安装事件过滤器，捕获所有鼠标事件
         self.installEventFilter(self)
 
@@ -143,7 +143,7 @@ class MainWindow(QMainWindow):
             current_tab.scan_running_instances()
         elif isinstance(current_tab, ManageTab):
             current_tab.refresh_server_list()
-            
+
     def paintEvent(self, event):
         """
         绘制窗口背景，支持高斯模糊透明效果
@@ -151,19 +151,19 @@ class MainWindow(QMainWindow):
         # 此方法为空是有意的，因为背景绘制由BackgroundEffect和样式表处理
         # 但必须存在此方法以确保Qt正确处理背景绘制
         super().paintEvent(event)
-        
+
     def mousePressEvent(self, event):
         """
         捕获鼠标按下事件，防止事件穿透
         """
         event.accept()  # 显式接受事件，防止传递到下层窗口
-        
+
     def mouseReleaseEvent(self, event):
         """
         捕获鼠标释放事件，防止事件穿透
         """
         event.accept()  # 显式接受事件，防止传递到下层窗口
-        
+
     def mouseMoveEvent(self, event):
         """
         捕获鼠标移动事件，防止事件穿透

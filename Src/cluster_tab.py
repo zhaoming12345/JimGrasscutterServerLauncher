@@ -1,13 +1,13 @@
+import os
+import re
+import json
+from PyQt5 import QtCore
+from loguru import logger
 from PyQt5.QtWidgets import (
     QDialog, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QListWidget, QTabWidget, QCheckBox, QLineEdit, QListWidgetItem, 
     QMessageBox, QSizePolicy
 )
-from PyQt5 import QtCore
-import os
-import json
-from loguru import logger
-import re
 
 class ClusterConfigDialog(QDialog):
     def __init__(self, parent=None):

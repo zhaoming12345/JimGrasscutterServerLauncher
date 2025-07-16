@@ -1,31 +1,34 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QComboBox, QLabel, QPushButton, QSpinBox, QHBoxLayout,QSpacerItem,QSizePolicy
-from loguru import logger
-from fe_core.blur_style import BLUR_STYLE
-import json
 import os
-from update_checker import UpdateCheckThread, VERSION
+import json
+from loguru import logger
 from monitor_tab import MonitorPanel
+from fe_core.blur_style import BLUR_STYLE
+from update_checker import UpdateCheckThread, VERSION
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QCheckBox, QComboBox, QLabel,
+    QPushButton, QSpinBox, QHBoxLayout,QSpacerItem,QSizePolicy
+)
 
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Config', 'config.json')
 
 class SettingsTab(QWidget):
     def __init__(self):
         super().__init__()
-        
+
         # 主题设置
         self.theme_label = QLabel("界面主题:")
         self.theme_combo = QComboBox()
         self.theme_combo.addItems(['面子工程', 'Windows原生', '现代深色'])
-        
+
         # 语言设置
         self.lang_label = QLabel("显示语言(实现中):")
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(['简体中文', 'English'])
-        
+
         # 自动更新
         self.auto_update = QCheckBox("启用自动更新")
         self.update_status_label = QLabel(f"当前版本: {VERSION}") # 显示当前版本
-        
+
         # 最大日志行数
         self.max_log_label = QLabel("最大日志行数:")
         self.max_log_spin = QSpinBox()
@@ -35,13 +38,13 @@ class SettingsTab(QWidget):
         log_line_layout = QHBoxLayout()
         log_line_layout.addWidget(self.max_log_label)
         log_line_layout.addWidget(self.max_log_spin)
-        
+
         # 保存按钮
         self.save_btn = QPushButton("保存设置")
 
         # 调试按钮
         self.debug_monitor_btn = QPushButton("DEBUG: 打开监控面板")
-        
+
         layout = QVBoxLayout()
         layout.setSpacing(20)
         layout.addWidget(self.theme_label)
@@ -55,18 +58,18 @@ class SettingsTab(QWidget):
         layout.addWidget(self.save_btn)
         # 把调试按钮加到布局里
         layout.addWidget(self.debug_monitor_btn)
-        
+
         self.setLayout(layout)
-        
+
         # 加载已保存设置
         self.load_settings()
-        
+
         # 连接信号
         self.save_btn.clicked.connect(self.save_settings)
         self.auto_update.stateChanged.connect(self.toggle_auto_update) # 连接复选框状态变化信号
         # 连接调试按钮的点击信号
         self.debug_monitor_btn.clicked.connect(self.open_debug_monitor_panel)
-        
+
     def load_settings(self):
         try:
             if not os.path.exists(CONFIG_FILE):
@@ -78,7 +81,7 @@ class SettingsTab(QWidget):
             else:
                 with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
                     config_data = json.load(f)
-                
+
                 theme = config_data.get('Theme', 'fe')
                 logger.debug(f'加载主题设置 {theme}')
                 lang = config_data.get('Language', 'zh_CN')
@@ -135,7 +138,7 @@ class SettingsTab(QWidget):
         except Exception as e:
             logger.error(f'保存设置到 {CONFIG_FILE} 时出错: {e}')
             return
-        
+
         self._apply_theme(theme)
 
     def _apply_theme(self, theme):

@@ -1,11 +1,11 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QMessageBox
-from PyQt5.QtCore import QProcess, QTimer, pyqtSignal # 保持 pyqtSignal
+import json
+import psutil
 import os, json, time, locale
 from pathlib import Path
 from loguru import logger
-import psutil
 from port_checker import check_ports
-import json
+from PyQt5.QtCore import QProcess, QTimer, pyqtSignal
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QMessageBox
 
 class LaunchTab(QWidget):
     instance_started = pyqtSignal(str, int)

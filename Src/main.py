@@ -1,15 +1,14 @@
-import sys
 import os
+import sys
 import json
+import signal
+import fe_core
+import webbrowser
 from loguru import logger
-from PyQt5.QtWidgets import QApplication, QMessageBox 
-from PyQt5.QtGui import QFontDatabase, QFont, QIcon
 from PyQt5.QtCore import Qt
 from main_window import MainWindow
-import fe_core
-import sys
-import signal
-import webbrowser
+from PyQt5.QtGui import QFontDatabase, QFont, QIcon
+from PyQt5.QtWidgets import QApplication, QMessageBox
 from update_checker import UpdateCheckThread, VERSION
 
 def main():
@@ -17,36 +16,36 @@ def main():
         try:
             if not os.path.exists(font_path):
                 raise FileNotFoundError(f"字体文件 {font_path} 不存在")
-            
+
             if not os.access(font_path, os.R_OK):
                 raise PermissionError(f"字体文件 {font_path} 不可读")
-                
+
             font_id = QFontDatabase.addApplicationFont(font_path)
             if font_id == -1:
                 raise ValueError(f"字体文件 {font_path} 无效或损坏")
-                
+
             font_families = QFontDatabase.applicationFontFamilies(font_id)
             if not font_families:
                 raise ValueError(f"字体文件 {font_path} 不包含有效字体")
-            
+
             return font_families[0]
         except Exception as e:
             logger.warning(f"字体加载失败: {e}")
             return "Arial"
-            
+
     font_path = r"./Assets/HanYiWenHei-85W-Heavy.ttf"
     app = QApplication(sys.argv)
-    
+
     # 设置应用程序属性以支持高斯模糊透明效果
     app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)  # 使用高DPI图像
     app.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # 启用高DPI缩放
-    
+
     # 加载字体
     font_family = load_font_async(font_path)
     font = QFont(font_family)
     font.setPointSize(10)
     app.setFont(font)
-    
+
     # 创建并显示主窗口
     window = MainWindow()
     window.setWindowTitle("JimGrasscutterServerLauncher")
@@ -72,7 +71,7 @@ def check_for_updates_on_startup():
                 return
     except Exception as e:
         logger.error(f"读取配置文件时出错: {e}，将默认检查更新")
-    
+
     logger.info("启动时检查更新...")
     # 创建一个临时的检查线程
     # 注意:这里直接在主线程等待结果可能会阻塞UI，更好的方式是异步处理或在启动画面中进行

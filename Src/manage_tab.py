@@ -1,13 +1,16 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QPushButton, QInputDialog, QDialog, QFormLayout, QLineEdit, QFileDialog, QMessageBox, QProgressDialog
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-import os, json
-from pathlib import Path
-from loguru import logger
+import os
+import json
 import shutil
 import psutil
+from pathlib import Path
+from loguru import logger
 from config_editor import ConfigEditorDialog
-from plugin_manager import PluginManagerDialog # 导入插件管理器对话框
-
+from plugin_manager import PluginManagerDialog
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QPushButton, QInputDialog,
+    QDialog, QFormLayout, QLineEdit, QFileDialog, QMessageBox, QProgressDialog
+)
 
 class InstanceConfigDialog(QDialog):
     def __init__(self, parent=None, config=None, root_dir=None):
@@ -256,7 +259,7 @@ class ManageTab(QWidget):
                         copied_items += 1
                         progress = int((copied_items / total_items) * 80) if total_items > 0 else 0
                         self.progress_signal.emit(progress, f'正在复制文件 ({copied_items}/{total_items})...')
-                
+
                 if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
                 self.progress_signal.emit(80, f'文件复制完成，正在更新配置文件...')
                 self.current_file_signal.emit('更新 JGSL/Config.json')
@@ -277,7 +280,7 @@ class ManageTab(QWidget):
                         return
                 else:
                     self.progress_signal.emit(95, f'克隆实例的 JGSL/Config.json 不存在，跳过更新')
-                
+
                 if self._should_stop: self.finished_signal.emit(False, '操作已取消'); return
                 self.progress_signal.emit(100, f'克隆完成!')
                 self.finished_signal.emit(True, f'实例 "{original_instance_name}" 已成功克隆为 "{new_instance_name}" ')

@@ -1,11 +1,14 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QPushButton, QLineEdit, QListWidget, QHBoxLayout, QMessageBox, QInputDialog, QTreeWidget, QTreeWidgetItem, QSplitter, QMenu, QAction, QWidget, QLabel, QApplication
-from PyQt5.QtCore import Qt
-from loguru import logger
-import pymongo
-import json
-from bson.objectid import ObjectId
-from PyQt5.QtWidgets import QApplication, QLabel
 import sys
+import json
+import pymongo
+from loguru import logger
+from PyQt5.QtCore import Qt
+from bson.objectid import ObjectId
+from PyQt5.QtWidgets import (
+    QDialog, QVBoxLayout, QPushButton, QLineEdit, QListWidget, QHBoxLayout,
+    QMessageBox, QInputDialog, QTreeWidget, QTreeWidgetItem, QSplitter,
+    QMenu, QAction, QWidget, QLabel, QApplication
+)
 
 # 辅助函数：应用样式到消息框
 def apply_message_box_style(msg_box):

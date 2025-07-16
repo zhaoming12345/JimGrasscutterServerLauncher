@@ -1,7 +1,7 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout
-from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QFont
+from PyQt5.QtCore import QUrl, Qt
+from PyQt5.QtGui import QDesktopServices, QIcon
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout
 
 
 class AboutTab(QWidget):
