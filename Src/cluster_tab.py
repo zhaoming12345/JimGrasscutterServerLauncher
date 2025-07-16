@@ -12,18 +12,18 @@ from PyQt5.QtWidgets import (
 class ClusterConfigDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle('创建/编辑集群')
+        self.setWindowTitle(self.tr('创建/编辑集群'))
         self.resize(800, 600)
 
         # 可用服务器列表
         self.available_servers_list = QListWidget()
         available_servers_layout = QVBoxLayout()
-        available_servers_layout.addWidget(QLabel('可用服务器实例:'))
+        available_servers_layout.addWidget(QLabel(self.tr('可用服务器实例:')))
         available_servers_layout.addWidget(self.available_servers_list)
 
         # 添加/移除按钮
-        self.add_to_cluster_btn = QPushButton('加入集群 ↑')
-        self.remove_from_cluster_btn = QPushButton('↓ 移出集群')
+        self.add_to_cluster_btn = QPushButton(self.tr('加入集群 ↑'))
+        self.remove_from_cluster_btn = QPushButton(self.tr('↓ 移出集群'))
         middle_buttons_layout = QHBoxLayout()
         middle_buttons_layout.addWidget(self.add_to_cluster_btn)
         middle_buttons_layout.addWidget(self.remove_from_cluster_btn)
@@ -37,14 +37,14 @@ class ClusterConfigDialog(QDialog):
         self.dispatch_server_list = QListWidget() # 用于显示集群内的调度服务器
         self.dispatch_server_list.setSizePolicy(self.dispatch_server_list.sizePolicy().horizontalPolicy(), QSizePolicy.Expanding)
 
-        self.dispatch_select_btn = QPushButton('选定为调度服务器')
+        self.dispatch_select_btn = QPushButton(self.tr('选定为调度服务器'))
         self.dispatch_select_btn.clicked.connect(self.select_dispatch_server)
 
-        self.use_internal_dispatch_checkbox = QCheckBox('使用内置调度')
+        self.use_internal_dispatch_checkbox = QCheckBox(self.tr('使用内置调度'))
         self.use_internal_dispatch_checkbox.stateChanged.connect(self.toggle_internal_dispatch)
 
         # 顶部布局:列表和选择标签
-        dispatch_layout.addWidget(QLabel("调度服务器列表:"))
+        dispatch_layout.addWidget(QLabel(self.tr("调度服务器列表:")))
         dispatch_layout.addWidget(self.dispatch_server_list, 1) # stretch factor 为 1，使其占用更多垂直空间
         dispatch_layout.addWidget(self.dispatch_select_btn) # 按钮放在列表下方
 
@@ -55,7 +55,7 @@ class ClusterConfigDialog(QDialog):
 
         dispatch_layout.addLayout(dispatch_bottom_layout)
         
-        self.config_tabs.addTab(dispatch_tab, '调度')
+        self.config_tabs.addTab(dispatch_tab, self.tr('调度'))
 
         # -- 游戏标签页 --
         game_tab = QWidget()
@@ -64,7 +64,7 @@ class ClusterConfigDialog(QDialog):
         # 游戏服务器列表
         game_server_area_layout = QVBoxLayout()
         self.game_server_list = QListWidget()
-        game_server_area_layout.addWidget(QLabel("集群内游戏服务器:"))
+        game_server_area_layout.addWidget(QLabel(self.tr("集群内游戏服务器:")))
         game_server_area_layout.addWidget(self.game_server_list)
         game_main_layout.addLayout(game_server_area_layout, 1)
 
@@ -78,7 +78,7 @@ class ClusterConfigDialog(QDialog):
         game_bottom_widget = QWidget()
         game_bottom_layout = QHBoxLayout(game_bottom_widget)
         game_bottom_layout.setContentsMargins(0, 10, 0, 0)
-        self.config_title_btn = QPushButton('配置标题')
+        self.config_title_btn = QPushButton(self.tr('配置标题'))
         self.config_title_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         game_bottom_layout.addWidget(self.config_title_btn) # 配置标题按钮填满宽度
         game_server_area_layout.addWidget(game_bottom_widget)
@@ -86,33 +86,33 @@ class ClusterConfigDialog(QDialog):
         game_main_layout.addLayout(game_server_area_layout, 1)
 
         game_tab.setLayout(game_main_layout) # 设置游戏标签页的布局
-        self.config_tabs.addTab(game_tab, '游戏')
+        self.config_tabs.addTab(game_tab, self.tr('游戏'))
 
         # -- 其它标签页 --
         other_tab = QWidget()
         other_layout = QVBoxLayout()
         self.cluster_name_input = QLineEdit()
-        self.cluster_name_input.setPlaceholderText('请输入集群名称')
-        self.game_server_count_label = QLabel('游戏服务器总数: N/A')
+        self.cluster_name_input.setPlaceholderText(self.tr('请输入集群名称'))
+        self.game_server_count_label = QLabel(self.tr('游戏服务器总数: N/A'))
         other_bottom_widget = QWidget()
         other_bottom_layout = QHBoxLayout(other_bottom_widget)
         other_bottom_layout.setContentsMargins(0, 10, 0, 0)
         other_bottom_layout.addStretch()
-        other_layout.addWidget(QLabel('请输入集群名称:'))
+        other_layout.addWidget(QLabel(self.tr('请输入集群名称:')))
         other_layout.addWidget(self.cluster_name_input)
         other_layout.addStretch()
         other_layout.addWidget(self.game_server_count_label)
         other_layout.addWidget(other_bottom_widget)
         other_tab.setLayout(other_layout)
-        self.config_tabs.addTab(other_tab, '其它')
+        self.config_tabs.addTab(other_tab, self.tr('其它'))
 
         # 主布局
         main_columns_layout = QHBoxLayout()
         main_columns_layout.addWidget(self.config_tabs, 1) # TabWidget 占据所有空间
 
         # 底部按钮 (主对话框底部)
-        self.ok_btn = QPushButton('确定')
-        self.cancel_btn = QPushButton('取消')
+        self.ok_btn = QPushButton(self.tr('确定'))
+        self.cancel_btn = QPushButton(self.tr('取消'))
         bottom_btn_layout = QHBoxLayout()
         bottom_btn_layout.addStretch()
         bottom_btn_layout.addWidget(self.ok_btn)

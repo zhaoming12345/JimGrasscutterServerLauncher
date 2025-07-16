@@ -23,7 +23,7 @@ class DatabaseTab(QWidget):
         main_layout = QVBoxLayout(self)
 
         # 提示标签
-        self.info_label = QLabel("在这里管理你的数据库", self)
+        self.info_label = QLabel(self.tr("在这里管理你的数据库"), self)
         self.info_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(self.info_label)
 
@@ -31,22 +31,22 @@ class DatabaseTab(QWidget):
         button_layout = QHBoxLayout()
 
         # 清空数据库按钮
-        self.clear_db_button = QPushButton("清空数据库", self)
+        self.clear_db_button = QPushButton(self.tr("清空数据库"), self)
         self.clear_db_button.clicked.connect(self.clear_database)
         button_layout.addWidget(self.clear_db_button)
 
         # 导出数据库按钮
-        self.export_db_button = QPushButton("导出数据库", self)
+        self.export_db_button = QPushButton(self.tr("导出数据库"), self)
         self.export_db_button.clicked.connect(self.export_database)
         button_layout.addWidget(self.export_db_button)
 
         # 导入数据库按钮
-        self.import_db_button = QPushButton("导入数据库", self)
+        self.import_db_button = QPushButton(self.tr("导入数据库"), self)
         self.import_db_button.clicked.connect(self.import_database)
         button_layout.addWidget(self.import_db_button)
 
         # 修改数据库按钮
-        self.modify_db_button = QPushButton("修改数据库", self)
+        self.modify_db_button = QPushButton(self.tr("修改数据库"), self)
         self.modify_db_button.clicked.connect(self.edit_database)
         button_layout.addWidget(self.modify_db_button)
 
@@ -54,14 +54,14 @@ class DatabaseTab(QWidget):
         main_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
         self.setLayout(main_layout)
-        logger.info("数据库管理标签页初始化完成")
+        logger.info(self.tr("数据库管理标签页初始化完成"))
 
     def clear_database(self):
         # 警告用户
-        reply = QMessageBox.warning(self, "警告", "此操作将停止数据库服务并删除所有数据，是否继续？", 
+        reply = QMessageBox.warning(self, self.tr("警告"), self.tr("此操作将停止数据库服务并删除所有数据，是否继续？"), 
                                   QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.No:
-            logger.info("用户取消了清空数据库操作")
+            logger.info(self.tr("用户取消了清空数据库操作"))
             return
             
         try:
@@ -73,26 +73,26 @@ class DatabaseTab(QWidget):
             if os.path.exists(data_path):
                 shutil.rmtree(data_path)
                 os.makedirs(data_path)
-                logger.info(f"已清空数据库目录: {data_path}")
+                logger.info(self.tr(f"已清空数据库目录: {data_path}"))
                 
-            QMessageBox.information(self, "成功", "数据库已清空")
+            QMessageBox.information(self, self.tr("成功"), self.tr("数据库已清空"))
         except Exception as e:
-            logger.error(f"清空数据库失败: {e}")
-            QMessageBox.critical(self, "错误", f"清空数据库失败\n错误信息: {e}")
+            logger.error(self.tr(f"清空数据库失败: {e}"))
+            QMessageBox.critical(self, self.tr("错误"), self.tr(f"清空数据库失败\n错误信息: {e}"))
 
     def export_database(self):
         # 实现导出数据库的逻辑
         database_path = os.path.join(os.getcwd(), "Database", "Data") # 获取 Database/Data 文件夹的绝对路径
         if not os.path.exists(database_path) or not os.path.isdir(database_path):
-            logger.warning(f"数据库文件夹 {database_path} 不存在或不是一个目录")
-            QMessageBox.warning(self, "错误", f"数据库文件夹不存在\n路径:{database_path}")
+            logger.warning(self.tr(f"数据库文件夹 {database_path} 不存在或不是一个目录"))
+            QMessageBox.warning(self, self.tr("错误"), self.tr(f"数据库文件夹不存在\n路径:{database_path}"))
             return
 
         # 默认保存路径为项目根目录，文件名为 database_backup.zip 
         default_save_path = os.path.join(os.getcwd(), "database_backup.zip")
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        file_path, _ = QFileDialog.getSaveFileName(self, "导出数据库", default_save_path, "Zip Files (*.zip);;All Files (*)", options=options)
+        file_path, _ = QFileDialog.getSaveFileName(self, self.tr("导出数据库"), default_save_path, self.tr("Zip Files (*.zip);;All Files (*)"), options=options)
 
         if file_path:
             try:
@@ -107,17 +107,17 @@ class DatabaseTab(QWidget):
                     archive_name = archive_name[:-4]
 
                 shutil.make_archive(archive_name, 'zip', database_path)
-                logger.info(f"数据库已成功导出到 {file_path} ")
-                QMessageBox.information(self, "成功", f"数据库已成功导出到\n路径:{file_path}")
+                logger.info(self.tr(f"数据库已成功导出到 {file_path} "))
+                QMessageBox.information(self, self.tr("成功"), self.tr(f"数据库已成功导出到\n路径:{file_path}"))
             except Exception as e:
-                logger.error(f"导出数据库失败:{e}")
-                QMessageBox.critical(self, "错误", f"导出数据库失败\n错误信息:{e}")
+                logger.error(self.tr(f"导出数据库失败:{e}"))
+            QMessageBox.critical(self, self.tr("错误"), self.tr(f"导出数据库失败\n错误信息:{e}"))
         else:
-            logger.info("用户取消了导出数据库操作")
+            logger.info(self.tr("用户取消了导出数据库操作"))
 
     def import_database(self):
         # 实现导入数据库的逻辑
-        logger.info("开始导入数据库操作")
+        logger.info(self.tr("开始导入数据库操作"))
         
         # 获取数据库目录路径
         database_path = os.path.join(os.getcwd(), "Database", "Data")
@@ -127,17 +127,17 @@ class DatabaseTab(QWidget):
         # 选择要导入的zip文件
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        file_path, _ = QFileDialog.getOpenFileName(self, "选择数据库备份文件", "", "Zip Files (*.zip);;All Files (*)", options=options)
+        file_path, _ = QFileDialog.getOpenFileName(self, self.tr("选择数据库备份文件"), "", self.tr("Zip Files (*.zip);;All Files (*)"), options=options)
         
         if not file_path:
-            logger.info("用户取消了导入数据库操作")
+            logger.info(self.tr("用户取消了导入数据库操作"))
             return
             
         # 确认是否继续导入（会覆盖现有数据）
-        reply = QMessageBox.question(self, "确认导入", "导入操作将覆盖现有数据库，是否继续", 
+        reply = QMessageBox.question(self, self.tr("确认导入"), self.tr("导入操作将覆盖现有数据库，是否继续"), 
                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.No:
-            logger.info("用户取消了导入确认")
+            logger.info(self.tr("用户取消了导入确认"))
             return
             
         try:
@@ -147,7 +147,7 @@ class DatabaseTab(QWidget):
             # 备份当前数据库（如果存在）
             if os.path.exists(database_path) and os.path.isdir(database_path) and os.listdir(database_path):
                 backup_dir = os.path.join(os.getcwd(), "Database", "Backup_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
-                logger.info(f"备份当前数据库到 {backup_dir}")
+                logger.info(self.tr(f"备份当前数据库到 {backup_dir}"))
                 shutil.copytree(database_path, backup_dir)
             
             # 清空当前数据库目录
@@ -156,45 +156,45 @@ class DatabaseTab(QWidget):
             os.makedirs(database_path)
             
             # 解压导入的zip文件
-            logger.info(f"从 {file_path} 导入数据库")
+            logger.info(self.tr(f"从 {file_path} 导入数据库"))
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
                 zip_ref.extractall(database_path)
                 
-            logger.info("数据库导入成功")
-            QMessageBox.information(self, "成功", f"数据库已成功导入\n源文件:{file_path}")
+            logger.info(self.tr("数据库导入成功"))
+            QMessageBox.information(self, self.tr("成功"), self.tr(f"数据库已成功导入\n源文件:{file_path}"))
         except Exception as e:
-            logger.error(f"导入数据库失败:{e}")
-            QMessageBox.critical(self, "错误", f"导入数据库失败\n错误信息:{e}")
+            logger.error(self.tr(f"导入数据库失败:{e}"))
+            QMessageBox.critical(self, self.tr("错误"), self.tr(f"导入数据库失败\n错误信息:{e}"))
             
     def stop_database_service(self):
         """停止MongoDB数据库服务"""
-        logger.info("停止MongoDB服务")
+        logger.info(self.tr("停止MongoDB服务"))
         try:
             # 检查进程名是否为mongod.exe并终止
             for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
                 try:
                     if proc.info['name'] == 'mongod.exe':
-                        logger.warning(f'检测到 mongod.exe 进程，终止进程 {proc.info["pid"]}') 
+                        logger.warning(self.tr(f'检测到 mongod.exe 进程，终止进程 {proc.info["pid"]}')) 
                         proc.terminate()
                         proc.wait(timeout=3)
                         # 二次检查确保进程已关闭
                         if proc.is_running():
-                            logger.warning(f'进程 {proc.info["pid"]} 未正确终止，尝试强制终止')
+                            logger.warning(self.tr(f'进程 {proc.info["pid"]} 未正确终止，尝试强制终止'))
                             proc.kill()
                             proc.wait(timeout=3)
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, psutil.TimeoutExpired) as e:
-                    logger.error(f"终止进程时出错: {e}")
+                    logger.error(self.tr(f"终止进程时出错: {e}"))
                     
             # 删除Data目录下的mongod.lock文件
             lock_file = os.path.join(os.getcwd(), "Database", "Data", "mongod.lock")
             if os.path.exists(lock_file):
                 os.remove(lock_file)
-                logger.info("已删除mongod.lock文件")
+                logger.info(self.tr("已删除mongod.lock文件"))
                 
-            logger.info("MongoDB服务已停止")
+            logger.info(self.tr("MongoDB服务已停止"))
         except Exception as e:
-            logger.error(f"停止数据库服务时出错: {e}")
-            QMessageBox.warning(self, "警告", f"停止数据库服务时出错\n错误信息:{e}\n\n请手动确保MongoDB服务已停止后再继续。")
+            logger.error(self.tr(f"停止数据库服务时出错: {e}"))
+            QMessageBox.warning(self, self.tr("警告"), self.tr(f"停止数据库服务时出错\n错误信息:{e}\n\n请手动确保MongoDB服务已停止后再继续。"))
 
     def is_mongod_running(self):
         """检查 mongod.exe 进程是否正在运行"""

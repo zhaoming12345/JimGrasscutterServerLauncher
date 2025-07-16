@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
         self.running_processes: dict[int, QProcess] = {}
 
         # 创建自定义标题栏
-        self.title_bar = CustomTitleBar(self, window_title='JimGrasscutterServerLauncher', window_icon_path='Assets/JGSL-Logo.ico')
+        self.title_bar = CustomTitleBar(self, window_title=self.tr('JimGrasscutterServerLauncher'), window_icon_path='Assets/JGSL-Logo.ico')
 
         # 创建选项卡
         self.tabs = QTabWidget()
@@ -59,14 +59,14 @@ class MainWindow(QMainWindow):
         self.launch_tab.process_finished_signal.connect(self.unregister_process)
 
         # 选项卡
-        self.tabs.addTab(self.launch_tab, '启动')
-        self.tabs.addTab(self.monitor_tab, '监控')
-        self.tabs.addTab(self.manage_tab, '管理')
-        self.tabs.addTab(self.database_tab, '数据库')
-        self.tabs.addTab(self.cluster_tab, '集群')
-        self.tabs.addTab(self.download_tab, '下载')
-        self.tabs.addTab(self.settings_tab, '设置')
-        self.tabs.addTab(self.about_tab, '关于')
+        self.tabs.addTab(self.launch_tab, self.tr('启动'))
+        self.tabs.addTab(self.monitor_tab, self.tr('监控'))
+        self.tabs.addTab(self.manage_tab, self.tr('管理'))
+        self.tabs.addTab(self.database_tab, self.tr('数据库'))
+        self.tabs.addTab(self.cluster_tab, self.tr('集群'))
+        self.tabs.addTab(self.download_tab, self.tr('下载'))
+        self.tabs.addTab(self.settings_tab, self.tr('设置'))
+        self.tabs.addTab(self.about_tab, self.tr('关于'))
 
         # 创建主布局
         main_layout = QVBoxLayout()
@@ -89,7 +89,7 @@ class MainWindow(QMainWindow):
 
         # 应用背景模糊效果
         self.background_effect = BackgroundEffect(self)
-        logger.info("已应用背景模糊效果和透明样式")
+        logger.info(self.tr("已应用背景模糊效果和透明样式"))
 
         # 安装事件过滤器，捕获所有鼠标事件
         self.installEventFilter(self)
@@ -97,24 +97,24 @@ class MainWindow(QMainWindow):
     # 注册 QProcess 对象
     def register_process(self, pid: int, process: QProcess):
         if pid in self.running_processes:
-            logger.warning(f"尝试注册已存在的 PID: {pid}")
+            logger.warning(self.tr(f"尝试注册已存在的 PID: {pid}"))
         else:
-            logger.info(f"注册进程 PID: {pid}")
+            logger.info(self.tr(f"注册进程 PID: {pid}"))
             self.running_processes[pid] = process
 
     # 注销 QProcess 对象
     def unregister_process(self, pid: int):
         if pid in self.running_processes:
-            logger.info(f"注销进程 PID: {pid}")
+            logger.info(self.tr(f"注销进程 PID: {pid}"))
             del self.running_processes[pid]
         else:
-            logger.warning(f"尝试注销不存在的 PID: {pid}")
+            logger.warning(self.tr(f"尝试注销不存在的 PID: {pid}"))
 
     # 获取 QProcess 对象
     def get_process(self, pid: int) -> QProcess | None:
         process = self.running_processes.get(pid)
         if not process:
-            logger.warning(f"无法找到 PID: {pid} 对应的 QProcess 对象")
+            logger.warning(self.tr(f"无法找到 PID: {pid} 对应的 QProcess 对象"))
         return process
 
     def _center_window(self):

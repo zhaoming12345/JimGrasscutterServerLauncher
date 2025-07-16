@@ -62,7 +62,7 @@ class DownloadThread(QThread):
 class InstanceSelectionDialog(QDialog):
     def __init__(self, category, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f'选择 {category} 的目标实例')
+        self.setWindowTitle(self.tr(f'选择 {category} 的目标实例'))
         layout = QVBoxLayout()
         
         self.list_widget = QListWidget()
@@ -95,24 +95,24 @@ class DownloadTab(QWidget):
         self.logger = logger
         self.current_instance = None
         self.category_paths = {
-            'MongoDB 数据库社区版': os.path.join(self.root_dir, 'Database'),
-            'Java运行时': os.path.join(self.root_dir, 'Java'),
-            '服务端核心': os.path.join(self.root_dir, 'Servers'),
-            '插件': os.path.join(self.root_dir, 'Servers'),
-            '卡池配置文件': os.path.join(self.root_dir, 'Servers')
+            self.tr('MongoDB 数据库社区版'): os.path.join(self.root_dir, 'Database'),
+            self.tr('Java运行时'): os.path.join(self.root_dir, 'Java'),
+            self.tr('服务端核心'): os.path.join(self.root_dir, 'Servers'),
+            self.tr('插件'): os.path.join(self.root_dir, 'Servers'),
+            self.tr('卡池配置文件'): os.path.join(self.root_dir, 'Servers')
         }
         self.category_subdirs = {
             '插件': 'plugins',
             '卡池配置文件': 'data'
         }
         self.tree = QTreeWidget()
-        self.tree.setHeaderLabel('可下载组件')
+        self.tree.setHeaderLabel(self.tr('可下载组件'))
         self.tree.setRootIsDecorated(True)
         self.tree.setIndentation(15)
         self.tree.setStyleSheet('QTreeView::item { padding: 5px }')
         self._init_tree_data()
         
-        self.download_btn = QPushButton('下载选中项目')
+        self.download_btn = QPushButton(self.tr('下载选中项目'))
         self.download_queue = {}
         self.progress_bar = QProgressBar()
         self.progress_bar.setStyleSheet("""
@@ -121,8 +121,8 @@ class DownloadTab(QWidget):
         height: 20px;
         }
         """)
-        self.status_label = QLabel('准备就绪')
-        self.thread_count_label = QLabel('线程数: 64')
+        self.status_label = QLabel(self.tr('准备就绪'))
+        self.thread_count_label = QLabel(self.tr('线程数: 64'))
         self.thread_count_slider = QSlider(Qt.Horizontal)
         self.thread_count_slider.setRange(1, 128)
         self.thread_count_slider.setValue(64)
@@ -147,7 +147,7 @@ class DownloadTab(QWidget):
         self.mirror_combo = QComboBox()
         self.load_mirrors()
         mirror_layout = QHBoxLayout()
-        mirror_layout.addWidget(QLabel('GitHub镜像源(仅适用于GitHub资源):'))
+        mirror_layout.addWidget(QLabel(self.tr('GitHub镜像源(仅适用于GitHub资源):')))
         mirror_layout.addWidget(self.mirror_combo, stretch=1)
         layout.insertLayout(0, mirror_layout)
         
@@ -166,7 +166,7 @@ class DownloadTab(QWidget):
                     self.mirror_combo.addItem(mirror['name'], mirror['url'])
         except Exception as e:
             self.logger.error(f'加载镜像源失败: {e}')
-            self.mirror_combo.addItem('默认源', '')
+            self.mirror_combo.addItem(self.tr('默认源'), '')
     
     def on_mirror_changed(self, text):
         """镜像源变更处理"""
@@ -182,20 +182,20 @@ class DownloadTab(QWidget):
 
                 # 检查顶层是否为字典，并且是否包含 'categories' 键
                 if not isinstance(categories_data, dict) or 'categories' not in categories_data:
-                    self.logger.error(f"下载列表格式错误：顶层应为包含 'categories' 键的对象。文件: {config_path}")
-                    QMessageBox.critical(self, '错误', f'下载列表配置文件 {os.path.basename(config_path)} 格式错误：顶层应为包含 \'categories\' 键的对象。')
+                    self.logger.error(self.tr(f"下载列表格式错误：顶层应为包含 'categories' 键的对象。文件: {config_path}"))
+                    QMessageBox.critical(self, self.tr('错误'), self.tr(f'下载列表配置文件 {os.path.basename(config_path)} 格式错误：顶层应为包含 \'categories\' 键的对象。'))
                     return
 
                 actual_categories_list = categories_data['categories']
                 if not isinstance(actual_categories_list, list):
-                    self.logger.error(f"下载列表格式错误：'categories' 字段应为列表。文件: {config_path}")
-                    QMessageBox.critical(self, '错误', f'下载列表配置文件 {os.path.basename(config_path)} 格式错误：\'categories\' 字段应为列表。')
+                    self.logger.error(self.tr(f"下载列表格式错误：'categories' 字段应为列表。文件: {config_path}"))
+                    QMessageBox.critical(self, self.tr('错误'), self.tr(f'下载列表配置文件 {os.path.basename(config_path)} 格式错误：\'categories\' 字段应为列表。'))
                     return
 
                 for category_data in actual_categories_list:
                     # 检查分类数据是否为字典，并且是否包含 'name' 和 'items' 键
                     if not isinstance(category_data, dict) or 'name' not in category_data or 'items' not in category_data:
-                        self.logger.warning(f"跳过无效的分类数据或缺少必要字段（需要 'name' 和 'items'）: {category_data}")
+                        self.logger.warning(self.tr(f"跳过无效的分类数据或缺少必要字段（需要 'name' 和 'items'）: {category_data}"))
                         continue
 
                     category_name = category_data['name'] # 使用 'name' 键获取分类名称

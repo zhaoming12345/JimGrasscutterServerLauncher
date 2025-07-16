@@ -28,7 +28,7 @@ class LaunchTab(QWidget):
         self.db_heartbeat_timer.timeout.connect(self.check_db_health)
 
         self.server_list = QListWidget()
-        self.start_btn = QPushButton('启动服务器')
+        self.start_btn = QPushButton(self.tr('启动服务器'))
 
         layout = QVBoxLayout()
         layout.addWidget(self.server_list)
@@ -41,7 +41,7 @@ class LaunchTab(QWidget):
 
     def refresh_server_list(self):
         self.server_list.clear()
-        logger.debug(f'当前项目根目录: {self.root_dir}')
+        logger.debug(self.tr(f'当前项目根目录: {self.root_dir}'))
         instances_dir = Path(self.root_dir) / 'Servers'
         if instances_dir.exists() and instances_dir.is_dir():
             for instance_dir in instances_dir.iterdir():
@@ -51,7 +51,7 @@ class LaunchTab(QWidget):
     def start_selected_server(self):
         selected_items = self.server_list.selectedItems()
         if not selected_items:
-            logger.warning('请选择一个服务器实例')
+            logger.warning(self.tr('请选择一个服务器实例'))
             return
 
         instance_name = selected_items[0].text()
@@ -64,18 +64,18 @@ class LaunchTab(QWidget):
                     lock_info = json.load(f)
                 pid = lock_info.get('pid')
                 if pid and psutil.pid_exists(pid):
-                    logger.warning(f'实例 {instance_name} 正在运行中，无法启动')
+                    logger.warning(self.tr(f'实例 {instance_name} 正在运行中，无法启动'))
                     return
                 else:
-                    logger.warning(f'检测到残留的锁文件，尝试移除')
+                    logger.warning(self.tr(f'检测到残留的锁文件，尝试移除'))
                     self.remove_lock_file(instance_dir)
             except json.JSONDecodeError:
-                logger.warning(f'锁文件读取失败，尝试移除')
+                logger.warning(self.tr(f'锁文件读取失败，尝试移除'))
                 self.remove_lock_file(instance_dir)
             except FileNotFoundError:
-                logger.warning(f'锁文件已不存在')
+                logger.warning(self.tr(f'锁文件已不存在'))
             except Exception as e:
-                logger.error(f'检查锁文件时发生错误: {e}')
+                logger.error(self.tr(f'检查锁文件时发生错误: {e}'))
                 return
 
         try:
@@ -98,21 +98,21 @@ class LaunchTab(QWidget):
                 if not all([dispatch_port, game_port]):
                     raise ValueError('Missing port configuration in Grasscutter config')
             except Exception as e:
-                logger.error(f'读取Grasscutter配置文件失败: {e}')
+                logger.error(self.tr(f'读取Grasscutter配置文件失败: {e}'))
                 raise
         except Exception as e:
-            logger.error(f'读取配置文件失败: {e}')
+            logger.error(self.tr(f'读取配置文件失败: {e}'))
             self.remove_lock_file(instance_dir)
             return
 
         port_results = check_ports([(27017, 'tcp'), (dispatch_port, 'tcp'), (game_port, 'udp')])
         for port, proto, occupied, info in port_results:
             if occupied:
-                logger.error(f'端口 {port}/{proto} 被进程占用: {info}')
-                QMessageBox.critical(self, '端口冲突', f'端口 {port}/{proto} 被进程占用\n进程ID: {info["pid"]}\n进程名称: {info["process_name"]}', QMessageBox.Ok)
+                logger.error(self.tr(f'端口 {port}/{proto} 被进程占用: {info}'))
+                QMessageBox.critical(self, self.tr('端口冲突'), self.tr(f'端口 {port}/{proto} 被进程占用\n进程ID: {info["pid"]}\n进程名称: {info["process_name"]}'), QMessageBox.Ok)
                 self.remove_lock_file(instance_dir)
                 return
-        logger.info('所有必要端口可用')
+        logger.info(self.tr('所有必要端口可用'))
 
         if self.instance_counter == 0:
             self.start_database_service()
@@ -123,8 +123,8 @@ class LaunchTab(QWidget):
         self.start_btn.setEnabled(False)
         # 检查Java路径和Grasscutter路径是否有效
         if not java_path or not grasscutter_path:
-            logger.error(f'Java路径或Grasscutter路径无效: java_path={java_path}, grasscutter_path={grasscutter_path}')
-            QMessageBox.critical(self, '启动失败', f'Java路径或Grasscutter路径无效\nJava路径: {java_path}\nGrasscutter路径: {grasscutter_path}', QMessageBox.Ok)
+            logger.error(self.tr(f'Java路径或Grasscutter路径无效: java_path={java_path}, grasscutter_path={grasscutter_path}'))
+            QMessageBox.critical(self, self.tr('启动失败'), self.tr(f'Java路径或Grasscutter路径无效\nJava路径: {java_path}\nGrasscutter路径: {grasscutter_path}'), QMessageBox.Ok)
             self.start_btn.setEnabled(True)
             self.instance_counter -= 1
             return
@@ -137,7 +137,7 @@ class LaunchTab(QWidget):
         self.current_process.finished.connect(self.on_process_finished)
         self.current_process.readyReadStandardOutput.connect(self.handle_stdout)
         self.current_process.readyReadStandardError.connect(self.handle_stderr)
-        logger.debug(f'执行命令: {java_path} {" ".join([*jvm_pre_args, "-jar", grasscutter_path, *jvm_post_args])}')
+        logger.debug(self.tr(f'执行命令: {java_path} {" ".join([*jvm_pre_args, "-jar", grasscutter_path, *jvm_post_args])}'))
         try:
             self.current_process.start()
             if not self.current_process.waitForStarted(3000):  # 等待最多3秒
@@ -154,7 +154,7 @@ class LaunchTab(QWidget):
                 # 发射 process_created 信号
                 self.process_created.emit(pid, self.current_process)
                 lock_file = instance_dir / 'Running.lock'
-                logger.debug(f'创建锁文件: {lock_file} PID={pid}')
+                logger.debug(self.tr(f'创建锁文件: {lock_file} PID={pid}'))
                 try:
                     with open(lock_file, 'w') as f:
                         json.dump({
@@ -163,25 +163,25 @@ class LaunchTab(QWidget):
                             'program': __file__,
                             'process_path': os.path.abspath(__file__)
                         }, f, indent=2)
-                    logger.info(f'成功写入锁文件 PID={pid}')
+                    logger.info(self.tr(f'成功写入锁文件 PID={pid}'))
                     if psutil.pid_exists(pid) and psutil.Process(pid).name() == 'java.exe':
-                        logger.debug(f'进程验证成功: PID={pid}')
+                        logger.debug(self.tr(f'进程验证成功: PID={pid}'))
                     else:
-                        logger.warning(f'进程验证失败: PID={pid}')
+                        logger.warning(self.tr(f'进程验证失败: PID={pid}'))
                 except Exception as e:
-                    logger.error(f'写入锁文件失败: {e}')
+                    logger.error(self.tr(f'写入锁文件失败: {e}'))
                 self.instance_started.emit(instance_name, pid)
                 # 不需要重复创建锁文件
                 # self.create_lock_file(instance_dir)
         except Exception as e:
-            logger.error(f'启动进程时发生错误: {e}')
+            logger.error(self.tr(f'启动进程时发生错误: {e}'))
             if self.current_process:
-                logger.error(f'进程启动错误: {self.current_process.errorString()}')
+                logger.error(self.tr(f'进程启动错误: {self.current_process.errorString()}'))
             self.current_process = None
             self.start_btn.setEnabled(True)
             self.instance_counter -= 1
             return
-        logger.info(f'启动实例 {instance_name}')
+        logger.info(self.tr(f'启动实例 {instance_name}'))
 
     def start_database_service(self):
         try:
@@ -189,12 +189,12 @@ class LaunchTab(QWidget):
             for proc in psutil.process_iter(['pid', 'name']):
                 try:
                     if proc.info['name'] == 'mongod.exe':
-                        logger.warning(f'检测到 mongod.exe 进程，终止进程 {proc.info["pid"]}')
+                        logger.warning(self.tr(f'检测到 mongod.exe 进程，终止进程 {proc.info["pid"]}'))
                         proc.terminate()
                         proc.wait()
                         # 二次检查确保进程已关闭
                         if proc.is_running():
-                            logger.warning(f'进程 {proc.info["pid"]} 未正确终止，尝试强制终止')
+                            logger.warning(self.tr(f'进程 {proc.info["pid"]} 未正确终止，尝试强制终止'))
                             proc.kill()
                             proc.wait()
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
