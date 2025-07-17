@@ -82,106 +82,140 @@ class LaunchTab(QWidget):
             with open(instance_dir / 'JGSL/Config.json', 'r', encoding='utf-8') as f:
                 config = json.load(f)
             java_path = config.get('java_path', 'java')
-            grasscutter_path = str((instance_dir / config.get("grasscutter_path", "grasscutter.jar")).relative_to(instance_dir))
+            # 检查 grasscutter_path 是否为绝对路径，如果不是则拼接
+            raw_grasscutter_path = config.get("grasscutter_path", "grasscutter.jar")
+            if Path(raw_grasscutter_path).is_absolute():
+                grasscutter_path = Path(raw_grasscutter_path)
+            else:
+                grasscutter_path = instance_dir / raw_grasscutter_path
+            
+            # 检查 grasscutter_path 指向的文件是否存在
+            if not grasscutter_path.exists():
+                logger.error(self.tr(f'Grasscutter JAR 文件不存在: {grasscutter_path}'))
+                QMessageBox.critical(self, self.tr('启动失败'), self.tr(f'Grasscutter JAR 文件不存在: {grasscutter_path}'), QMessageBox.Ok)
+                self.remove_lock_file(instance_dir)
+                return
+
             jvm_pre_args = config.get('jvm_pre_args', [])
             if isinstance(jvm_pre_args, str):
                 jvm_pre_args = jvm_pre_args.split()
             jvm_post_args = config.get('jvm_post_args', [])
             if isinstance(jvm_post_args, str):
                 jvm_post_args = jvm_post_args.split()
-            config_path = instance_dir / 'config.json'
-            try:
-                with open(config_path, 'r', encoding='utf-8') as f:
-                    gc_config = json.load(f)
-                dispatch_port = gc_config.get('server', {}).get('http', {}).get('bindPort')
-                game_port = gc_config.get('server', {}).get('game', {}).get('bindPort')
-                if not all([dispatch_port, game_port]):
-                    raise ValueError('Missing port configuration in Grasscutter config')
-            except Exception as e:
-                logger.error(self.tr(f'读取Grasscutter配置文件失败: {e}'))
-                raise
-        except Exception as e:
-            logger.error(self.tr(f'读取配置文件失败: {e}'))
-            self.remove_lock_file(instance_dir)
-            return
-
-        port_results = check_ports([(27017, 'tcp'), (dispatch_port, 'tcp'), (game_port, 'udp')])
-        for port, proto, occupied, info in port_results:
-            if occupied:
-                logger.error(self.tr(f'端口 {port}/{proto} 被进程占用: {info}'))
-                QMessageBox.critical(self, self.tr('端口冲突'), self.tr(f'端口 {port}/{proto} 被进程占用\n进程ID: {info["pid"]}\n进程名称: {info["process_name"]}'), QMessageBox.Ok)
-                self.remove_lock_file(instance_dir)
-                return
-        logger.info(self.tr('所有必要端口可用'))
-
-        if self.instance_counter == 0:
-            self.start_database_service()
-            self.db_heartbeat_timer.start()
-
-        self.instance_counter += 1
-        self.current_instance = instance_dir
-        self.start_btn.setEnabled(False)
-        # 检查Java路径和Grasscutter路径是否有效
-        if not java_path or not grasscutter_path:
-            logger.error(self.tr(f'Java路径或Grasscutter路径无效: java_path={java_path}, grasscutter_path={grasscutter_path}'))
-            QMessageBox.critical(self, self.tr('启动失败'), self.tr(f'Java路径或Grasscutter路径无效\nJava路径: {java_path}\nGrasscutter路径: {grasscutter_path}'), QMessageBox.Ok)
-            self.start_btn.setEnabled(True)
-            self.instance_counter -= 1
-            return
             
-        self.current_process = QProcess(self)
-        self.current_process.setWorkingDirectory(str(instance_dir))
-        self.current_process.setProgram(java_path)
-        self.current_process.setArguments([*jvm_pre_args, '-jar', grasscutter_path, *jvm_post_args])
-        self.current_process.errorOccurred.connect(self.on_process_error)
-        self.current_process.finished.connect(self.on_process_finished)
-        self.current_process.readyReadStandardOutput.connect(self.handle_stdout)
-        self.current_process.readyReadStandardError.connect(self.handle_stderr)
-        logger.debug(self.tr(f'执行命令: {java_path} {" ".join([*jvm_pre_args, "-jar", grasscutter_path, *jvm_post_args])}'))
-        try:
-            self.current_process.start()
-            if not self.current_process.waitForStarted(3000):  # 等待最多3秒
-                logger.error(f'进程启动超时: {self.current_process.errorString()}')
-                QMessageBox.critical(self, '启动失败', f'进程启动超时\n错误信息: {self.current_process.errorString()}', QMessageBox.Ok)
-                self.current_process = None
+            config_path = instance_dir / 'config.json'
+            dispatch_port = None
+            game_port = None
+            if config_path.exists():
+                try:
+                    with open(config_path, 'r', encoding='utf-8') as f:
+                        gc_config = json.load(f)
+                    dispatch_port = gc_config.get('server', {}).get('http', {}).get('bindPort')
+                    game_port = gc_config.get('server', {}).get('game', {}).get('bindPort')
+                    if not all([dispatch_port, game_port]):
+                        logger.warning(self.tr('Grasscutter配置文件缺少端口配置，将尝试使用默认端口或跳过端口检查。'))
+                except Exception as e:
+                    logger.error(self.tr(f'读取Grasscutter配置文件失败: {e}，将尝试在无配置状态下启动。'))
+            else:
+                logger.warning(self.tr(f'Grasscutter配置文件 {config_path} 不存在，将尝试在无配置状态下启动。'))
+
+            # 如果端口未从配置文件中获取到，则使用默认值或跳过检查
+            if dispatch_port is None:
+                dispatch_port = 443
+                logger.info(self.tr(f'未找到Dispatch端口配置，使用默认值: {dispatch_port}'))
+            if game_port is None:
+                game_port = 22102
+                logger.info(self.tr(f'未找到Game端口配置，使用默认值: {game_port}'))
+
+            # 只有当端口有效时才进行端口检查
+            if dispatch_port and game_port:
+                port_results = check_ports([(27017, 'tcp'), (dispatch_port, 'tcp'), (game_port, 'udp')])
+                for port, proto, occupied, info in port_results:
+                    if occupied:
+                        logger.error(self.tr(f'端口 {port}/{proto} 被进程占用: {info}'))
+                        QMessageBox.critical(self, self.tr('端口冲突'), self.tr(f'端口 {port}/{proto} 被进程占用\n进程ID: {info["pid"]}\n进程名称: {info["process_name"]}'), QMessageBox.Ok)
+                        self.remove_lock_file(instance_dir)
+                        return
+                logger.info(self.tr('所有必要端口可用'))
+            else:
+                logger.warning(self.tr('由于端口配置缺失，跳过端口可用性检查。'))
+
+            if self.instance_counter == 0:
+                self.start_database_service()
+                self.db_heartbeat_timer.start()
+
+            self.instance_counter += 1
+            self.current_instance = instance_dir
+            self.start_btn.setEnabled(False)
+            # 检查Java路径和Grasscutter路径是否有效
+            if not java_path or not grasscutter_path:
+                logger.error(self.tr(f'Java路径或Grasscutter路径无效: java_path={java_path}, grasscutter_path={grasscutter_path}'))
+                QMessageBox.critical(self, self.tr('启动失败'), self.tr(f'Java路径或Grasscutter路径无效\nJava路径: {java_path}\nGrasscutter路径: {grasscutter_path}'), QMessageBox.Ok)
                 self.start_btn.setEnabled(True)
                 self.instance_counter -= 1
                 return
                 
-            # 进程成功启动后的处理
-            if self.current_process and self.current_process.state() == QProcess.Running:
-                pid = self.current_process.processId()
-                # 发射 process_created 信号
-                self.process_created.emit(pid, self.current_process)
-                lock_file = instance_dir / 'Running.lock'
-                logger.debug(self.tr(f'创建锁文件: {lock_file} PID={pid}'))
-                try:
-                    with open(lock_file, 'w') as f:
-                        json.dump({
-                            'pid': pid,
-                            'start_time': time.time(),
-                            'program': __file__,
-                            'process_path': os.path.abspath(__file__)
-                        }, f, indent=2)
-                    logger.info(self.tr(f'成功写入锁文件 PID={pid}'))
-                    if psutil.pid_exists(pid) and psutil.Process(pid).name() == 'java.exe':
-                        logger.debug(self.tr(f'进程验证成功: PID={pid}'))
-                    else:
-                        logger.warning(self.tr(f'进程验证失败: PID={pid}'))
-                except Exception as e:
-                    logger.error(self.tr(f'写入锁文件失败: {e}'))
-                self.instance_started.emit(instance_name, pid)
-                # 不需要重复创建锁文件
-                # self.create_lock_file(instance_dir)
+            self.current_process = QProcess(self)
+            self.current_process.setWorkingDirectory(str(instance_dir))
+            self.current_process.setProgram(java_path)
+            self.current_process.setArguments([*(str(arg) for arg in jvm_pre_args), '-jar', str(grasscutter_path), *(str(arg) for arg in jvm_post_args)])
+            self.current_process.errorOccurred.connect(self.on_process_error)
+            self.current_process.finished.connect(self.on_process_finished)
+            self.current_process.readyReadStandardOutput.connect(self.handle_stdout)
+            self.current_process.readyReadStandardError.connect(self.handle_stderr)
+            logger.debug(self.tr(f'执行命令: {java_path} {" ".join([*jvm_pre_args, "-jar", str(grasscutter_path), *jvm_post_args])}'))
+            try:
+                self.current_process.start()
+                if not self.current_process.waitForStarted(3000):  # 等待最多3秒
+                    logger.error(f'进程启动超时: {self.current_process.errorString()}')
+                    QMessageBox.critical(self, '启动失败', f'进程启动超时\n错误信息: {self.current_process.errorString()}', QMessageBox.Ok)
+                    self.current_process = None
+                    self.start_btn.setEnabled(True)
+                    self.instance_counter -= 1
+                    return
+                    
+                # 进程成功启动后的处理
+                if self.current_process and self.current_process.state() == QProcess.Running:
+                    pid = self.current_process.processId()
+                    # 发射 process_created 信号
+                    self.process_created.emit(pid, self.current_process)
+                    lock_file = instance_dir / 'Running.lock'
+                    logger.debug(self.tr(f'创建锁文件: {lock_file} PID={pid}'))
+                    try:
+                        with open(lock_file, 'w') as f:
+                            json.dump({
+                                'pid': pid,
+                                'start_time': time.time(),
+                                'program': __file__,
+                                'process_path': os.path.abspath(__file__)
+                            }, f, indent=2)
+                        logger.info(self.tr(f'成功写入锁文件 PID={pid}'))
+                        if psutil.pid_exists(pid) and psutil.Process(pid).name() == 'java.exe':
+                            logger.debug(self.tr(f'进程验证成功: PID={pid}'))
+                        else:
+                            logger.warning(self.tr(f'进程验证失败: PID={pid}'))
+                    except Exception as e:
+                        logger.error(self.tr(f'写入锁文件失败: {e}'))
+                    self.instance_started.emit(instance_name, pid)
+                logger.info(self.tr(f'启动实例 {instance_name}'))
+            except Exception as e:
+                logger.error(self.tr(f'启动进程时发生错误: {e}'))
+                if self.current_process:
+                    logger.error(self.tr(f'进程启动错误: {self.current_process.errorString()}'))
+                self.current_process = None
+                self.start_btn.setEnabled(True)
+                self.instance_counter -= 1
+                return
         except Exception as e:
-            logger.error(self.tr(f'启动进程时发生错误: {e}'))
+            logger.error(self.tr(f'启动实例 {instance_name} 时发生错误: {e}'))
+            logger.error(self.tr(f'读取配置文件失败或启动进程时发生错误: {e}'))
             if self.current_process:
                 logger.error(self.tr(f'进程启动错误: {self.current_process.errorString()}'))
             self.current_process = None
             self.start_btn.setEnabled(True)
             self.instance_counter -= 1
+            self.remove_lock_file(instance_dir)
             return
-        logger.info(self.tr(f'启动实例 {instance_name}'))
 
     def start_database_service(self):
         try:
@@ -281,7 +315,7 @@ class LaunchTab(QWidget):
             logger.info(f'数据库已停止')
 
     def handle_stdout(self):
-        text = self.current_process.readAllStandardOutput().data().decode()
+        text = self.current_process.readAllStandardOutput().data().decode(locale.getpreferredencoding(False), errors='replace')
         logger.trace(f'进程输出: {text.strip()}')
 
     def handle_stderr(self):
