@@ -64,7 +64,7 @@ def main():
     # 窗口标题和图标现在由 CustomTitleBar 管理
     window.show()
 
-    # 在主窗口显示后，应用初始主题配置喵
+    # 在主窗口显示后，应用初始主题配置
     theme_manager.apply_initial_theme_to_window(window)
 
     # 在显示主窗口后检查更新

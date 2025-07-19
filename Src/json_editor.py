@@ -78,7 +78,7 @@ class JSONEditor(QMainWindow):
             return
 
         menu = QMenu()
-        edit_action = QAction("编辑值", self)
+        edit_action = QAction(self.tr("编辑值"), self)
         edit_action.triggered.connect(lambda: self.open_edit_dialog(item))
         menu.addAction(edit_action)
         menu.exec_(self.tree.viewport().mapToGlobal(position))
@@ -121,21 +121,21 @@ class JSONEditor(QMainWindow):
             print(f"无法加载jsonfileinfo.json: {e}")
 
     def browse_file(self):
-        path, _ = QFileDialog.getOpenFileName(self, "选择JSON文件", "", "JSON文件 (*.json)")
+        path, _ = QFileDialog.getOpenFileName(self, self.tr("选择JSON文件"), self.tr(""), self.tr("JSON文件 (*.json)"))
         if path:
             self.path_input.setCurrentText(path)
 
     def load_json(self):
         path = self.path_input.currentText().strip()
         if not os.path.isfile(path):
-            QMessageBox.warning(self, "错误", "请选择有效的文件路径")
+            QMessageBox.warning(self, self.tr("错误"), self.tr("请选择有效的文件路径"))
             return
 
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"读取JSON失败: {str(e)}")
+            QMessageBox.critical(self, self.tr("错误"), self.tr(f"读取JSON失败: {str(e)}"))
             return
 
         self.current_json_data = data
@@ -186,19 +186,19 @@ class JSONEditor(QMainWindow):
 
     def save_json(self):
         if not self.file_path:
-            QMessageBox.warning(self, "错误", "没有文件可以保存")
+            QMessageBox.warning(self, self.tr("错误"), self.tr("没有文件可以保存"))
             return
         try:
             with open(self.file_path, 'w', encoding='utf-8') as f:
                 json.dump(self.tree_to_json(), f, indent=2, ensure_ascii=False)
-            QMessageBox.information(self, "成功", f"文件已保存: {self.file_path}")
+            QMessageBox.information(self, self.tr("成功"), self.tr(f"文件已保存: {self.file_path}"))
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"保存失败: {e}")
+            QMessageBox.critical(self, self.tr("错误"), self.tr(f"保存失败: {e}"))
 
     def eventFilter(self, source, event):
         if source == self.path_input.lineEdit():
             if event.type() == event.FocusIn:
-                if source.placeholderText() == "键入路径或在下拉框中选择":
+                if source.placeholderText() == self.tr("键入路径或在下拉框中选择"):
                     source.setPlaceholderText("")
             elif event.type() == event.FocusOut:
                 if not source.text():

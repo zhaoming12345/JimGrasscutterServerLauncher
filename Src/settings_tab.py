@@ -190,4 +190,4 @@ class SettingsTab(QWidget):
             self.debug_monitor_panel = MonitorPanel(instance_name="Debug Instance", pid=-1, log_path="N/A", debug_mode=True)
             self.debug_monitor_panel.show() # 使用 show() 而不是 exec_() 来避免阻塞主窗口
         except Exception as e:
-            logger.error(f"打开调试监控面板时出错: {e}")
+            logger.error(self.tr(f"打开调试监控面板时出错: {e}"))

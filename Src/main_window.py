@@ -10,7 +10,7 @@ from download_tab import DownloadTab
 from settings_tab import SettingsTab
 from activity_tab import ActivityTab
 from PyQt5.QtCore import Qt, QProcess
-from fe_core.blur_style import apply_blur_style, BLUR_STYLE # 导入 BLUR_STYLE 喵
+from fe_core.blur_style import apply_blur_style, BLUR_STYLE
 from fe_core.custom_title_bar import CustomTitleBar
 from fe_core.background_effect import BackgroundEffect
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QApplication
@@ -18,8 +18,8 @@ from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QAppl
 class MainWindow(QMainWindow):
     def __init__(self, theme_manager):
         super().__init__()
-        self.theme_manager = theme_manager # 保存 theme_manager 实例喵
-        self.background_effect = None # 初始化为 None 喵
+        self.theme_manager = theme_manager # 保存 theme_manager 实例
+        self.background_effect = None # 初始化为 None 
 
         self.old_pos = None  # 用于窗口拖动
         # 窗口标题和图标将由 CustomTitleBar 管理
@@ -100,16 +100,16 @@ class MainWindow(QMainWindow):
                 self.background_effect = BackgroundEffect(self)
             logger.info(self.tr("已应用背景模糊效果和透明样式"))
         else:
-            # 如果不启用模糊，则移除模糊效果喵
+            # 如果不启用模糊，则移除模糊效果
             if self.background_effect:
                 self.background_effect.remove_effect()
                 self.background_effect = None
             else:
-                logger.warning(self.tr("背景模糊效果未启用，无法移除喵。"))
-            # 移除样式表中的模糊样式喵
+                logger.warning(self.tr("背景模糊效果未启用，无法移除"))
+            # 移除样式表中的模糊样式
             current_style_sheet = self.styleSheet()
-            # 简单粗暴地移除 BLUR_STYLE 中可能包含的样式，这里需要更精确的移除方式喵
-            # 暂时先这样处理，后续可以优化喵
+            # 简单粗暴地移除 BLUR_STYLE 中可能包含的样式，这里需要更精确的移除方式
+            # 暂时先这样处理，后续可以优化
             for style_line in BLUR_STYLE.split(';'):
                 if style_line.strip():
                     current_style_sheet = current_style_sheet.replace(style_line.strip(), '')
@@ -171,24 +171,10 @@ class MainWindow(QMainWindow):
         """
         绘制窗口背景，支持高斯模糊透明效果
         """
-        # 此方法为空是有意的，因为背景绘制由BackgroundEffect和样式表处理
-        # 但必须存在此方法以确保Qt正确处理背景绘制
         super().paintEvent(event)
 
     def mousePressEvent(self, event):
         """
         捕获鼠标按下事件，防止事件穿透
-        """
-        event.accept()  # 显式接受事件，防止传递到下层窗口
-
-    def mouseReleaseEvent(self, event):
-        """
-        捕获鼠标释放事件，防止事件穿透
-        """
-        event.accept()  # 显式接受事件，防止传递到下层窗口
-
-    def mouseMoveEvent(self, event):
-        """
-        捕获鼠标移动事件，防止事件穿透
         """
         event.accept()  # 显式接受事件，防止传递到下层窗口

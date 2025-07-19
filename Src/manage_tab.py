@@ -496,12 +496,12 @@ class ManageTab(QWidget):
                 QMessageBox.warning(self, '错误', f'实例 "{new_instance_name}" 已存在')
                 return
 
-            self.progress_dialog = QProgressDialog(f'正在克隆实例 "{original_instance_name}" 为 "{new_instance_name}"...', '取消', 0, 100, self)
+            self.progress_dialog = QProgressDialog(self.tr(f'正在克隆实例 "{original_instance_name}" 为 "{new_instance_name}"...'), self.tr('取消'), 0, 100, self)
             self.progress_dialog.setWindowModality(Qt.WindowModal)
             self.progress_dialog.setMinimumDuration(0) # 立即显示
             self.progress_dialog.setValue(0)
-            self.current_operation_status = f'准备克隆 "{original_instance_name}" 到 "{new_instance_name}"...'
-            self.current_operation_file = ""
+            self.current_operation_status = self.tr(f'准备克隆 "{original_instance_name}" 到 "{new_instance_name}"...')
+            self.current_operation_file = self.tr("")
             self._update_progress_dialog_label()
 
             self.operation_thread = self.OperationThread(
@@ -530,12 +530,12 @@ class ManageTab(QWidget):
         if reply == QMessageBox.Yes:
             instance_dir = os.path.join(self.root_dir, "Servers", instance_name)
             
-            self.progress_dialog = QProgressDialog(f'正在删除实例 "{instance_name}"...', '取消', 0, 100, self)
+            self.progress_dialog = QProgressDialog(self.tr(f'正在删除实例 "{instance_name}"...'), self.tr('取消'), 0, 100, self)
             self.progress_dialog.setWindowModality(Qt.WindowModal)
             self.progress_dialog.setMinimumDuration(0)
             self.progress_dialog.setValue(0)
-            self.current_operation_status = f'准备删除实例 "{instance_name}"...'
-            self.current_operation_file = ""
+            self.current_operation_status = self.tr(f'准备删除实例 "{instance_name}"...')
+            self.current_operation_file = self.tr("")
             self._update_progress_dialog_label()
 
             self.operation_thread = self.OperationThread(

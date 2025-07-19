@@ -32,84 +32,84 @@
 <context>
     <name>ActivityTab</name>
     <message>
-        <location filename="../Src/activity_tab.py" line="112"/>
+        <location filename="../Src/activity_tab.py" line="111"/>
         <source>全部</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="116"/>
+        <location filename="../Src/activity_tab.py" line="115"/>
         <source>GitHub仓库最近活动</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="122"/>
-        <location filename="../Src/activity_tab.py" line="159"/>
+        <location filename="../Src/activity_tab.py" line="121"/>
+        <location filename="../Src/activity_tab.py" line="158"/>
         <source>正在加载活动...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="134"/>
+        <location filename="../Src/activity_tab.py" line="133"/>
         <source>从 {repo_list_file} 加载仓库列表成功。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="149"/>
+        <location filename="../Src/activity_tab.py" line="148"/>
         <source>无可用仓库</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="153"/>
+        <location filename="../Src/activity_tab.py" line="152"/>
         <source>加载仓库列表或配置时出错: {e}，使用默认值</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="154"/>
+        <location filename="../Src/activity_tab.py" line="153"/>
         <source>加载失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="178"/>
+        <location filename="../Src/activity_tab.py" line="177"/>
         <source>选择了仓库: {self.repo_owner}/{self.repo_name}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="184"/>
+        <location filename="../Src/activity_tab.py" line="183"/>
         <source>选择了显示所有仓库活动</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="187"/>
+        <location filename="../Src/activity_tab.py" line="186"/>
         <source>取消了显示所有仓库活动</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="195"/>
+        <location filename="../Src/activity_tab.py" line="194"/>
         <source>活动加载完成。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="196"/>
+        <location filename="../Src/activity_tab.py" line="195"/>
         <source>GitHub活动加载完成。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../Src/activity_tab.py" line="197"/>
         <location filename="../Src/activity_tab.py" line="198"/>
-        <location filename="../Src/activity_tab.py" line="199"/>
         <source>没有找到最近的GitHub活动。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="202"/>
+        <location filename="../Src/activity_tab.py" line="201"/>
         <source>加载活动失败: {message}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="203"/>
+        <location filename="../Src/activity_tab.py" line="202"/>
         <source>加载GitHub活动失败: {message}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="206"/>
+        <location filename="../Src/activity_tab.py" line="205"/>
         <source>活动选项卡被选中，开始加载活动。</source>
         <translation type="unfinished"></translation>
     </message>
@@ -212,6 +212,119 @@
     <message>
         <location filename="../Src/cluster_tab.py" line="115"/>
         <source>取消</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="216"/>
+        <source>此服务器可能已属于其他集群或配置为集群角色，加入新集群将覆盖其配置</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="229"/>
+        <source>游戏服务器总数: {count}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="255"/>
+        <source>此服务器当前角色为 {role}，可能已属于其他集群。加入新集群将覆盖其配置。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="258"/>
+        <source>可用的独立服务器实例</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="265"/>
+        <location filename="../Src/cluster_tab.py" line="311"/>
+        <source>警告</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="265"/>
+        <source>请先在调度服务器列表中选择一个服务器</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="275"/>
+        <source>当前选定的调度服务器</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="311"/>
+        <source>请先在游戏服务器列表中选择一个服务器</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="327"/>
+        <location filename="../Src/cluster_tab.py" line="334"/>
+        <location filename="../Src/cluster_tab.py" line="344"/>
+        <location filename="../Src/cluster_tab.py" line="371"/>
+        <source>错误</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="327"/>
+        <source>集群名称不能为空</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="334"/>
+        <source>集群名称只能包含字母、数字、下划线和中文</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="344"/>
+        <source>请指定一个调度服务器，或勾选&quot;使用内置调度&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="371"/>
+        <source>无法调用保存函数，请检查父窗口实现</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="375"/>
+        <source>加载集群配置: {config}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="383"/>
+        <source>加载调度服务器: {dispatch_servers}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="390"/>
+        <source>加载游戏服务器: {game_servers}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="398"/>
+        <source>集群配置加载完成</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="400"/>
+        <location filename="../Src/cluster_tab.py" line="401"/>
+        <source>加载集群配置时出错: {e}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="401"/>
+        <source>加载错误</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ClusterTab</name>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="623"/>
+        <source>错误</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/cluster_tab.py" line="623"/>
+        <source>保存集群配置失败:{e}</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -753,6 +866,72 @@
     </message>
 </context>
 <context>
+    <name>JSONEditor</name>
+    <message>
+        <location filename="../Src/json_editor.py" line="81"/>
+        <source>编辑值</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="124"/>
+        <source>选择JSON文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="124"/>
+        <source></source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="124"/>
+        <source>JSON文件 (*.json)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="131"/>
+        <location filename="../Src/json_editor.py" line="138"/>
+        <location filename="../Src/json_editor.py" line="189"/>
+        <location filename="../Src/json_editor.py" line="196"/>
+        <source>错误</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="131"/>
+        <source>请选择有效的文件路径</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="138"/>
+        <source>读取JSON失败: {str(e)}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="189"/>
+        <source>没有文件可以保存</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="194"/>
+        <source>成功</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="194"/>
+        <source>文件已保存: {self.file_path}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="196"/>
+        <source>保存失败: {e}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/json_editor.py" line="202"/>
+        <source>键入路径或在下拉框中选择</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>LaunchTab</name>
     <message>
         <location filename="../Src/launch_tab.py" line="31"/>
@@ -1069,7 +1248,7 @@ Grasscutter路径: {grasscutter_path}</source>
     </message>
     <message>
         <location filename="../Src/main_window.py" line="108"/>
-        <source>背景模糊效果未启用，无法移除喵。</source>
+        <source>背景模糊效果未启用，无法移除</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1197,6 +1376,38 @@ Grasscutter路径: {grasscutter_path}</source>
     <message>
         <location filename="../Src/manage_tab.py" line="400"/>
         <source>读取实例配置文件 {config_path} 时发生未知错误</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/manage_tab.py" line="499"/>
+        <source>正在克隆实例 &quot;{original_instance_name}&quot; 为 &quot;{new_instance_name}&quot;...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/manage_tab.py" line="499"/>
+        <location filename="../Src/manage_tab.py" line="533"/>
+        <source>取消</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/manage_tab.py" line="504"/>
+        <source>准备克隆 &quot;{original_instance_name}&quot; 到 &quot;{new_instance_name}&quot;...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/manage_tab.py" line="505"/>
+        <location filename="../Src/manage_tab.py" line="539"/>
+        <source></source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/manage_tab.py" line="533"/>
+        <source>正在删除实例 &quot;{instance_name}&quot;...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/manage_tab.py" line="538"/>
+        <source>准备删除实例 &quot;{instance_name}&quot;...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2118,6 +2329,95 @@ N/A</source>
     </message>
 </context>
 <context>
+    <name>PluginManagerDialog</name>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="26"/>
+        <source>插件管理 - {self.instance_name}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="36"/>
+        <source>添加插件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="37"/>
+        <source>移除插件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="62"/>
+        <source>打开文件对话框以添加插件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="63"/>
+        <source>选择插件文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="63"/>
+        <source>JAR 文件 (*.jar)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="75"/>
+        <source>复制失败</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="75"/>
+        <source>无法复制插件 {base_name}: {e}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="78"/>
+        <location filename="../Src/plugin_manager.py" line="96"/>
+        <source>成功</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="78"/>
+        <source>{added_count} 个插件已成功添加。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="83"/>
+        <source>提示</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="83"/>
+        <source>请先选择一个要移除的插件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="87"/>
+        <source>确认移除</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="87"/>
+        <source>确定要移除插件 &apos;{plugin_name}&apos; 吗？</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="96"/>
+        <source>插件 &apos;{plugin_name}&apos; 已成功移除。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="99"/>
+        <source>移除失败</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/plugin_manager.py" line="99"/>
+        <source>无法移除插件 {plugin_name}: {e}</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>SettingsTab</name>
     <message>
         <location filename="../Src/settings_tab.py" line="24"/>
@@ -2248,6 +2548,11 @@ N/A</source>
         <source>打开调试模式的监控面板</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../Src/settings_tab.py" line="193"/>
+        <source>打开调试监控面板时出错: {e}</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ThemeManager</name>
@@ -2284,6 +2589,75 @@ N/A</source>
     <message>
         <location filename="../Src/theme_manager.py" line="172"/>
         <source>尝试应用选定主题...</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TitleEditorDialog</name>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="9"/>
+        <source>编辑实例标题</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="22"/>
+        <source>实例标题:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="24"/>
+        <source>请输入实例标题</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="30"/>
+        <source>保存</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="34"/>
+        <source>取消</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="42"/>
+        <source>警告</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="42"/>
+        <source>标题不能为空！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="77"/>
+        <source>实例标题已保存到 {config_file_path}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="80"/>
+        <source>保存实例标题失败: {e}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="81"/>
+        <location filename="../Src/title_editor_dialog.py" line="83"/>
+        <source>错误</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="81"/>
+        <source>保存标题失败: {e}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="83"/>
+        <source>无法获取实例路径，无法保存标题。</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../Src/title_editor_dialog.py" line="84"/>
+        <source>实例路径未提供，无法保存标题。</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

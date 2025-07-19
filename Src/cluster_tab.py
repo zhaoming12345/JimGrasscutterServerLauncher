@@ -213,7 +213,7 @@ class ClusterConfigDialog(QDialog):
                     role = self.get_instance_role(server_name)
                     if role != 'HYBRID':
                         new_item.setBackground(QtCore.Qt.lightGray)
-                        new_item.setToolTip('此服务器可能已属于其他集群或配置为集群角色，加入新集群将覆盖其配置')
+                        new_item.setToolTip(self.tr('此服务器可能已属于其他集群或配置为集群角色，加入新集群将覆盖其配置'))
                     else:
                         new_item.setBackground(QtCore.Qt.white)
                         new_item.setToolTip('')
@@ -226,7 +226,7 @@ class ClusterConfigDialog(QDialog):
     def update_game_server_count(self):
         """更新游戏服务器总数标签"""
         count = self.game_server_list.count()
-        self.game_server_count_label.setText(f'游戏服务器总数: {count}')
+        self.game_server_count_label.setText(self.tr(f'游戏服务器总数: {count}'))
 
     def load_available_servers(self):
         """加载可用的服务器实例列表"""
@@ -252,17 +252,17 @@ class ClusterConfigDialog(QDialog):
                     role = self.get_instance_role(server_name)
                     if role != 'HYBRID':
                         item.setBackground(QtCore.Qt.lightGray)
-                        item.setToolTip(f'此服务器当前角色为 {role}，可能已属于其他集群。加入新集群将覆盖其配置。')
+                        item.setToolTip(self.tr(f'此服务器当前角色为 {role}，可能已属于其他集群。加入新集群将覆盖其配置。'))
                     else:
                         item.setBackground(QtCore.Qt.white)
-                        item.setToolTip('可用的独立服务器实例')
+                        item.setToolTip(self.tr('可用的独立服务器实例'))
                     self.available_servers_list.addItem(item)
 
     def select_dispatch_server(self):
         """将选中的服务器设为调度服务器"""
         selected = self.dispatch_server_list.currentItem()
         if not selected:
-            QMessageBox.warning(self, "警告", "请先在调度服务器列表中选择一个服务器")
+            QMessageBox.warning(self, self.tr("警告"), self.tr("请先在调度服务器列表中选择一个服务器"))
             return
         
         server_name = selected.text()
@@ -272,7 +272,7 @@ class ClusterConfigDialog(QDialog):
             item = self.dispatch_server_list.item(i)
             if item.text() == server_name:
                 item.setBackground(QtCore.Qt.green)
-                item.setToolTip('当前选定的调度服务器')
+                item.setToolTip(self.tr('当前选定的调度服务器'))
             else:
                 item.setBackground(QtCore.Qt.white)
                 item.setToolTip('')
@@ -308,7 +308,7 @@ class ClusterConfigDialog(QDialog):
         # 获取当前选中的游戏服务器
         selected_items = self.game_server_list.selectedItems()
         if not selected_items:
-            QMessageBox.warning(self, "警告", "请先在游戏服务器列表中选择一个服务器")
+            QMessageBox.warning(self, self.tr("警告"), self.tr("请先在游戏服务器列表中选择一个服务器"))
             return
             
         server_name = selected_items[0].text()
@@ -324,14 +324,14 @@ class ClusterConfigDialog(QDialog):
         # 1. 验证集群名称
         cluster_name = self.cluster_name_input.text().strip()
         if not cluster_name:
-            QMessageBox.warning(self, "错误", "集群名称不能为空")
+            QMessageBox.warning(self, self.tr("错误"), self.tr("集群名称不能为空"))
             self.config_tabs.setCurrentIndex(2) # 切换到"其它"标签页
             self.cluster_name_input.setFocus()
             return
             
         # 集群名称验证:只能包含字母、数字、下划线和中文
         if not re.match(r'^[\w\u4e00-\u9fa5]+$', cluster_name):
-            QMessageBox.warning(self, "错误", "集群名称只能包含字母、数字、下划线和中文")
+            QMessageBox.warning(self, self.tr("错误"), self.tr("集群名称只能包含字母、数字、下划线和中文"))
             self.config_tabs.setCurrentIndex(2)
             self.cluster_name_input.setFocus()
             return
@@ -341,7 +341,7 @@ class ClusterConfigDialog(QDialog):
         use_internal = self.use_internal_dispatch_checkbox.isChecked()
         # 验证调度配置 (例如:必须至少有一个调度服务器，除非使用内置)
         if not use_internal and not dispatch_servers:
-            QMessageBox.warning(self, "错误", "请指定一个调度服务器，或勾选\"使用内置调度\"")
+            QMessageBox.warning(self, self.tr("错误"), self.tr("请指定一个调度服务器，或勾选\"使用内置调度\""))
             self.config_tabs.setCurrentIndex(0) # 切换到"调度"标签页
             return
 
@@ -368,11 +368,11 @@ class ClusterConfigDialog(QDialog):
                 super().accept()
             # 如果保存失败，不关闭对话框
         else:
-            QMessageBox.critical(self, "错误", "无法调用保存函数，请检查父窗口实现")
+            QMessageBox.critical(self, self.tr("错误"), self.tr("无法调用保存函数，请检查父窗口实现"))
 
     def load_config(self, config):
         """加载集群配置到对话框"""
-        print(f"加载集群配置: {config}") # 打印日志以确认加载
+        print(self.tr(f"加载集群配置: {config}")) # 打印日志以确认加载
         try:
             self.cluster_name_input.setText(config.get('name', ''))
             # self.cluster_title_input.setText(config.get('title', '')) # 如果有标题输入框
@@ -380,14 +380,14 @@ class ClusterConfigDialog(QDialog):
 
             self.dispatch_server_list.clear()
             dispatch_servers = config.get('dispatch_servers', [])
-            print(f"加载调度服务器: {dispatch_servers}")
+            print(self.tr(f"加载调度服务器: {dispatch_servers}"))
             for server in dispatch_servers:
                 self.dispatch_server_list.addItem(QListWidgetItem(server))
                 # 可以在这里标记选定的调度服务器，如果配置中有此信息
 
             self.game_server_list.clear()
             game_servers = config.get('game_servers', [])
-            print(f"加载游戏服务器: {game_servers}")
+            print(self.tr(f"加载游戏服务器: {game_servers}"))
             for server in game_servers:
                 self.game_server_list.addItem(QListWidgetItem(server))
 
@@ -395,10 +395,10 @@ class ClusterConfigDialog(QDialog):
             self.load_available_servers() # 重新加载可用服务器列表，排除当前集群的服务器
             # 记录原始名称，用于编辑时判断是否重命名
             self.original_cluster_name = config.get('name', '')
-            print("集群配置加载完成")
+            print(self.tr("集群配置加载完成"))
         except Exception as e:
-            print(f"加载集群配置时出错: {e}") # 使用 print 或 logger 记录错误
-            QMessageBox.warning(self, "加载错误", f"加载集群配置时出错: {e}")
+            print(self.tr(f"加载集群配置时出错: {e}")) # 使用 print 或 logger 记录错误
+            QMessageBox.warning(self, self.tr("加载错误"), self.tr(f"加载集群配置时出错: {e}"))
 
 
 class ClusterTab(QWidget):
@@ -620,7 +620,7 @@ class ClusterTab(QWidget):
 
         except Exception as e:
             logger.error(f"保存集群配置失败: {e}")
-            QMessageBox.critical(self, "错误", f"保存集群配置失败:{e}")
+            QMessageBox.critical(self, self.tr("错误"), self.tr(f"保存集群配置失败:{e}"))
             return False
     
     def _update_server_role(self, server_name, role, cluster_name):

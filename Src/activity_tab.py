@@ -99,7 +99,6 @@ class ActivityTab(QWidget):
         self.repo_list = []
 
         self.init_ui()
-        self.load_repo_list()
 
     def init_ui(self):
         main_layout = QVBoxLayout(self)
@@ -204,4 +203,9 @@ class ActivityTab(QWidget):
 
     def on_tab_selected(self):
         logger.info(self.tr("活动选项卡被选中，开始加载活动。"))
+        self.load_repo_list()
+        # 确保之前的线程已终止
+        if hasattr(self, '_current_thread') and self._current_thread.isRunning():
+            self._current_thread.quit()
+            self._current_thread.wait()
         self.fetch_activity()

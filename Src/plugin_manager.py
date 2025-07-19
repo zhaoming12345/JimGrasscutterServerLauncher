@@ -23,7 +23,7 @@ class PluginManagerDialog(QDialog):
                 # 如果无法创建目录，则提前返回或禁用对话框功能
                 return
 
-        self.setWindowTitle(f"插件管理 - {self.instance_name}")
+        self.setWindowTitle(self.tr(f"插件管理 - {self.instance_name}"))
         self.setMinimumSize(400, 300)
         self.setWindowModality(Qt.ApplicationModal)
 
@@ -33,8 +33,8 @@ class PluginManagerDialog(QDialog):
         layout.addWidget(self.plugin_list_widget)
 
         button_layout = QHBoxLayout()
-        self.add_plugin_btn = QPushButton("添加插件")
-        self.remove_plugin_btn = QPushButton("移除插件")
+        self.add_plugin_btn = QPushButton(self.tr("添加插件"))
+        self.remove_plugin_btn = QPushButton(self.tr("移除插件"))
         button_layout.addWidget(self.add_plugin_btn)
         button_layout.addWidget(self.remove_plugin_btn)
         layout.addLayout(button_layout)
@@ -59,8 +59,8 @@ class PluginManagerDialog(QDialog):
         logger.info(f"找到 {self.plugin_list_widget.count()} 个插件")
 
     def add_plugin(self):
-        logger.info("打开文件对话框以添加插件")
-        file_names, _ = QFileDialog.getOpenFileNames(self, "选择插件文件", "", "JAR 文件 (*.jar)")
+        logger.info(self.tr("打开文件对话框以添加插件"))
+        file_names, _ = QFileDialog.getOpenFileNames(self, self.tr("选择插件文件"), "", self.tr("JAR 文件 (*.jar)"))
         if file_names:
             added_count = 0
             for file_name in file_names:
@@ -72,19 +72,19 @@ class PluginManagerDialog(QDialog):
                     added_count += 1
                 except Exception as e:
                     logger.error(f"复制插件 '{base_name}' 失败: {e}")
-                    QMessageBox.warning(self, "复制失败", f"无法复制插件 {base_name}: {e}")
+                    QMessageBox.warning(self, self.tr("复制失败"), self.tr(f"无法复制插件 {base_name}: {e}"))
             if added_count > 0:
                 self.load_plugins()
-                QMessageBox.information(self, "成功", f"{added_count} 个插件已成功添加。")
+                QMessageBox.information(self, self.tr("成功"), self.tr(f"{added_count} 个插件已成功添加。"))
 
     def remove_plugin(self):
         current_item = self.plugin_list_widget.currentItem()
         if not current_item:
-            QMessageBox.warning(self, "提示", "请先选择一个要移除的插件")
+            QMessageBox.warning(self, self.tr("提示"), self.tr("请先选择一个要移除的插件"))
             return
 
         plugin_name = current_item.text()
-        reply = QMessageBox.question(self, "确认移除", f"确定要移除插件 '{plugin_name}' 吗？",
+        reply = QMessageBox.question(self, self.tr("确认移除"), self.tr(f"确定要移除插件 '{plugin_name}' 吗？"),
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
         if reply == QMessageBox.Yes:
@@ -93,7 +93,7 @@ class PluginManagerDialog(QDialog):
                 os.remove(plugin_path)
                 logger.success(f"插件 '{plugin_name}' 已从 {plugin_path} 移除")
                 self.load_plugins()
-                QMessageBox.information(self, "成功", f"插件 '{plugin_name}' 已成功移除。")
+                QMessageBox.information(self, self.tr("成功"), self.tr(f"插件 '{plugin_name}' 已成功移除。"))
             except Exception as e:
                 logger.error(f"移除插件 '{plugin_name}' 失败: {e}")
-                QMessageBox.warning(self, "移除失败", f"无法移除插件 {plugin_name}: {e}")
+                QMessageBox.warning(self, self.tr("移除失败"), self.tr(f"无法移除插件 {plugin_name}: {e}"))
