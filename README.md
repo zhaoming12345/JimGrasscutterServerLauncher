@@ -78,4 +78,4 @@ pip install -r requirements.txt
 
 2. 第一次运行时可能会遇到资源占用不高但是非常卡顿的问题，原因不明，多次重启和长时间使用可能能解决此问题。
 
-3. [FE-Core](https://github.com/Jimmy32767255/FE-Core)在Windows11 Insider Preview Canary上高斯模糊效果失效，这个是微软的问题我无法修复，正式版Windows11上没有此问题。
+3. [FE-Core](https://github.com/Jimmy32767255/FE-Core)高斯模糊项目在Windows11 Insider Preview Canary存在问题，这是 FE-Core 的问题，我们无法修复
