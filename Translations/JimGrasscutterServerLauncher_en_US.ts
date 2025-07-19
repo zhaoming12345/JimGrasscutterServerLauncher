@@ -32,84 +32,84 @@
 <context>
     <name>ActivityTab</name>
     <message>
-        <location filename="../Src/activity_tab.py" line="115"/>
+        <location filename="../Src/activity_tab.py" line="112"/>
         <source>全部</source>
         <translation>All</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="121"/>
+        <location filename="../Src/activity_tab.py" line="116"/>
         <source>GitHub仓库最近活动</source>
         <translation>GitHub Repository Recent Activity</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="129"/>
-        <location filename="../Src/activity_tab.py" line="170"/>
+        <location filename="../Src/activity_tab.py" line="122"/>
+        <location filename="../Src/activity_tab.py" line="159"/>
         <source>正在加载活动...</source>
         <translation>Loading activity...</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="142"/>
+        <location filename="../Src/activity_tab.py" line="134"/>
         <source>从 {repo_list_file} 加载仓库列表成功。</source>
         <translation>Successfully loaded repository list from {repo_list_file}.</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="159"/>
+        <location filename="../Src/activity_tab.py" line="149"/>
         <source>无可用仓库</source>
         <translation>No repositories available</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="164"/>
+        <location filename="../Src/activity_tab.py" line="153"/>
         <source>加载仓库列表或配置时出错: {e}，使用默认值</source>
         <translation>Error loading repository list or configuration: {e}, using default values</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="165"/>
+        <location filename="../Src/activity_tab.py" line="154"/>
         <source>加载失败</source>
         <translation>Load Failed</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="196"/>
+        <location filename="../Src/activity_tab.py" line="178"/>
         <source>选择了仓库: {self.repo_owner}/{self.repo_name}</source>
         <translation>Selected repository: {self.repo_owner}/{self.repo_name}</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="202"/>
+        <location filename="../Src/activity_tab.py" line="184"/>
         <source>选择了显示所有仓库活动</source>
         <translation>Selected to display all repository activities</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="205"/>
+        <location filename="../Src/activity_tab.py" line="187"/>
         <source>取消了显示所有仓库活动</source>
         <translation>Canceled displaying all repository activities</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="213"/>
+        <location filename="../Src/activity_tab.py" line="195"/>
         <source>活动加载完成。</source>
         <translation>Activity loading complete.</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="214"/>
+        <location filename="../Src/activity_tab.py" line="196"/>
         <source>GitHub活动加载完成。</source>
         <translation>GitHub activity loading complete.</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="216"/>
-        <location filename="../Src/activity_tab.py" line="217"/>
+        <location filename="../Src/activity_tab.py" line="198"/>
+        <location filename="../Src/activity_tab.py" line="199"/>
         <source>没有找到最近的GitHub活动。</source>
         <translation>No recent GitHub activity found.</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="220"/>
+        <location filename="../Src/activity_tab.py" line="202"/>
         <source>加载活动失败: {message}</source>
         <translation>Failed to load activity: {message}</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="221"/>
+        <location filename="../Src/activity_tab.py" line="203"/>
         <source>加载GitHub活动失败: {message}</source>
         <translation>Failed to load GitHub activity: {message}</translation>
     </message>
     <message>
-        <location filename="../Src/activity_tab.py" line="224"/>
+        <location filename="../Src/activity_tab.py" line="206"/>
         <source>活动选项卡被选中，开始加载活动。</source>
         <translation>Activity tab selected, starting to load activity.</translation>
     </message>
@@ -1046,82 +1046,92 @@ Grasscutter Path: {grasscutter_path}</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../Src/main_window.py" line="40"/>
+        <location filename="../Src/main_window.py" line="42"/>
         <source>JimGrasscutterServerLauncher</source>
         <translation type="unfinished">JimGrasscutterServerLauncher</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="64"/>
+        <location filename="../Src/main_window.py" line="66"/>
         <source>启动</source>
         <translation>Launch</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="65"/>
+        <location filename="../Src/main_window.py" line="67"/>
         <source>监控</source>
         <translation>Monitor</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="66"/>
+        <location filename="../Src/main_window.py" line="68"/>
         <source>管理</source>
         <translation>Manage</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="67"/>
+        <location filename="../Src/main_window.py" line="69"/>
         <source>数据库</source>
         <translation>Database</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="68"/>
+        <location filename="../Src/main_window.py" line="70"/>
         <source>集群</source>
         <translation>Cluster</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="69"/>
+        <location filename="../Src/main_window.py" line="71"/>
         <source>下载</source>
         <translation>Download</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="70"/>
+        <location filename="../Src/main_window.py" line="72"/>
         <source>设置</source>
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="71"/>
+        <location filename="../Src/main_window.py" line="73"/>
         <source>动态</source>
         <translation>Dynamic</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="72"/>
+        <location filename="../Src/main_window.py" line="74"/>
         <source>关于</source>
         <translation>About</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="95"/>
+        <location filename="../Src/main_window.py" line="101"/>
         <source>已应用背景模糊效果和透明样式</source>
         <translation>Background blur and transparent style applied</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="103"/>
+        <location filename="../Src/main_window.py" line="108"/>
+        <source>背景模糊效果未启用，无法移除喵。</source>
+        <translation type="unfinished">Background blur effect is not enabled, cannot remove.</translation>
+    </message>
+    <message>
+        <location filename="../Src/main_window.py" line="117"/>
+        <source>已移除背景模糊效果和透明样式</source>
+        <translation type="unfinished">Background blur effect and transparent style removed</translation>
+    </message>
+    <message>
+        <location filename="../Src/main_window.py" line="122"/>
         <source>尝试注册已存在的 PID: {pid}</source>
         <translation>Attempting to register existing PID: {pid}</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="105"/>
+        <location filename="../Src/main_window.py" line="124"/>
         <source>注册进程 PID: {pid}</source>
         <translation>Registering process PID: {pid}</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="111"/>
+        <location filename="../Src/main_window.py" line="130"/>
         <source>注销进程 PID: {pid}</source>
         <translation>Deregistering process PID: {pid}</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="114"/>
+        <location filename="../Src/main_window.py" line="133"/>
         <source>尝试注销不存在的 PID: {pid}</source>
         <translation>Attempting to deregister non-existent PID: {pid}</translation>
     </message>
     <message>
-        <location filename="../Src/main_window.py" line="120"/>
+        <location filename="../Src/main_window.py" line="139"/>
         <source>无法找到 PID: {pid} 对应的 QProcess 对象</source>
         <translation>Could not find QProcess object for PID: {pid}</translation>
     </message>
@@ -2194,27 +2204,20 @@ Monitor panel will open in read-only mode, unable to send commands.</translation
 <context>
     <name>SettingsTab</name>
     <message>
-        <location filename="../Src/settings_tab.py" line="19"/>
         <source>界面主题:</source>
-        <translation>UI Theme:</translation>
+        <translation type="vanished">UI Theme:</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="21"/>
-        <location filename="../Src/settings_tab.py" line="100"/>
-        <location filename="../Src/settings_tab.py" line="110"/>
         <source>面子工程</source>
-        <translation>Face Engineering</translation>
+        <translation type="vanished">Face Engineering</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="21"/>
-        <location filename="../Src/settings_tab.py" line="100"/>
         <source>Windows原生</source>
-        <translation>Windows Native</translation>
+        <translation type="vanished">Windows Native</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="21"/>
         <source>现代深色</source>
-        <translation>Modern Dark</translation>
+        <translation type="vanished">Modern Dark</translation>
     </message>
     <message>
         <source>显示语言(实现中):</source>
@@ -2223,18 +2226,18 @@ Monitor panel will open in read-only mode, unable to send commands.</translation
     <message>
         <location filename="../Src/settings_tab.py" line="24"/>
         <source>语言:</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Language:</translation>
     </message>
     <message>
         <location filename="../Src/settings_tab.py" line="26"/>
-        <location filename="../Src/settings_tab.py" line="101"/>
+        <location filename="../Src/settings_tab.py" line="102"/>
         <location filename="../Src/settings_tab.py" line="111"/>
         <source>简体中文</source>
         <translation>Simplified Chinese</translation>
     </message>
     <message>
         <location filename="../Src/settings_tab.py" line="26"/>
-        <location filename="../Src/settings_tab.py" line="101"/>
+        <location filename="../Src/settings_tab.py" line="102"/>
         <source>English</source>
         <translation>English</translation>
     </message>
@@ -2245,7 +2248,7 @@ Monitor panel will open in read-only mode, unable to send commands.</translation
     </message>
     <message>
         <location filename="../Src/settings_tab.py" line="30"/>
-        <location filename="../Src/settings_tab.py" line="192"/>
+        <location filename="../Src/settings_tab.py" line="181"/>
         <source>当前版本: {VERSION}</source>
         <translation>Current Version: {VERSION}</translation>
     </message>
@@ -2265,17 +2268,17 @@ Monitor panel will open in read-only mode, unable to send commands.</translation
         <translation>DEBUG: Open Monitor Panel</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="76"/>
+        <location filename="../Src/settings_tab.py" line="77"/>
         <source>配置文件 {CONFIG_FILE} 不存在，将使用默认设置</source>
         <translation>Configuration file {CONFIG_FILE} does not exist, default settings will be used</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="86"/>
+        <location filename="../Src/settings_tab.py" line="87"/>
         <source>加载主题设置 {theme}</source>
         <translation>Loading theme settings {theme}</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="93"/>
+        <location filename="../Src/settings_tab.py" line="94"/>
         <source>加载设置时出错: {e}，将使用默认设置</source>
         <translation>Error loading settings: {e}, default settings will be used</translation>
     </message>
@@ -2300,64 +2303,100 @@ Monitor panel will open in read-only mode, unable to send commands.</translation
         <translation>Error saving settings to {CONFIG_FILE}: {e}</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="151"/>
         <source>应用主题: {theme} </source>
-        <translation>Applying theme: {theme}</translation>
+        <translation type="vanished">Applying theme: {theme}</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="153"/>
         <source>应用主题时出错: {e}</source>
-        <translation>Error applying theme: {e}</translation>
+        <translation type="vanished">Error applying theme: {e}</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="157"/>
+        <location filename="../Src/settings_tab.py" line="146"/>
         <source>开始后台检查更新...</source>
         <translation>Starting background update check...</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="160"/>
+        <location filename="../Src/settings_tab.py" line="149"/>
         <source>更新检查线程已在运行中</source>
         <translation>Update check thread is already running</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="169"/>
+        <location filename="../Src/settings_tab.py" line="158"/>
         <source>发现新版本: {latest_version}！请前往 GitHub 下载</source>
         <translation>New version found: {latest_version}! Please download from GitHub</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="171"/>
+        <location filename="../Src/settings_tab.py" line="160"/>
         <source>检查到新版本: {latest_version}</source>
         <translation>New version detected: {latest_version}</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="174"/>
+        <location filename="../Src/settings_tab.py" line="163"/>
         <source>当前版本: {VERSION} (已是最新)</source>
         <translation>Current version: {VERSION} (latest)</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="175"/>
+        <location filename="../Src/settings_tab.py" line="164"/>
         <source>未发现新版本或检查更新失败</source>
         <translation>No new version found or update check failed</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="184"/>
+        <location filename="../Src/settings_tab.py" line="173"/>
         <source>尝试终止更新检查线程...</source>
         <translation>Attempting to terminate update check thread...</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="188"/>
+        <location filename="../Src/settings_tab.py" line="177"/>
         <source>更新检查线程未能正常退出，将强制终止</source>
         <translation>Update check thread did not exit gracefully, forcing termination</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="193"/>
+        <location filename="../Src/settings_tab.py" line="182"/>
         <source>自动更新已禁用</source>
         <translation>Automatic updates disabled</translation>
     </message>
     <message>
-        <location filename="../Src/settings_tab.py" line="197"/>
+        <location filename="../Src/settings_tab.py" line="186"/>
         <source>打开调试模式的监控面板</source>
         <translation>Open monitor panel in debug mode</translation>
+    </message>
+</context>
+<context>
+    <name>ThemeManager</name>
+    <message>
+        <location filename="../Src/theme_manager.py" line="14"/>
+        <source>界面主题:</source>
+        <translation type="unfinished">UI Theme:</translation>
+    </message>
+    <message>
+        <location filename="../Src/theme_manager.py" line="35"/>
+        <source>加载主题配置文件 {config_file} 时出错: {e}</source>
+        <translation type="unfinished">Error loading theme configuration file {config_file}: {e}</translation>
+    </message>
+    <message>
+        <location filename="../Src/theme_manager.py" line="51"/>
+        <source>加载主题设置 {theme_key}</source>
+        <translation type="unfinished">Loading theme settings {theme_key}</translation>
+    </message>
+    <message>
+        <location filename="../Src/theme_manager.py" line="138"/>
+        <source>应用主题: {theme_key} </source>
+        <translation type="unfinished">Applying theme: {theme_key}</translation>
+    </message>
+    <message>
+        <location filename="../Src/theme_manager.py" line="140"/>
+        <source>应用主题时出错: {e}</source>
+        <translation type="unfinished">Error applying theme: {e}</translation>
+    </message>
+    <message>
+        <location filename="../Src/theme_manager.py" line="159"/>
+        <source>读取配置文件时出错，使用默认主题FaceEngineering: {e}</source>
+        <translation type="unfinished">Error reading configuration file, using default theme FaceEngineering: {e}</translation>
+    </message>
+    <message>
+        <location filename="../Src/theme_manager.py" line="172"/>
+        <source>尝试应用选定主题...</source>
+        <translation type="unfinished">Attempting to apply selected theme...</translation>
     </message>
 </context>
 </TS>

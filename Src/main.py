@@ -49,6 +49,9 @@ def main():
     # 加载翻译
     load_translator(g_app)
 
+    # 初始化 ThemeManager
+    from theme_manager import ThemeManager
+    theme_manager = ThemeManager(g_app.tr)
 
     # 加载字体
     font_family = load_font_async(font_path)
@@ -57,9 +60,12 @@ def main():
     g_app.setFont(font)
 
     # 创建并显示主窗口
-    window = MainWindow()
+    window = MainWindow(theme_manager)
     # 窗口标题和图标现在由 CustomTitleBar 管理
     window.show()
+
+    # 在主窗口显示后，应用初始主题配置喵
+    theme_manager.apply_initial_theme_to_window(window)
 
     # 在显示主窗口后检查更新
     check_for_updates_on_startup()

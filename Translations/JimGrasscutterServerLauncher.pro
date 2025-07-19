@@ -23,5 +23,6 @@ SOURCES = ../Src/about_tab.py \
           ../Src/plugin_manager.py \
           ../Src/port_checker.py \
           ../Src/settings_tab.py \
+          ../Src/theme_manager.py \
           ../Src/title_editor_dialog.py \
           ../Src/update_checker.py

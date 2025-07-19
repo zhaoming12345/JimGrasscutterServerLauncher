@@ -61,7 +61,6 @@ class GitHubActivityThread(QThread):
             actor = event.get('actor', {}).get('display_login', 'Unknown')
 
             summary = f"[{created_at}] {actor} 在 {repo_full_name} 上 "
-
             if event_type == 'PushEvent':
                 commits = event.get('payload', {}).get('commits', [])
                 if commits:
@@ -106,30 +105,23 @@ class ActivityTab(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(10)
-
         repo_selection_layout = QHBoxLayout()
         self.repo_combo_box = QComboBox()
         self.repo_combo_box.currentIndexChanged.connect(self.on_repo_selected)
         repo_selection_layout.addWidget(self.repo_combo_box)
-
         self.select_all_checkbox = QCheckBox(self.tr("全部"))
         self.select_all_checkbox.stateChanged.connect(self.on_select_all_changed)
         repo_selection_layout.addWidget(self.select_all_checkbox)
-
         main_layout.addLayout(repo_selection_layout)
-
         self.info_label = QLabel(self.tr("GitHub仓库最近活动"))
         self.info_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(self.info_label)
-
         self.activity_list_widget = QListWidget()
         self.activity_list_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         main_layout.addWidget(self.activity_list_widget)
-
         self.status_label = QLabel(self.tr("正在加载活动..."))
         self.status_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(self.status_label)
-
         self.setLayout(main_layout)
 
     def load_repo_list(self):
@@ -140,14 +132,12 @@ class ActivityTab(QWidget):
                 with open(repo_list_file, 'r', encoding='utf-8') as f:
                     self.repo_list = json.load(f)
                 logger.info(self.tr(f"从 {repo_list_file} 加载仓库列表成功。"))
-
             if os.path.exists(config_file):
                 with open(config_file, 'r', encoding='utf-8') as f:
                     config_data = json.load(f)
                 github_token = config_data.get('GitHubToken')
                 if github_token:
                     GitHubActivityThread.github_token = github_token
-
             self.repo_combo_box.clear()
             if self.repo_list:
                 for repo in self.repo_list:
@@ -159,7 +149,6 @@ class ActivityTab(QWidget):
                 self.repo_combo_box.addItem(self.tr("无可用仓库"))
                 self.repo_combo_box.setEnabled(False)
                 self.select_all_checkbox.setEnabled(False)
-
         except Exception as e:
             logger.warning(self.tr(f"加载仓库列表或配置时出错: {e}，使用默认值"))
             self.repo_combo_box.addItem(self.tr("加载失败"))
@@ -169,21 +158,14 @@ class ActivityTab(QWidget):
     def fetch_activity(self):
         self.status_label.setText(self.tr("正在加载活动..."))
         self.activity_list_widget.clear()
-
         # 确保之前的线程已终止
-        try:
-            if hasattr(self, '_current_thread') and self._current_thread.isRunning():
-                self._current_thread.quit()
-                self._current_thread.wait()
-        except RuntimeError:
-            # 线程对象已被删除
-            pass
-
+        if hasattr(self, '_current_thread') and self._current_thread.isRunning():
+            self._current_thread.quit()
+            self._current_thread.wait()
         if self.select_all_checkbox.isChecked():
             self._current_thread = GitHubActivityThread(is_all_repos=True, all_repos_list=self.repo_list)
         else:
             self._current_thread = GitHubActivityThread(self.repo_owner, self.repo_name)
-
         self._current_thread.activity_fetched.connect(self.on_activity_fetched)
         self._current_thread.error_occurred.connect(self.on_error_occurred)
         self._current_thread.finished.connect(self._current_thread.deleteLater)

@@ -10,15 +10,17 @@ from download_tab import DownloadTab
 from settings_tab import SettingsTab
 from activity_tab import ActivityTab
 from PyQt5.QtCore import Qt, QProcess
-from fe_core.blur_style import apply_blur_style
+from fe_core.blur_style import apply_blur_style, BLUR_STYLE # 导入 BLUR_STYLE 喵
 from fe_core.custom_title_bar import CustomTitleBar
 from fe_core.background_effect import BackgroundEffect
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QApplication
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, theme_manager):
         super().__init__()
-        self.setStyleSheet("background-color: rgba(255, 255, 255, 0.01);")  # 设置背景透明
+        self.theme_manager = theme_manager # 保存 theme_manager 实例喵
+        self.background_effect = None # 初始化为 None 喵
+
         self.old_pos = None  # 用于窗口拖动
         # 窗口标题和图标将由 CustomTitleBar 管理
         self.setGeometry(0, 0, 1280, 720)
@@ -50,7 +52,7 @@ class MainWindow(QMainWindow):
         self.monitor_tab = MonitorTab()
         self.manage_tab = ManageTab()
         self.download_tab = DownloadTab()
-        self.settings_tab = SettingsTab()
+        self.settings_tab = SettingsTab(self)
         self.cluster_tab = ClusterTab()
         self.database_tab = DatabaseTab()
         self.activity_tab = ActivityTab() # 新增活动选项卡
@@ -83,19 +85,36 @@ class MainWindow(QMainWindow):
         # 创建中央部件并设置布局
         central_widget = QWidget()
         # 设置背景面板样式，确保鼠标事件不会穿透
-        central_widget.setStyleSheet("background-color: rgba(255, 255, 255, 0.01); opacity: 0;")  # 完全透明但可捕获鼠标事件
+
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
-        # 应用高斯模糊透明样式
-        apply_blur_style(self)
-
-        # 应用背景模糊效果
-        self.background_effect = BackgroundEffect(self)
-        logger.info(self.tr("已应用背景模糊效果和透明样式"))
-
         # 安装事件过滤器，捕获所有鼠标事件
         self.installEventFilter(self)
+
+    def apply_theme_effects(self, theme_config):
+        enable_blur = theme_config.get('enable_blur', False)
+        if enable_blur:
+            apply_blur_style(self)
+            if not self.background_effect:
+                self.background_effect = BackgroundEffect(self)
+            logger.info(self.tr("已应用背景模糊效果和透明样式"))
+        else:
+            # 如果不启用模糊，则移除模糊效果喵
+            if self.background_effect:
+                self.background_effect.remove_effect()
+                self.background_effect = None
+            else:
+                logger.warning(self.tr("背景模糊效果未启用，无法移除喵。"))
+            # 移除样式表中的模糊样式喵
+            current_style_sheet = self.styleSheet()
+            # 简单粗暴地移除 BLUR_STYLE 中可能包含的样式，这里需要更精确的移除方式喵
+            # 暂时先这样处理，后续可以优化喵
+            for style_line in BLUR_STYLE.split(';'):
+                if style_line.strip():
+                    current_style_sheet = current_style_sheet.replace(style_line.strip(), '')
+            self.setStyleSheet(current_style_sheet)
+            logger.info(self.tr("已移除背景模糊效果和透明样式"))
 
     # 注册 QProcess 对象
     def register_process(self, pid: int, process: QProcess):

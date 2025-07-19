@@ -3,6 +3,7 @@ import json
 from loguru import logger
 from monitor_tab import MonitorPanel
 from fe_core.blur_style import BLUR_STYLE
+from theme_manager import ThemeManager
 from update_checker import UpdateCheckThread, VERSION
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QCheckBox, QComboBox, QLabel,
@@ -12,13 +13,12 @@ from PyQt5.QtWidgets import (
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Config', 'config.json')
 
 class SettingsTab(QWidget):
-    def __init__(self):
+    def __init__(self, main_window_instance):
         super().__init__()
 
-        # 主题设置
-        self.theme_label = QLabel(self.tr("界面主题:"))
-        self.theme_combo = QComboBox()
-        self.theme_combo.addItems([self.tr('面子工程'), self.tr('Windows原生'), self.tr('现代深色')])
+        self.theme_manager = ThemeManager(self.tr)
+        self.theme_manager.apply_initial_theme_to_window(main_window_instance)
+        self.theme_label, self.theme_combo = self.theme_manager.get_theme_widgets()
 
         # 语言设置
         self.lang_label = QLabel(self.tr("语言:"))
@@ -47,8 +47,9 @@ class SettingsTab(QWidget):
 
         layout = QVBoxLayout()
         layout.setSpacing(20)
-        layout.addWidget(self.theme_label)
-        layout.addWidget(self.theme_combo)
+        theme_label, theme_combo = self.theme_manager.get_theme_widgets()
+        layout.addWidget(theme_label)
+        layout.addWidget(theme_combo)
         layout.addWidget(self.lang_label)
         layout.addWidget(self.lang_combo)
         layout.addWidget(self.auto_update)
@@ -74,7 +75,7 @@ class SettingsTab(QWidget):
         try:
             if not os.path.exists(CONFIG_FILE):
                 logger.warning(self.tr(f'配置文件 {CONFIG_FILE} 不存在，将使用默认设置'))
-                theme = 'fe'
+                theme = 'FaceEngineering'
                 lang = 'zh_CN'
                 auto_update = True
                 max_log_lines = 100
@@ -82,7 +83,7 @@ class SettingsTab(QWidget):
                 with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
                     config_data = json.load(f)
 
-                theme = config_data.get('Theme', 'fe')
+                theme = config_data.get('Theme', 'FaceEngineering')
                 logger.debug(self.tr(f'加载主题设置 {theme}'))
                 lang = config_data.get('Language', 'zh_CN')
                 auto_update = config_data.get('AutoUpdate', True)
@@ -91,23 +92,22 @@ class SettingsTab(QWidget):
 
         except (FileNotFoundError, json.JSONDecodeError, Exception) as e:
             logger.error(self.tr(f'加载设置时出错: {e}，将使用默认设置'))
-            theme = 'fe'
+            theme = 'FaceEngineering'
             lang = 'zh_CN'
             auto_update = True
             max_log_lines = 100
             self.max_log_spin.setValue(max_log_lines)
 
-        self.theme_combo.setCurrentText(self.tr('面子工程') if theme == 'fe' else self.tr('Windows原生'))
+        theme = self.theme_manager.load_theme_setting(config_data)
         self.lang_combo.setCurrentText(self.tr('简体中文') if lang == 'zh_CN' else self.tr('English'))
         self.auto_update.setChecked(auto_update)
-        self._apply_theme(theme)
 
         # 如果启用了自动更新，就在加载设置后启动检查
         if auto_update:
             self.run_update_check()
 
     def save_settings(self):
-        theme = 'fe' if self.theme_combo.currentText() == self.tr('面子工程') else 'light'
+        theme = self.theme_manager.save_theme_setting()
         lang = 'zh_CN' if self.lang_combo.currentText() == self.tr('简体中文') else 'en_US'
         auto_update = self.auto_update.isChecked()
         max_log_lines = self.max_log_spin.value()
@@ -139,18 +139,7 @@ class SettingsTab(QWidget):
             logger.error(self.tr(f'保存设置到 {CONFIG_FILE} 时出错: {e}'))
             return
 
-        self._apply_theme(theme)
-
-    def _apply_theme(self, theme):
-        """Helper function to apply theme."""
-        try:
-            if theme == 'fe':
-                self.window().setStyleSheet(BLUR_STYLE) # 应用自定义的粉紫渐变主题
-            else:
-                self.window().setStyleSheet('')
-            logger.debug(self.tr(f'应用主题: {theme} '))
-        except Exception as e:
-            logger.error(self.tr(f'应用主题时出错: {e}'))
+        self.theme_manager.apply_theme_from_settings(theme)
 
     # 启动更新检查线程
     def run_update_check(self):
