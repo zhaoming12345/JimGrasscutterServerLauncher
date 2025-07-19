@@ -12,9 +12,7 @@ DownloadTemp:JGSL的下载缓存目录(JGSL下载文件时会先下载到这个�
 
 Java:公共Java环境(Java\版本号\*)
 
-Src:JGSL的代码文件
-
-Translations:JGSL的翻译文件(Translations\语言代码.json)
+keystore:公共证书文件目录(所有Grasscutter实例共享同一个证书文件，用于Grasscutter的https加密连接功能)
 
 Logs:JGSL的日志文件(Logs\JGSL.log)
 
@@ -34,6 +32,10 @@ Server\实例名称\logs\latest.log:Grasscutter实例的日志文件
 
 Server\实例名称\JGSL\:Grasscutter实例中的JGSL文件目录(包含实例信息和配置)
 
-keystore:公共证书文件目录(所有Grasscutter实例共享同一个证书文件，用于Grasscutter的https加密连接功能)
+Src:JGSL的代码文件
+
+Themes:JGSL的主题文件目录(包含JGSL的主题文件)
+
+Translations:JGSL的翻译文件(Translations\语言代码.json)
 
 Web:公共网页目录(所有Grasscutter实例共享同一个网页目录，用于Grasscutter的网页功能)
