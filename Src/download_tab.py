@@ -195,7 +195,7 @@ class DownloadTab(QWidget):
                 for category_data in actual_categories_list:
                     # 检查分类数据是否为字典，并且是否包含 'name' 和 'items' 键
                     if not isinstance(category_data, dict) or 'name' not in category_data or 'items' not in category_data:
-                        self.logger.warning(self.tr(f"跳过无效的分类数据或缺少必要字段（需要 'name' 和 'items'）: {category_data}"))
+                        self.logger.warning(self.tr(f"跳过无效的分类数据或缺少必要字段(需要 'name' 和 'items'): {category_data}"))
                         continue
 
                     category_name = category_data['name'] # 使用 'name' 键获取分类名称
@@ -460,7 +460,7 @@ class DownloadTab(QWidget):
             finished_thread = None
             for thread, (item_name, path) in list(self.download_queue.items()): # 使用list迭代以允许修改
                 if not thread.isRunning(): # 找到第一个非运行线程
-                    # 无法直接通过msg（如 'Error:权限不足'）关联到特定path
+                    # 无法直接通过msg(如 'Error:权限不足')关联到特定path
                     # 因此，如果发生错误，我们可能需要更智能地清理，或者接受可能清理错误的线程
                     self.logger.warning(f'下载线程 {item_name} 可能已出错并停止。')
                     finished_thread = thread

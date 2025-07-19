@@ -23,23 +23,22 @@
 /Java/*
 /DownloadTemp/*
 /Database/*
-/Config/*
 /参考/*
+/.vscode/*
+/.DS_Store
+
+# 排除以下文件
+/Config/cluster-list.json
+/Config/config.json
 
 # 但是保留目录结构
 !/Web/.gitkeep
 !/Servers/.gitkeep
 !/Logs/.gitkeep
-!/Language/.gitkeep
 !/keystore/.gitkeep
 !/Java/.gitkeep
 !/DownloadTemp/.gitkeep
 !/Database/.gitkeep
-!/Config/.gitkeep
-
-# 保留文件
-!/Config/download-list.json
-!/Config/mirror-list.json
 
 # 保留以下目录
 !/Src/

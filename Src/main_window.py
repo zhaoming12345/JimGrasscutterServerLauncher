@@ -8,6 +8,7 @@ from cluster_tab import ClusterTab
 from database_tab import DatabaseTab
 from download_tab import DownloadTab
 from settings_tab import SettingsTab
+from activity_tab import ActivityTab
 from PyQt5.QtCore import Qt, QProcess
 from fe_core.blur_style import apply_blur_style
 from fe_core.custom_title_bar import CustomTitleBar
@@ -20,7 +21,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: rgba(255, 255, 255, 0.01);")  # 设置背景透明
         self.old_pos = None  # 用于窗口拖动
         # 窗口标题和图标将由 CustomTitleBar 管理
-        self.setGeometry(0, 0, 760, 600)
+        self.setGeometry(0, 0, 1280, 720)
         self.setMinimumSize(495, 495)  # 设置最小窗口尺寸
 
         # 设置窗口属性以支持透明和模糊效果
@@ -52,6 +53,7 @@ class MainWindow(QMainWindow):
         self.settings_tab = SettingsTab()
         self.cluster_tab = ClusterTab()
         self.database_tab = DatabaseTab()
+        self.activity_tab = ActivityTab() # 新增活动选项卡
         self.about_tab = AboutTab()
 
         # 连接 LaunchTab 的信号到 MainWindow 的方法
@@ -66,6 +68,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.cluster_tab, self.tr('集群'))
         self.tabs.addTab(self.download_tab, self.tr('下载'))
         self.tabs.addTab(self.settings_tab, self.tr('设置'))
+        self.tabs.addTab(self.activity_tab, self.tr('动态'))
         self.tabs.addTab(self.about_tab, self.tr('关于'))
 
         # 创建主布局
@@ -142,6 +145,8 @@ class MainWindow(QMainWindow):
             current_tab.scan_running_instances()
         elif isinstance(current_tab, ManageTab):
             current_tab.refresh_server_list()
+        elif isinstance(current_tab, ActivityTab):
+            current_tab.on_tab_selected()
 
     def paintEvent(self, event):
         """

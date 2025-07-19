@@ -294,8 +294,8 @@ class DatabaseEditorDialog(QDialog):
             }
         """)
         
-        # 仅当选中了字段值（第二列有文本）或者该项代表一个可直接复制的父级项（如_id）时，才显示复制值
-        # 并且确保不是顶层的文档ID项（它没有父项，或者父项是根）
+        # 仅当选中了字段值(第二列有文本)或者该项代表一个可直接复制的父级项(如_id)时，才显示复制值
+        # 并且确保不是顶层的文档ID项(它没有父项，或者父项是根)
         is_value_node = bool(item.text(1)) 
         is_document_id_node = item.text(0).startswith("_id:") and not item.parent()
 
@@ -304,7 +304,7 @@ class DatabaseEditorDialog(QDialog):
             copy_value_action.triggered.connect(lambda: self.copy_item_value(item))
             menu.addAction(copy_value_action)
 
-        # "修改值"选项，仅当它是叶子节点（有值）且不是_id字段时
+        # "修改值"选项，仅当它是叶子节点(有值)且不是_id字段时
         if is_value_node and not item.text(0).lower() == '_id' and not item.text(0).startswith("_id:") :
             # 确保不是数组/对象节点本身，而是其下的具体值节点
             # 通常，有值的节点其第一列是字段名，第二列是值
@@ -380,7 +380,7 @@ class DatabaseEditorDialog(QDialog):
         temp_item = item
         while temp_item and temp_item.parent(): # 排除最顶层的文档ID项
             field_name_or_index = temp_item.data(1, Qt.UserRole) # 优先使用存储的字段名
-            if field_name_or_index is None: # 备用方案，从文本获取（可能不准确，特别是对于复杂嵌套）
+            if field_name_or_index is None: # 备用方案，从文本获取(可能不准确，特别是对于复杂嵌套)
                 field_name_or_index = temp_item.text(0)
                 if field_name_or_index.startswith("[") and field_name_or_index.endswith("]"):
                     try:
@@ -389,7 +389,7 @@ class DatabaseEditorDialog(QDialog):
                         pass #保持字符串形式
             
             if field_name_or_index is not None:
-                 # 检查是否已经是完整的路径（针对数组元素）
+                 # 检查是否已经是完整的路径(针对数组元素)
                 if isinstance(field_name_or_index, str) and '.' in field_name_or_index:
                     field_path_parts = field_name_or_index.split('.') + field_path_parts
                     # 如果是这种情况，通常意味着我们已经得到了从父级传递下来的完整路径的一部分
@@ -404,7 +404,7 @@ class DatabaseEditorDialog(QDialog):
             if temp_item and temp_item.text(0).startswith("_id:") and not temp_item.parent():
                 break
         
-        # 清理和修正路径，移除最顶层的文档ID部分（如果误包含）
+        # 清理和修正路径，移除最顶层的文档ID部分(如果误包含)
         # 并且移除重复的路径部分
         # 这里的路径构建逻辑比较复杂，需要确保准确性
         # 重新思考路径构建：我们只需要从当前修改的 item 向上找到其在文档结构中的路径
@@ -515,7 +515,7 @@ class DatabaseEditorDialog(QDialog):
                 # 对于数字类型，QInputDialog已经返回了正确的类型
                 # 对于布尔类型，也已处理
                 # 对于字符串，直接使用
-                # 如果原始类型是其他（如ObjectId，Date等），这里可能需要更复杂的处理
+                # 如果原始类型是其他(如ObjectId，Date等)，这里可能需要更复杂的处理
                 # 目前，我们假设MongoDB驱动能处理好Python类型到BSON类型的转换
                 value_to_set = new_value_str 
                 if isinstance(original_value, (int, float, bool)) and not isinstance(new_value_str, type(original_value)):
@@ -653,7 +653,7 @@ class DatabaseEditorDialog(QDialog):
                 updated_doc_data = json.loads(doc_content)
                 # _id 字段通常不允许直接修改，如果用户修改了，需要提醒或处理
                 if '_id' in updated_doc_data and updated_doc_data['_id'] != doc_id:
-                    # 实际应用中，MongoDB不允许直接修改_id，这里我们替换整个文档（除了_id）
+                    # 实际应用中，MongoDB不允许直接修改_id，这里我们替换整个文档(除了_id)
                     # 或者，如果允许修改_id，则需要先删除旧文档，再插入新文档，但这通常不推荐
                     QMessageBox.warning(self, "警告", "文档的 _id 字段不应被修改。如需更改，请删除后重新添加。")
                     # 恢复原始_id，避免尝试修改它
@@ -734,7 +734,7 @@ class DatabaseEditorDialog(QDialog):
             msg_box.exec_()
             return
 
-        # 获取顶层项（文档项）
+        # 获取顶层项(文档项)
         doc_item = selected_items[0]
         while doc_item.parent():
             doc_item = doc_item.parent()
@@ -752,7 +752,7 @@ class DatabaseEditorDialog(QDialog):
 
         doc_id_str = doc_id_text.split(":", 1)[1].strip()
         try:
-            # 尝试将ID字符串转换为ObjectId（如果是）
+            # 尝试将ID字符串转换为ObjectId(如果是)
             try:
                 doc_id = ObjectId(doc_id_str)
             except:

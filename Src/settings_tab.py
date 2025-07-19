@@ -21,7 +21,7 @@ class SettingsTab(QWidget):
         self.theme_combo.addItems([self.tr('面子工程'), self.tr('Windows原生'), self.tr('现代深色')])
 
         # 语言设置
-        self.lang_label = QLabel(self.tr("显示语言(实现中):"))
+        self.lang_label = QLabel(self.tr("语言:"))
         self.lang_combo = QComboBox()
         self.lang_combo.addItems([self.tr('简体中文'), self.tr('English')])
 

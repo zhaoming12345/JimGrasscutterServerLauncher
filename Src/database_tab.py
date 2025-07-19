@@ -133,7 +133,7 @@ class DatabaseTab(QWidget):
             logger.info(self.tr("用户取消了导入数据库操作"))
             return
             
-        # 确认是否继续导入（会覆盖现有数据）
+        # 确认是否继续导入(会覆盖现有数据)
         reply = QMessageBox.question(self, self.tr("确认导入"), self.tr("导入操作将覆盖现有数据库，是否继续"), 
                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.No:
@@ -141,10 +141,10 @@ class DatabaseTab(QWidget):
             return
             
         try:
-            # 停止MongoDB服务（如果正在运行）
+            # 停止MongoDB服务(如果正在运行)
             self.stop_database_service()
             
-            # 备份当前数据库（如果存在）
+            # 备份当前数据库(如果存在)
             if os.path.exists(database_path) and os.path.isdir(database_path) and os.listdir(database_path):
                 backup_dir = os.path.join(os.getcwd(), "Database", "Backup_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
                 logger.info(self.tr(f"备份当前数据库到 {backup_dir}"))

@@ -2,6 +2,7 @@ TRANSLATIONS = JimGrasscutterServerLauncher_zh_CN.ts \
                JimGrasscutterServerLauncher_en_US.ts
 
 SOURCES = ../Src/about_tab.py \
+          ../Src/activity_tab.py \
           ../Src/cluster_tab.py \
           ../Src/config_editor.py \
           ../Src/database_editor_dialog.py \
